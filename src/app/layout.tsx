@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import TanstackProvider from "./providers";
+import '@fontsource-variable/jetbrains-mono';
+import '@fontsource-variable/fraunces';
+import '@fontsource-variable/plus-jakarta-sans';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
