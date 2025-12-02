@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { decrement, increment } from "@/features/counter/counterSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Page() {
   const count = useAppSelector((state) => state.counter.value);
@@ -10,13 +11,14 @@ export default function Page() {
 
   return (
     <>
-      <div className="flex justify-around mt-2 bg-gray-950 h-screen">
+      <div className="flex justify-around mt-2 bg-gray-950 h-[50vh]">
         <Image
           src="./logo.svg"
           alt="Tribel"
           height={50}
           width={50}
           loading="eager"
+          priority
         />
         <h1 className="text-5xl text-stone-400 font-extrabold">
           Welcome to Zappotel
@@ -28,6 +30,22 @@ export default function Page() {
         <Button variant="outline" onClick={() => dispatch(decrement())}>
           Click here to reduce
         </Button>
+        
+        
+      </div>
+      
+      <div className="flex justify-around">
+        <Link href="/login">
+          <Button variant="outline">Login</Button>
+        </Link>
+        
+        <Link href="/private">
+          <Button variant="secondary">Private</Button>
+        </Link>
+        
+        <Link href="/logout">
+          <Button variant="destructive">Logout</Button>
+        </Link>
       </div>
 
     </>
