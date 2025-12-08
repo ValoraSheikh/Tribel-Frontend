@@ -9,12 +9,11 @@ export const requireAuth = async () => {
       cookie,
     },
   });
-  console.log("Look here: ", res.data.isAuthenticated);
-  if (!res.data.isAuthenticated || !res.data.user) redirect("/login");
+  if (!res.data.isAuthenticated || !res.data.user) redirect("/");
 
   return res.data.user;
 };
 
-export const requireLogout = async() => {
-  return redirect("/http://localhost:3000/logout")
+export const requireLogout = () => {
+  return redirect("http://localhost:3000/logout")
 }
