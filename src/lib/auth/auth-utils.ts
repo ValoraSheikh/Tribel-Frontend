@@ -14,6 +14,18 @@ export const requireAuth = async () => {
   return res.data.user;
 };
 
+export const requireSession = async () => {
+  const cookie = (await headers()).get("cookie");
+  const res = await axios.get("http://localhost:3000/profile", {
+    headers: {
+      cookie,
+    },
+  });
+  if (!res.data.isAuthenticated || !res.data.user) return null;
+
+  return res.data.user;
+}
+
 export const requireLogout = () => {
   return redirect("http://localhost:3000/logout")
 }

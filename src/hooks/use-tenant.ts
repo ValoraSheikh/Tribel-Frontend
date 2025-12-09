@@ -1,0 +1,84 @@
+"use client";
+import { tenantApi, TenantProps } from "@/lib/api/tenant.api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+
+export const USE_TENANT_QUERY_KEY = ["tenant"] as const;
+
+export const useTenant = () => {
+  return useQuery({
+    queryKey: USE_TENANT_QUERY_KEY,
+    queryFn: tenantApi.getTenant,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+export const useUpdateTenant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: tenantApi.updateTenant,
+    onMutate: (newData) => {
+      queryClient.cancelQueries({ queryKey: USE_TENANT_QUERY_KEY });
+      const previousTenant =
+        queryClient.getQueryData<TenantProps>(USE_TENANT_QUERY_KEY);
+
+      if (previousTenant) {
+        queryClient.setQueryData<TenantProps>(USE_TENANT_QUERY_KEY, {
+          ...previousTenant,
+          ...newData,
+        });
+      }
+
+      return {
+        previousTenant,
+      };
+    },
+
+    onSuccess: (updateTenant) => {
+      if (updateTenant) {
+        queryClient.setQueryData<TenantProps>(
+          USE_TENANT_QUERY_KEY,
+          updateTenant,
+        );
+      }
+      toast.success("Tenant Updated successfully");
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: USE_TENANT_QUERY_KEY });
+    },
+
+    onError: (err, newData, context) => {
+      if (context?.previousTenant) {
+        queryClient.setQueryData<TenantProps>(
+          USE_TENANT_QUERY_KEY,
+          context.previousTenant,
+        );
+      }
+      toast.error("Failed to update Tenant");
+    },
+  });
+};
+
+export const useCreateTenant = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: tenantApi.createTenant,
+    onSuccess: (createTenant) => {
+      if (createTenant) {
+        queryClient.setQueryData<TenantProps>(
+          USE_TENANT_QUERY_KEY,
+          createTenant,
+        );
+      }
+      queryClient.invalidateQueries({ queryKey: USE_TENANT_QUERY_KEY });
+
+      toast.success("Tenant created successfully");
+    },
+    onError: () => {
+      toast.error("Failed to create tenant");
+    },
+  });
+};

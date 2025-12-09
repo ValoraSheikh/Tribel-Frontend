@@ -11,6 +11,7 @@ export const useProfile = () => {
     queryKey: USE_QUERY_KEY,
     queryFn: userApi.getProfile,
     staleTime: 5 * 60 * 1000, // 5 mins
+
   });
 };
 

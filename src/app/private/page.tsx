@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/auth-utils";
+import { requireAuth } from "@/lib/auth/auth-utils";
 
 const ComponentName = async () => {
   const session = await requireAuth();
