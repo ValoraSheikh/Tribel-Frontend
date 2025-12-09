@@ -1,14 +1,19 @@
-import Footer from "@/components/footer";
-import { Navbar } from "@/components/navbar";
-import { requireAuth } from "@/lib/auth-utils";
+import { AppHeader } from "@/components/app-header";
+import { AppSidebar } from "@/components/app-siidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { requireAuth } from "@/lib/auth/auth-utils";
 
-const Layout = async({ children }: { children: React.ReactNode }) => {
-  const session = await requireAuth()
+const Layout = async ({ children }: { children: React.ReactNode }) => {
+  await requireAuth();
   return (
     <>
-      <Navbar session={session} />
-      {children}
-      <Footer />
+      <SidebarProvider>
+        <AppSidebar />
+        <div className="flex flex-col h-full w-full">
+          <AppHeader />
+          <main className="flex-1">{children}</main>
+        </div>
+      </SidebarProvider>
     </>
   );
 };

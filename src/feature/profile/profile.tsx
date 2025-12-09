@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -42,7 +41,7 @@ const Profile = () => {
                   aria-label="Edit profile"
                   className="p-2 hover:rounded hover:bg-muted"
                 >
-              <EditProfile user={user} />
+              <EditProfile />
                 </button>
               </div>
             </div>

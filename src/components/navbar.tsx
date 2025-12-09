@@ -35,6 +35,10 @@ interface MenuItem {
 }
 
 interface Navbar1Props {
+  tenant: {
+    id: string;
+    userId: string;
+  };
   session: {
     given_name: string;
     family_name: string;
@@ -63,6 +67,7 @@ interface Navbar1Props {
 
 const Navbar = async ({
   session,
+  tenant,
   logo = {
     url: "/",
     src: "./logoname.svg",
@@ -113,7 +118,6 @@ const Navbar = async ({
     signup: { title: "Become a host", url: "createTenant" },
   },
 }: Navbar1Props) => {
-
   return (
     <section className="py-4">
       <div className="container">
@@ -139,9 +143,15 @@ const Navbar = async ({
             </div>
           </div>
           <div className="flex gap-2">
-            <Button variant="link" asChild>
-              <Link href={auth.signup.url}>{auth.signup.title}</Link>
-            </Button>
+            {tenant ? (
+              <Button asChild variant="outline">
+                <Link href="/main">Go to Dashboard</Link>
+              </Button>
+            ) : (
+              <Button variant="link" asChild>
+                <Link href={auth.signup.url}>{auth.signup.title}</Link>
+              </Button>
+            )}
             {session ? (
               <>
                 <AvatarImg avatar={session.picture} />
