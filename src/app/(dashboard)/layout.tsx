@@ -11,7 +11,9 @@ const Layout = async ({ children }: { children: React.ReactNode }) => {
         <AppSidebar />
         <div className="flex flex-col h-full w-full">
           <AppHeader />
-          <main className="flex-1">{children}</main>
+          <main className="flex-1">
+            {children}
+          </main>
         </div>
       </SidebarProvider>
     </>

@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { decrement, increment } from "@/features/counter/counterSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
+import { decrement, increment } from "@/toolkit/counter/counterSlice";
 import Image from "next/image";
 import Link from "next/link";
 

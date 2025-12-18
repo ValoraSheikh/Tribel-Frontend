@@ -5,6 +5,7 @@ import TanstackProvider from "./providers";
 import "@fontsource-variable/jetbrains-mono";
 import "@fontsource-variable/fraunces";
 import "@fontsource-variable/plus-jakarta-sans";
+import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
@@ -33,7 +34,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <TanstackProvider>
-          {children} <Toaster />
+          <NuqsAdapter>
+          {children}
+
+          </NuqsAdapter>
+          <Toaster />
         </TanstackProvider>
       </body>
     </html>

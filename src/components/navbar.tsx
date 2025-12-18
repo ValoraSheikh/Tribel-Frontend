@@ -1,4 +1,4 @@
-import { Book, Menu, Sunset, Trees, Zap } from "lucide-react";
+import { Menu } from "lucide-react";
 
 import {
   Accordion,
@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/sheet";
 import Image from "next/image";
 import Link from "next/link";
-import AvatarImg from "@/feature/profile/avatar";
+import AvatarImg from "@/features/profile/components/avatar"
 
 interface MenuItem {
   title: string;
@@ -207,9 +207,15 @@ const Navbar = async ({
                   </Accordion>
 
                   <div className="flex flex-col gap-3">
-                    <Button variant="link" asChild>
-                      <Link href={auth.signup.url}>{auth.signup.title}</Link>
-                    </Button>
+                    {tenant ? (
+                      <Button asChild variant="outline">
+                        <Link href="/main">Go to Dashboard</Link>
+                      </Button>
+                    ) : (
+                      <Button variant="link" asChild>
+                        <Link href={auth.signup.url}>{auth.signup.title}</Link>
+                      </Button>
+                    )}
                     {session ? (
                       <>
                         <AvatarImg avatar={session.picture} />

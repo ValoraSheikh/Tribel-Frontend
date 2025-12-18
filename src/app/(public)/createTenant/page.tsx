@@ -1,11 +1,8 @@
-import { TenantForm } from '@/feature/tenant/create-tenant';
-import * as React from 'react';
-
+import { TenantForm } from "@/features/tenant/components/create-tenant";
 
 const Page = () => {
-  
   return (
-    <div className='flex items-center justify-center min-h-screen my-6'>
+    <div className="flex items-center justify-center min-h-screen my-6">
       <TenantForm />
     </div>
   );

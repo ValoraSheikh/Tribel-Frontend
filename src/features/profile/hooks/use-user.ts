@@ -1,8 +1,8 @@
 "use client";
 
-import { userApi, UserProps } from "@/lib/api/user.api";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { userApi, UserProps } from "../api/user.api";
 
 export const USE_QUERY_KEY = ["user", "profile"] as const;
 
@@ -11,7 +11,6 @@ export const useProfile = () => {
     queryKey: USE_QUERY_KEY,
     queryFn: userApi.getProfile,
     staleTime: 5 * 60 * 1000, // 5 mins
-
   });
 };
 

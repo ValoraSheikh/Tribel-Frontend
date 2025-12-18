@@ -20,7 +20,6 @@ import {
   FieldContent,
   FieldDescription,
   FieldError,
-  FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
@@ -34,11 +33,10 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateTenant } from "@/hooks/use-tenant";
+import { useCreateTenant } from "../hooks/use-tenant";
 
 const formSchema = z.object({
   name: z
@@ -115,40 +113,52 @@ export function TenantForm() {
   }
 
   return (
-    <Card className="w-full sm:max-w-md">
+    <Card className="w-full max-w-2xl mx-auto border shadow-sm">
       <CardHeader>
-        <CardTitle>Create your Tenant here</CardTitle>
+        <CardTitle className="text-xl font-semibold">Create your Tenant</CardTitle>
         <CardDescription>
-          You can fill the following coloumns to create your tenant
+          Fill in the details below to configure your new tenant environment.
         </CardDescription>
       </CardHeader>
+      
       <CardContent>
         <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
-          <FieldGroup>
-            <Controller
-              name="name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="tenant-title">Tenant Title</FieldLabel>
-                  <Input
-                    {...field}
-                    id="tenant-title"
-                    aria-invalid={fieldState.invalid}
-                    placeholder="Enter your tenant name here"
-                    autoComplete="off"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+          {/* GRID SYSTEM: 
+             - Mobile: 1 column (stack)
+             - Tablet/Desktop (md): 2 columns 
+          */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* ROW 1: Name (Full Width) */}
+            <div className="col-span-1 md:col-span-2">
+              <Controller
+                name="name"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                    <FieldLabel htmlFor="tenant-title">Tenant Title</FieldLabel>
+                    <Input
+                      {...field}
+                      id="tenant-title"
+                      aria-invalid={fieldState.invalid}
+                      placeholder="Enter your tenant name here"
+                      autoComplete="off"
+                      className="w-full"
+                    />
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
+    
+            {/* ROW 2: Slug & Profile (Side by Side on Desktop) */}
             <Controller
               name="slug"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
+                <Field data-invalid={fieldState.invalid} className="space-y-1.5">
                   <FieldLabel htmlFor="slug">Slug Title</FieldLabel>
                   <Input
                     {...field}
@@ -156,6 +166,7 @@ export function TenantForm() {
                     aria-invalid={fieldState.invalid}
                     placeholder="Slug name here"
                     autoComplete="off"
+                    className="w-full"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -163,18 +174,20 @@ export function TenantForm() {
                 </Field>
               )}
             />
+    
             <Controller
               name="profile"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="slug">Profile URL</FieldLabel>
+                <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                  <FieldLabel htmlFor="profile">Profile URL</FieldLabel>
                   <Input
                     {...field}
                     id="profile"
                     aria-invalid={fieldState.invalid}
                     placeholder="Profile url here"
                     autoComplete="off"
+                    className="w-full"
                   />
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
@@ -182,6 +195,8 @@ export function TenantForm() {
                 </Field>
               )}
             />
+    
+            {/* ROW 3: Currency & Timezone (Side by Side on Desktop) */}
             <Controller
               name="currency"
               control={form.control}
@@ -189,11 +204,13 @@ export function TenantForm() {
                 <Field
                   orientation="responsive"
                   data-invalid={fieldState.invalid}
+                  className="space-y-1.5"
                 >
                   <FieldContent>
-                    <FieldLabel htmlFor="currency">Your Currency</FieldLabel>
-                    <FieldDescription>
-                      Select currency that you are using
+                    <FieldLabel htmlFor="currency">Currency</FieldLabel>
+                    {/* Hidden description on mobile to save space, visible if needed */}
+                    <FieldDescription className="sr-only md:not-sr-only text-xs">
+                      Select your billing currency
                     </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -207,13 +224,11 @@ export function TenantForm() {
                     <SelectTrigger
                       id="currency"
                       aria-invalid={fieldState.invalid}
-                      className="min-w-[120px]"
+                      className="w-full"
                     >
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent position="item-aligned">
-                      <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
-                      <SelectSeparator />
                       {currencies.map((language) => (
                         <SelectItem key={language.value} value={language.value}>
                           {language.label}
@@ -224,6 +239,7 @@ export function TenantForm() {
                 </Field>
               )}
             />
+    
             <Controller
               name="timezone"
               control={form.control}
@@ -231,11 +247,12 @@ export function TenantForm() {
                 <Field
                   orientation="responsive"
                   data-invalid={fieldState.invalid}
+                  className="space-y-1.5"
                 >
                   <FieldContent>
-                    <FieldLabel htmlFor="timezone">Your Timezone</FieldLabel>
-                    <FieldDescription>
-                      Select timezone that you are in
+                    <FieldLabel htmlFor="timezone">Timezone</FieldLabel>
+                    <FieldDescription className="sr-only md:not-sr-only text-xs">
+                      Select your local timezone
                     </FieldDescription>
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -249,15 +266,11 @@ export function TenantForm() {
                     <SelectTrigger
                       id="timezone"
                       aria-invalid={fieldState.invalid}
-                      className="min-w-[120px]"
+                      className="w-full"
                     >
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent position="item-aligned">
-                      <SelectItem value="Asia/Kolkata">
-                        India Standard Time (IST)
-                      </SelectItem>
-                      <SelectSeparator />
                       {timezones.map((language) => (
                         <SelectItem key={language.value} value={language.value}>
                           {language.label}
@@ -268,55 +281,63 @@ export function TenantForm() {
                 </Field>
               )}
             />
-            <Controller
-              name="description"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="form-rhf-demo-description">
-                    Description
-                  </FieldLabel>
-                  <InputGroup>
-                    <InputGroupTextarea
-                      {...field}
-                      id="form-rhf-demo-description"
-                      placeholder="Introduce yourself and your hosting experience. Who are you, what do you manage, and what can guests expect?"
-                      rows={6}
-                      className="min-h-24 resize-none"
-                      aria-invalid={fieldState.invalid}
-                    />
-                    <InputGroupAddon align="block-end">
-                      <InputGroupText className="tabular-nums">
-                        {field.value?.length}/100 characters
-                      </InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                  <FieldDescription>
-                    Share details about yourself as a host and your approach to
-                    managing properties.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </FieldGroup>
+    
+            {/* ROW 4: Description (Full Width) */}
+            <div className="col-span-1 md:col-span-2">
+              <Controller
+                name="description"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                    <FieldLabel htmlFor="form-rhf-demo-description">
+                      Description
+                    </FieldLabel>
+                    <InputGroup className="w-full">
+                      <InputGroupTextarea
+                        {...field}
+                        id="form-rhf-demo-description"
+                        placeholder="Introduce yourself and your hosting experience..."
+                        rows={4}
+                        className="min-h-[100px] resize-none w-full"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <InputGroupAddon align="block-end">
+                        <InputGroupText className="tabular-nums text-xs text-muted-foreground">
+                          {field.value?.length}/100
+                        </InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                    <FieldDescription className="text-xs">
+                      Share details about yourself as a host.
+                    </FieldDescription>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
+          </div>
         </form>
       </CardContent>
-      <CardFooter>
-        <Field orientation="horizontal">
-          <Button type="button" variant="outline" onClick={() => form.reset()}>
+      
+      <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => form.reset()}
+            className="w-full sm:w-auto"
+          >
             Reset
           </Button>
           <Button
             type="submit"
             form="form-rhf-demo"
             disabled={createTenant.isPending}
+            className="w-full sm:w-auto"
           >
-            {createTenant.isPending ? "Submitting..." : "Submit"}
+            {createTenant.isPending ? "Creating..." : "Create Tenant"}
           </Button>
-        </Field>
       </CardFooter>
     </Card>
   );
