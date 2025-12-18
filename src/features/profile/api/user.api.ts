@@ -1,5 +1,5 @@
+import { axiosClient } from "@/lib/axios/axios-client";
 import type { AxiosInstance } from "axios";
-import { axiosClient } from "../axios/axios-client";
 
 export interface UserProps {
   firstName: string;

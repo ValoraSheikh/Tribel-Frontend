@@ -1,7 +1,13 @@
-import * as React from "react";
+import { PropertyForm } from "@/features/property/components/create-property";
 
 const Page = () => {
-  return <div>Property List</div>;
+  return (
+    <div className="min-h-screen w-full bg-gray-50/50 p-4 md:p-8 lg:p-12">
+      <div className="mx-auto max-w-7xl">
+        <PropertyForm />
+      </div>
+    </div>
+  );
 };
 
 export default Page;

@@ -14,7 +14,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { useProfile, useUpdateProfile } from "@/hooks/use-user";
 import { SquarePenIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -24,6 +23,7 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
+import { useProfile, useUpdateProfile } from "../hooks/use-user";
 
 const formSchema = z.object({
   firstName: z
@@ -78,7 +78,7 @@ export function EditProfile() {
           style: {
             "--border-radius": "calc(var(--radius)  + 4px)",
           } as React.CSSProperties,
-        })
+        });
       },
       onError: () => {
         toast.error("You submitted the following values Failed:", {
@@ -105,7 +105,11 @@ export function EditProfile() {
         <SquarePenIcon size="30px" className="h-6 w-6" />
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
-        <form id="form-rhf-demo" className="space-y-5" onSubmit={form.handleSubmit(onSubmit)}>
+        <form
+          id="form-rhf-demo"
+          className="space-y-5"
+          onSubmit={form.handleSubmit(onSubmit)}
+        >
           <DialogHeader>
             <DialogTitle>Edit profile</DialogTitle>
             <DialogDescription>
@@ -119,9 +123,7 @@ export function EditProfile() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="firstName">
-                    First Name
-                  </FieldLabel>
+                  <FieldLabel htmlFor="firstName">First Name</FieldLabel>
                   <Input
                     {...field}
                     id="firstName"
@@ -140,9 +142,7 @@ export function EditProfile() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="lastName">
-                    Last Name
-                  </FieldLabel>
+                  <FieldLabel htmlFor="lastName">Last Name</FieldLabel>
                   <Input
                     {...field}
                     id="lastName"

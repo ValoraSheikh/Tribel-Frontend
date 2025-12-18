@@ -1,6 +1,4 @@
-import Profile from "@/feature/profile/profile";
-import { USE_QUERY_KEY } from "@/hooks/use-user";
-import { serverUserApi } from "@/lib/api/user.api";
+
 import { requireAuth } from "@/lib/auth/auth-utils";
 import { createServerAxios } from "@/lib/axios/axios-server";
 import {
@@ -10,6 +8,9 @@ import {
 } from "@tanstack/react-query";
 import { Suspense } from "react";
 import ProfileSkeleton from "./loading";
+import { USE_QUERY_KEY } from "@/features/profile/hooks/use-user";
+import { serverUserApi } from "@/features/profile/api/user.api";
+import Profile from "@/features/profile/components/profile";
 
 const Page = async () => {
   await requireAuth();

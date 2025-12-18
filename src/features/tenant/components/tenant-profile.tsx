@@ -1,6 +1,5 @@
 "use client";
 
-import { useTenant } from "@/hooks/use-tenant";
 import { Calendar, Coins, Globe, Mail, Phone, User, Clock } from "lucide-react";
 
 import {
@@ -14,6 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EditTenant } from "./edit-tenant";
+import { useTenant } from "../hooks/use-tenant";
 
 const getInitials = (first: string = "", last: string = "") => {
   return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();

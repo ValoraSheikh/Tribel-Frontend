@@ -19,27 +19,19 @@ import { toast } from "sonner";
 import {
   Field,
   FieldContent,
-  FieldDescription,
   FieldError,
-  FieldGroup,
   FieldLabel,
 } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
-import { useTenant, useUpdateTenant } from "@/hooks/use-tenant";
 import {
   Select,
   SelectContent,
   SelectItem,
-  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
+import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
+import { useTenant, useUpdateTenant } from "../hooks/use-tenant";
 
 const formSchema = z.object({
   name: z
@@ -140,12 +132,6 @@ export function EditTenant() {
         <SquarePenIcon size={18} />
       </DialogTrigger>
 
-      {/* FIX:
-          1. w-[95vw] -> Ensures it fits on mobile screens with small margins.
-          2. sm:max-w-lg -> Slightly wider on desktop for a cleaner look.
-          3. max-h-[85vh] -> Prevents the modal from going off-screen on small laptops/phones.
-          4. overflow-y-auto -> Adds internal scroll if content is too tall.
-      */}
       <DialogContent className="w-[95vw] sm:max-w-lg max-h-[85vh] overflow-y-auto">
         <form
           id="form-rhf-demo"

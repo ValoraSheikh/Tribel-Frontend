@@ -1,7 +1,8 @@
 "use client";
-import { tenantApi, TenantProps } from "@/lib/api/tenant.api";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { tenantApi, TenantProps } from "../api/tenant.api";
 
 export const USE_TENANT_QUERY_KEY = ["tenant"] as const;
 
@@ -56,7 +57,7 @@ export const useUpdateTenant = () => {
           context.previousTenant,
         );
       }
-      toast.error("Failed to update Tenant");
+      toast.error("Failed to update tenant");
     },
   });
 };

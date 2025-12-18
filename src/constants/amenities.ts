@@ -1,0 +1,135 @@
+import {
+  WifiIcon,
+  CoffeeIcon,
+  Tv2Icon,
+  AirVentIcon,
+  CarIcon,
+  UtensilsIcon,
+  ConciergeBellIcon,
+  LockIcon,
+  LuggageIcon,
+  WashingMachineIcon,
+  ShowerHeadIcon,
+  WindIcon,
+  BedDoubleIcon,
+  LampIcon,
+  PlugIcon,
+  ArmchairIcon,
+  Gamepad2Icon,
+  BeerIcon,
+  TreesIcon,
+  BikeIcon,
+  MapIcon,
+  MonitorIcon,
+  DumbbellIcon,
+  WavesIcon,
+  HeaterIcon,
+  CigaretteOffIcon,
+  // New Additions
+  ShieldCheckIcon,
+  KeyRoundIcon,
+  VaultIcon,
+  LaptopIcon,
+  PrinterIcon,
+  FlameIcon,
+  DropletsIcon,
+  MicrowaveIcon,
+  BookOpenIcon,
+  GuitarIcon,
+  FilmIcon,
+  SunIcon,
+  BlindsIcon,
+  AccessibilityIcon,
+  ShirtIcon,
+  BusIcon,
+  BanknoteIcon,
+  MusicIcon,
+  GlassWaterIcon,
+  ChefHatIcon,
+  TentIcon,
+} from "lucide-react";
+
+const availableAmenities = [
+  // --- Basics & Security ---
+  { name: "WiFi", icon: "Wifi", IconComponent: WifiIcon },
+  {
+    name: "24/7 Reception",
+    icon: "ConciergeBell",
+    IconComponent: ConciergeBellIcon,
+  },
+  {
+    name: "24/7 Security",
+    icon: "ShieldCheck",
+    IconComponent: ShieldCheckIcon,
+  },
+  { name: "Key Card Access", icon: "KeyRound", IconComponent: KeyRoundIcon },
+  { name: "Parking", icon: "Car", IconComponent: CarIcon },
+  {
+    name: "Wheelchair Access",
+    icon: "Accessibility",
+    IconComponent: AccessibilityIcon,
+  },
+
+  // --- Room & Comfort ---
+  { name: "AC", icon: "AirVent", IconComponent: AirVentIcon },
+  { name: "Heating", icon: "Heater", IconComponent: HeaterIcon },
+  { name: "Hot Shower", icon: "ShowerHead", IconComponent: ShowerHeadIcon },
+  { name: "Privacy Curtains", icon: "Blinds", IconComponent: BlindsIcon },
+  { name: "Linens Included", icon: "BedDouble", IconComponent: BedDoubleIcon },
+  { name: "Safety Box", icon: "Vault", IconComponent: VaultIcon },
+  { name: "Reading Light", icon: "Lamp", IconComponent: LampIcon },
+  { name: "Power Sockets", icon: "Plug", IconComponent: PlugIcon },
+  { name: "Hairdryer", icon: "Wind", IconComponent: WindIcon },
+
+  // --- Food & Drink ---
+  { name: "Breakfast", icon: "Coffee", IconComponent: CoffeeIcon },
+  { name: "Guest Kitchen", icon: "Utensils", IconComponent: UtensilsIcon },
+  { name: "Restaurant", icon: "ChefHat", IconComponent: ChefHatIcon },
+  { name: "BBQ Area", icon: "Flame", IconComponent: FlameIcon },
+  { name: "Bar / Lounge", icon: "Beer", IconComponent: BeerIcon },
+  {
+    name: "Vending Machine",
+    icon: "GlassWater",
+    IconComponent: GlassWaterIcon,
+  },
+  { name: "Microwave", icon: "Microwave", IconComponent: MicrowaveIcon },
+  { name: "Water Dispenser", icon: "Droplets", IconComponent: DropletsIcon },
+
+  // --- Work & Digital ---
+  { name: "Coworking Space", icon: "Laptop", IconComponent: LaptopIcon },
+  { name: "Computer Lab", icon: "Monitor", IconComponent: MonitorIcon },
+  { name: "Printing", icon: "Printer", IconComponent: PrinterIcon },
+
+  // --- Facilities & Services ---
+  { name: "Lockers", icon: "Lock", IconComponent: LockIcon },
+  { name: "Luggage Storage", icon: "Luggage", IconComponent: LuggageIcon },
+  {
+    name: "Laundry",
+    icon: "WashingMachine",
+    IconComponent: WashingMachineIcon,
+  },
+  { name: "Ironing", icon: "Shirt", IconComponent: ShirtIcon },
+  { name: "ATM / Exchange", icon: "Banknote", IconComponent: BanknoteIcon },
+  { name: "Shuttle Service", icon: "Bus", IconComponent: BusIcon },
+  { name: "Gym", icon: "Dumbbell", IconComponent: DumbbellIcon },
+  { name: "Swimming Pool", icon: "Waves", IconComponent: WavesIcon },
+
+  // --- Social & Leisure ---
+  { name: "Common Room", icon: "Armchair", IconComponent: ArmchairIcon },
+  { name: "Rooftop Terrace", icon: "Sun", IconComponent: SunIcon },
+  { name: "Garden", icon: "Trees", IconComponent: TreesIcon },
+  { name: "Camping Area", icon: "Tent", IconComponent: TentIcon },
+  { name: "Library", icon: "BookOpen", IconComponent: BookOpenIcon },
+  { name: "Games Room", icon: "Gamepad2", IconComponent: Gamepad2Icon },
+  { name: "Movie Nights", icon: "Film", IconComponent: FilmIcon },
+  { name: "Live Music", icon: "Music", IconComponent: MusicIcon },
+  { name: "Instruments", icon: "Guitar", IconComponent: GuitarIcon },
+  { name: "Bike Rental", icon: "Bike", IconComponent: BikeIcon },
+  { name: "City Tours", icon: "Map", IconComponent: MapIcon },
+  { name: "Cable TV", icon: "Tv2", IconComponent: Tv2Icon },
+
+  // --- Rules ---
+  { name: "No Smoking", icon: "CigaretteOff", IconComponent: CigaretteOffIcon },
+] as const;
+
+export default availableAmenities;

@@ -5,9 +5,9 @@ function AvatarImg({ avatar }) {
   return (
     <div>
       <Link href="profile">
-      <Avatar className="h-10 w-10">
-        <AvatarImage src={avatar} />
-      </Avatar>
+        <Avatar className="h-10 w-10">
+          <AvatarImage src={avatar} />
+        </Avatar>
       </Link>
     </div>
   );

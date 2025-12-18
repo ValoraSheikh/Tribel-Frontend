@@ -1,5 +1,4 @@
-import { USE_TENANT_QUERY_KEY } from "@/hooks/use-tenant";
-import { serverTenantApi } from "@/lib/api/tenant.api";
+
 import { requireTenant } from "@/lib/auth/require-tenant";
 import { createServerAxios } from "@/lib/axios/axios-server";
 import {
@@ -8,9 +7,10 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { Suspense } from "react";
-import { TenantProfile } from "@/feature/tenant/tenant-profile";
 import TenantProfileSkeleton  from "./loading";
-
+import { TenantProfile } from "@/features/tenant/components/tenant-profile";
+import { USE_TENANT_QUERY_KEY } from "@/features/tenant/hooks/use-tenant";
+import { serverTenantApi } from "@/features/tenant/api/tenant.api";
 const Page = async () => {
   await requireTenant();
 

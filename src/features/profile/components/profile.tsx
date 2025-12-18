@@ -4,48 +4,51 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EditProfile } from "./edit-profile";
-import { useProfile } from "@/hooks/use-user";
+import { useProfile } from "../hooks/use-user";
 
 const Profile = () => {
-  const {  data: user, isLoading, error } = useProfile()
-  
+  const { data: user, isLoading, error } = useProfile();
+
   if (isLoading) {
-    <h1>
-      Loading...
-    </h1>
+    <h1>Loading...</h1>;
   }
-  
+
   if (error) {
-    console.log(error)
+    console.log(error);
   }
-  
-  if(!user) return null
-  
+
+  if (!user) return null;
+
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <Avatar className="h-20 w-20">
-                <AvatarImage src={user.avatar} />
-                <AvatarFallback>{user.firstName[0]}{user.lastName[0]}</AvatarFallback>
-              </Avatar>
-      
-              <div>
-                <h1 className="text-2xl font-semibold">{user.firstName} {user.lastName}</h1>
-                <Badge className="mt-1 capitalize">{user.role}</Badge>
-              </div>
-      
-              <div className="ml-auto">
-                {/* modal approach */}
-                <button
-                  aria-label="Edit profile"
-                  className="p-2 hover:rounded hover:bg-muted"
-                >
+        <div className="flex items-center gap-4">
+          <Avatar className="h-20 w-20">
+            <AvatarImage src={user.avatar} />
+            <AvatarFallback>
+              {user.firstName[0]}
+              {user.lastName[0]}
+            </AvatarFallback>
+          </Avatar>
+
+          <div>
+            <h1 className="text-2xl font-semibold">
+              {user.firstName} {user.lastName}
+            </h1>
+            <Badge className="mt-1 capitalize">{user.role}</Badge>
+          </div>
+
+          <div className="ml-auto">
+            {/* modal approach */}
+            <button
+              aria-label="Edit profile"
+              className="p-2 hover:rounded hover:bg-muted"
+            >
               <EditProfile />
-                </button>
-              </div>
-            </div>
-          </Card>
+            </button>
+          </div>
+        </div>
+      </Card>
 
       <Card>
         <CardHeader>
