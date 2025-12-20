@@ -18,7 +18,6 @@ import {
 import { Bed, Room } from "../api/room-template.api";
 
 export function RoomTable({ rooms }: { rooms: Room[] }) {
-  console.log(rooms);
   return (
     <div className="rounded-md border bg-card">
       <Table>

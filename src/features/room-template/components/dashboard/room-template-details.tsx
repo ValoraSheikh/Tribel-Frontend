@@ -1,14 +1,14 @@
 "use client";
 
-import { useGetRoomTemplateDetails } from "../hooks/use-room-template";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoomTable } from "./room-table";
 import Image from "next/image";
-import { Amenity } from "../api/room-template.api";
 import { StarIcon } from "lucide-react";
 import roomFeatures from "@/constants/rooms-icon";
+import { useGetRoomTemplateDetails } from "../../hooks/use-room-template";
+import { Amenity } from "../../api/room-template.api";
 
 type RoomTemplateProps = {
   roomTemplateId: string;

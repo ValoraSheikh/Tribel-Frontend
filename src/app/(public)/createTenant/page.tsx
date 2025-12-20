@@ -1,4 +1,4 @@
-import { TenantForm } from "@/features/tenant/components/create-tenant";
+import { TenantForm } from "@/features/tenant/components/dashboard/create-tenant";
 
 const Page = () => {
   return (

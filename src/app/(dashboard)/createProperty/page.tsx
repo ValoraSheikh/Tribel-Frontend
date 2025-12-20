@@ -1,4 +1,4 @@
-import { PropertyForm } from "@/features/property/components/create-property";
+import { PropertyForm } from "@/features/property/components/dashboard/create-property";
 
 const Page = () => {
   return (

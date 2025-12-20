@@ -11,9 +11,9 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { useDeleteProperty } from "../hooks/use-property";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useDeleteProperty } from "../../hooks/use-property";
 
 type PropertyIdProps = {
   propertyId: string;

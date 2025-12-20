@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
-import { useTenant, useUpdateTenant } from "../hooks/use-tenant";
+import { useTenant, useUpdateTenant } from "../../hooks/use-tenant";
 
 const formSchema = z.object({
   name: z

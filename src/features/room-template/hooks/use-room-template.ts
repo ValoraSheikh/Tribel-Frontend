@@ -14,6 +14,7 @@ export const useGetRoomTemplates = (propertyId: string) => {
   return useQuery({
     queryKey: [...USE_ROOM_TEMPLATES_QUERY_KEY, propertyId],
     queryFn: () => roomTemplateApi.getRoomTemplates(propertyId),
+    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -46,6 +47,7 @@ export const useGetRoomTemplateDetails = (
     queryKey: [...USE_ROOM_TEMPLATE_QUERY_KEY, propertyId, roomTemplateId],
     queryFn: () =>
       roomTemplateApi.getRoomTemplateDetails(propertyId, roomTemplateId),
+    staleTime: 5 * 60 * 1000,
   });
 };
 

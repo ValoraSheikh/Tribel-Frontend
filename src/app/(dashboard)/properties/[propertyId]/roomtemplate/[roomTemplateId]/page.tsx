@@ -4,7 +4,7 @@ import { createServerAxios } from "@/lib/axios/axios-server";
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import RoomTemplateDetailSkeleton from "./loading";
 import { Suspense } from "react";
-import { RoomTemplateDetails } from "@/features/room-template/components/room-template-details";
+import { RoomTemplateDetails } from "@/features/room-template/components/dashboard/room-template-details";
 
 type ParamsProp = {
   params: { propertyId: string; roomTemplateId: string };
@@ -26,7 +26,6 @@ const Page = async ({ params }: ParamsProp) => {
       ),
   });
   
-    console.log(propertyId, roomTemplateId)
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>

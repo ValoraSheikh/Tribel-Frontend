@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { Suspense } from "react";
 import TenantProfileSkeleton  from "./loading";
-import { TenantProfile } from "@/features/tenant/components/tenant-profile";
+import { TenantProfile } from "@/features/tenant/components/dashboard/tenant-profile";
 import { USE_TENANT_QUERY_KEY } from "@/features/tenant/hooks/use-tenant";
 import { serverTenantApi } from "@/features/tenant/api/tenant.api";
 const Page = async () => {

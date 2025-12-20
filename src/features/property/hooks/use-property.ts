@@ -22,6 +22,15 @@ export const usePropertyDetails = (propertyId: string) => {
   });
 };
 
+export const useNewProperties = (query?: { limit?: number }) => {
+  return useQuery({
+    queryKey: [...USE_PROPERTIES_QUERY_KEY, query?.limit ?? 8],
+    queryFn: () => propertyApi.getNewProperty(query),
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 export const useGetAdminProperties = (query?: {
   page?: number;
   limit?: number;
@@ -38,11 +47,13 @@ export const useGetAdminProperties = (query?: {
   });
 };
 
-export const useSearchProperty = (
-  query?: Record<string, string | number | boolean>,
-) => {
+export const useSearchProperty = (query?: {
+  property?: string;
+  limit?: number;
+  page?: number
+}) => {
   return useQuery({
-    queryKey: [...USE_PROPERTIES_QUERY_KEY, "search", query],
+    queryKey: [...USE_PROPERTIES_QUERY_KEY, "property", query],
     queryFn: () => propertyApi.getSearchProperty(query),
     staleTime: 1 * 60 * 1000,
   });

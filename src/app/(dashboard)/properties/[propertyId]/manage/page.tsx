@@ -8,9 +8,9 @@ import {
 } from "@tanstack/react-query";
 import { Suspense } from "react";
 import ManagePropertySkeleton from "./loading";
-import { ManageProperty } from "@/features/property/components/manage-property";
 import { serverRoomTemplateApi } from "@/features/room-template/api/room-template.api";
 import { USE_ROOM_TEMPLATES_QUERY_KEY } from "@/features/room-template/hooks/use-room-template";
+import { ManageProperty } from "@/features/property/components/dashboard/manage-property";
 
 type props = {
   params: { propertyId: string };
