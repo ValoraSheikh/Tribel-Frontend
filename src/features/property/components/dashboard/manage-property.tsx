@@ -1,6 +1,6 @@
 import * as React from "react";
 import { PropertyProfile } from "./property-profile";
-import { ManageRoomTemplate } from "../../room-template/components/manage-roomtemplate";
+import { ManageRoomTemplate } from "@/features/room-template/components/dashboard/manage-roomtemplate";
 
 type PropertyIdProps = {
   propertyId: string;

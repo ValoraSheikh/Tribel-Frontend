@@ -1,29 +1,30 @@
 "use client";
 
-import Link from "next/link";
-import { usePropertyDetails } from "../hooks/use-property";
 import {
   MapPin,
   Star,
   Share,
-  Edit,
+  Heart,
   CheckCircle2,
   Mail,
   Phone,
   ShieldCheck,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import availableAmenities from "@/constants/amenities";
+import { usePropertyDetails } from "../../hooks/use-property";
 import Image from "next/image";
-import { Amenity } from "../api/property.api";
+import availableAmenities from "@/constants/amenities";
+import { Amenity } from "../../api/property.api";
+import { ListRoomTemplate1 } from "@/features/room-template/components/dashboard/room-templates";
 
-type PropertyIdProps = {
+interface PropertyIdProps {
   propertyId: string;
-};
+}
 
 const getAmenityIcon = (iconName: string) => {
   const icons = availableAmenities.find((icon) => icon.icon == iconName);
@@ -31,16 +32,16 @@ const getAmenityIcon = (iconName: string) => {
   return <IconToRender className="h-5 w-5" />;
 };
 
-export function PropertyProfile({ propertyId }: PropertyIdProps) {
+export function PropertyDetails({ propertyId }: PropertyIdProps) {
   const { data: property, isLoading, isError } = usePropertyDetails(propertyId);
 
   if (isLoading) {
     return (
-      <div className="p-8 text-center animate-pulse">
+      <div className="p-8 text-center animate-pulse min-h-screen">
         Loading Properties Profile for you...
       </div>
-    )
-  };
+    );
+  }
   if (isError || !property)
     return (
       <div className="p-10 text-center text-red-500">
@@ -53,7 +54,6 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
-      {/* --- HEADER SECTION --- */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">
           {property.title}
@@ -79,23 +79,14 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
             <Button variant="ghost" size="sm" className="gap-2">
               <Share className="h-4 w-4" /> Share
             </Button>
-
-            <Link href={`/properties/${property.id}/edit`}>
-              <Button
-                variant="outline"
-                size="sm"
-                className="gap-2 border-primary/20 hover:bg-primary/5"
-              >
-                <Edit className="h-4 w-4" /> Edit Property
-              </Button>
-            </Link>
+            <Button variant="ghost" size="sm" className="gap-2">
+              <Heart className="h-4 w-4" /> Save
+            </Button>
           </div>
         </div>
       </div>
-
-      {/* --- IMAGE GRID --- */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[300px] md:h-[450px] rounded-2xl overflow-hidden mb-10 relative">
-
+        {/* Main Image */}
         <div
           className={`relative h-full ${property.images?.length > 1 ? "md:col-span-2" : "md:col-span-4"}`}
         >
@@ -114,7 +105,6 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
           )}
         </div>
 
-        {/* Secondary Images Grid */}
         {property.images?.length > 1 && (
           <div className="hidden md:grid md:grid-cols-2 gap-2 md:col-span-2 h-full">
             {property.images.slice(1, 5).map((img: string, idx: number) => (
@@ -139,9 +129,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
         </Button>
       </div>
 
-      {/* --- MAIN CONTENT GRID --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
         <div className="lg:col-span-2 space-y-8">
           {/* Host Info Header */}
           <div className="flex items-center justify-between">
@@ -165,7 +153,6 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
 
           <Separator />
 
-          {/* Highlights */}
           <div className="space-y-4">
             <div className="flex gap-4 items-start">
               <ShieldCheck className="h-6 w-6 mt-1 text-primary" />
@@ -204,7 +191,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
             <h3 className="text-xl font-semibold mb-6">
               What this place offers
             </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {property.amenities && property.amenities.length > 0 ? (
                 property.amenities.map((amenity: Amenity, index: number) => (
                   <div
@@ -224,8 +211,13 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
               )}
             </div>
           </div>
+
+          <Separator />
+
+          <ListRoomTemplate1 propertyId={property.id} />
         </div>
 
+        {/* --- RIGHT COLUMN: STICKY SIDEBAR (Contact/Booking) --- */}
         <div className="lg:col-span-1">
           <div className="sticky top-24">
             <Card className="shadow-lg border-muted/60">
@@ -234,7 +226,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                   <div>
                     <CardTitle className="text-xl">Contact Details</CardTitle>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Manager Information (Admin View)
+                      Directly contact the property manager
                     </p>
                   </div>
                 </div>
@@ -290,19 +282,39 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                       {new Date(property.updatedAt).toLocaleDateString()}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span>Currency</span>
-                    <span>{tenantProfile.currency}</span>
-                  </div>
                 </div>
 
+                <Separator />
+
+                <Button className="w-full h-12 text-md font-semibold bg-linear-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-md">
+                  Request Booking
+                </Button>
+
+                <div className="flex justify-center items-center gap-2 mt-2">
+                  <Badge
+                    variant="outline"
+                    className="text-[10px] font-normal uppercase tracking-wider"
+                  >
+                    {tenantProfile.currency} Currency
+                  </Badge>
+                </div>
               </CardContent>
             </Card>
+
+            {/* Report/Flag Link */}
+            <div className="mt-6 flex justify-center">
+              <Button
+                variant="link"
+                className="text-muted-foreground text-xs gap-2"
+              >
+                <User className="h-3 w-3" /> Report this listing
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* --- LOCATION SECTION --- */}
+      {/* --- LOCATION SECTION (Bottom) --- */}
       <Separator className="my-10" />
       <div className="space-y-4 mb-10">
         <h3 className="text-xl font-semibold">Where you&apos;ll be</h3>
@@ -310,6 +322,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
           {property.address}, {property.city}, {property.country}
         </p>
 
+        {/* Placeholder for Map - Logic uses latitude/longitude */}
         <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
           <MapPin className="h-10 w-10 text-muted-foreground/50 mb-2" />
           <span className="absolute bottom-4 right-4 bg-white/80 px-3 py-1 text-xs rounded-md shadow backdrop-blur-sm">

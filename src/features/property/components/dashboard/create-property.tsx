@@ -36,11 +36,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateProperty } from "../hooks/use-property";
 import { useRouter } from "next/navigation";
 import states from "@/constants/states";
 import hostelType from "@/constants/hostel-type";
 import availableAmenities from "@/constants/amenities";
+import { useCreateProperty } from "../../hooks/use-property";
 
 
 const formSchema = z.object({

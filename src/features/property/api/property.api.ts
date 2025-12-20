@@ -85,6 +85,34 @@ export interface UpdateProperty {
   contact_phone: string;
 }
 
+export interface NewPropertyProps {
+  id: string;
+  adminId: string;
+  title: string;
+  type: string;
+  gstin: string;
+  address: string;
+  description: string;
+  amenities: Amenity[] | null;
+  city: string;
+  state: string;
+  country: string;
+  postal_code: string;
+  contact_email: string;
+  contact_phone: string;
+  starRating: number;
+  images: string[];
+  latitude: number;
+  longitude: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string;
+}
+
+export interface NewPropertyResponse {
+  data: NewPropertyProps[];
+}
+
 export const propertyApi = {
   getPropertyDetails: async (propertyId: string) => {
     const { data } = await axiosClient.get<PropertyResponse>(
@@ -124,9 +152,10 @@ export const propertyApi = {
     return data.data;
   },
 
-  getNewProperty: async () => {
-    const { data } = await axiosClient.get<PropertiesResponse>(
+  getNewProperty: async (query?: Record<string, string | number | boolean>) => {
+    const { data } = await axiosClient.get<NewPropertyResponse>(
       `/api/v1/properties/newProperty`,
+      { params: query },
     );
     return data.data;
   },
@@ -164,6 +193,17 @@ export const serverPropertyApi = {
   ) => {
     const { data } = await axiosInstance.get<PropertiesResponse>(
       `/api/v1/properties/search`,
+      { params: query },
+    );
+    return data.data;
+  },
+
+  getNewProperty: async (
+    axiosInstance: AxiosInstance,
+    query?: Record<string, string | number | boolean>,
+  ) => {
+    const { data } = await axiosInstance.get<NewPropertyResponse>(
+      `/api/v1/properties/newProperty`,
       { params: query },
     );
     return data.data;

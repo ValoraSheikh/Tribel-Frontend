@@ -13,10 +13,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import {
-  useDeleteRoomTemplate,
-} from "../hooks/use-room-template";
 import { Trash2Icon } from "lucide-react";
+import { useDeleteRoomTemplate } from "../../hooks/use-room-template";
 
 type PropertyIdProps = {
   propertyId: string;

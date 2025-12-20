@@ -35,13 +35,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { usePropertyDetails, useUpdateProperty } from "../hooks/use-property";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { DeletePropertyModal } from "./delete-modal";
 import states from "@/constants/states";
 import hostelType from "@/constants/hostel-type";
 import availableAmenities from "@/constants/amenities";
+import { usePropertyDetails, useUpdateProperty } from "../../hooks/use-property";
 
 const formSchema = z.object({
   title: z

@@ -1,8 +1,9 @@
+import { SearchProperty } from "@/features/property/components/public/search-property";
+
 const Page = () => {
   return (
-    <div className="h-[80vh]">
-    <div>You can search properties here</div>
-      
+    <div className="min-h-[80vh]">
+      <SearchProperty />
     </div>
   );
 };

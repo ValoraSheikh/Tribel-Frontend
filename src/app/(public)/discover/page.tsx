@@ -1,14 +1,15 @@
+import { serverPropertyApi } from "@/features/property/api/property.api";
+import { Hero } from "@/features/property/components/public/hero";
+import { USE_PROPERTIES_QUERY_KEY } from "@/features/property/hooks/use-property";
 import { createServerAxios } from "@/lib/axios/axios-server";
 import {
   dehydrate,
   HydrationBoundary,
   QueryClient,
 } from "@tanstack/react-query";
-import PropertiesSkeleton from "./loading";
 import { Suspense } from "react";
-import { USE_PROPERTIES_QUERY_KEY } from "@/features/property/hooks/use-property";
-import { serverPropertyApi } from "@/features/property/api/property.api";
-import { AdminProperties } from "@/features/property/components/dashboard/admin-properties";
+import NewPropertiesSkeleton from "./loading";
+import { NewProperties } from "@/features/property/components/public/new-properties";
 
 const Page = async () => {
   const queryClient = new QueryClient();
@@ -16,14 +17,15 @@ const Page = async () => {
 
   await queryClient.prefetchQuery({
     queryKey: [USE_PROPERTIES_QUERY_KEY],
-    queryFn: () => serverPropertyApi.getAdminProperties(serverAxios),
+    queryFn: () => serverPropertyApi.getNewProperty(serverAxios),
   });
 
   return (
     <>
+      <Hero />
       <HydrationBoundary state={dehydrate(queryClient)}>
-        <Suspense fallback={<PropertiesSkeleton />}>
-          <AdminProperties />
+        <Suspense fallback={<NewPropertiesSkeleton />}>
+          <NewProperties />
         </Suspense>
       </HydrationBoundary>
     </>

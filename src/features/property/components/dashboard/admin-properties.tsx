@@ -29,8 +29,8 @@ import { Badge } from "@/components/ui/badge";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
-import { useGetAdminProperties } from "../hooks/use-property";
-import { PropertyProps } from "../api/property.api";
+import { useGetAdminProperties } from "../../hooks/use-property";
+import { PropertyProps } from "../../api/property.api";
 
 export const AdminProperties = () => {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -59,7 +59,11 @@ export const AdminProperties = () => {
   };
 
   if (isLoading) {
-    return <h1>Loading...</h1>;
+    return (
+      <div className="p-8 text-center animate-pulse">
+        Loading Properties Profile for you...
+      </div>
+    );
   }
 
   if (isError) {
@@ -70,7 +74,13 @@ export const AdminProperties = () => {
     );
   }
 
-  if (!data || !data.properties) return null;
+  if (!data || !data.properties) {
+    return(
+      <div className="p-8 text-center animate-pulse">
+        You have to Create properties there are no properties here
+      </div>
+    )
+  };
 
   const { properties, totalProperty, totalPages } = data;
 
@@ -153,12 +163,13 @@ const PropertyCard = ({ property }: { property: PropertyProps }) => {
   return (
     <Card
       key={property.id}
-      className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg border-muted-foreground/20"
+      className="flex h-full flex-col overflow-hidden transition-all hover:shadow-lg border-muted-foreground/20 py-0"
     >
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
         <Image
           height={500}
           width={500}
+          priority
           src={coverImage}
           alt={property.title}
           className="h-full w-full object-cover transition-transform duration-300"

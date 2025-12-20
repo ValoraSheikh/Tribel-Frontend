@@ -36,7 +36,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateTenant } from "../hooks/use-tenant";
+import { useCreateTenant } from "../../hooks/use-tenant";
 
 const formSchema = z.object({
   name: z
@@ -105,6 +105,8 @@ export function TenantForm() {
             "--border-radius": "calc(var(--radius)  + 4px)",
           } as React.CSSProperties,
         });
+
+        form.reset();
       },
       onError: () => {
         toast.error("Failed to create tenant");
@@ -115,27 +117,31 @@ export function TenantForm() {
   return (
     <Card className="w-full max-w-2xl mx-auto border shadow-sm">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold">Create your Tenant</CardTitle>
+        <CardTitle className="text-xl font-semibold">
+          Create your Tenant
+        </CardTitle>
         <CardDescription>
           Fill in the details below to configure your new tenant environment.
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent>
         <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
-          {/* GRID SYSTEM: 
+          {/* GRID SYSTEM:
              - Mobile: 1 column (stack)
-             - Tablet/Desktop (md): 2 columns 
+             - Tablet/Desktop (md): 2 columns
           */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
             {/* ROW 1: Name (Full Width) */}
             <div className="col-span-1 md:col-span-2">
               <Controller
                 name="name"
                 control={form.control}
                 render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="space-y-1.5"
+                  >
                     <FieldLabel htmlFor="tenant-title">Tenant Title</FieldLabel>
                     <Input
                       {...field}
@@ -152,13 +158,16 @@ export function TenantForm() {
                 )}
               />
             </div>
-    
+
             {/* ROW 2: Slug & Profile (Side by Side on Desktop) */}
             <Controller
               name="slug"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="space-y-1.5"
+                >
                   <FieldLabel htmlFor="slug">Slug Title</FieldLabel>
                   <Input
                     {...field}
@@ -174,12 +183,15 @@ export function TenantForm() {
                 </Field>
               )}
             />
-    
+
             <Controller
               name="profile"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                <Field
+                  data-invalid={fieldState.invalid}
+                  className="space-y-1.5"
+                >
                   <FieldLabel htmlFor="profile">Profile URL</FieldLabel>
                   <Input
                     {...field}
@@ -195,7 +207,7 @@ export function TenantForm() {
                 </Field>
               )}
             />
-    
+
             {/* ROW 3: Currency & Timezone (Side by Side on Desktop) */}
             <Controller
               name="currency"
@@ -239,7 +251,7 @@ export function TenantForm() {
                 </Field>
               )}
             />
-    
+
             <Controller
               name="timezone"
               control={form.control}
@@ -281,14 +293,17 @@ export function TenantForm() {
                 </Field>
               )}
             />
-    
+
             {/* ROW 4: Description (Full Width) */}
             <div className="col-span-1 md:col-span-2">
               <Controller
                 name="description"
                 control={form.control}
                 render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="space-y-1.5">
+                  <Field
+                    data-invalid={fieldState.invalid}
+                    className="space-y-1.5"
+                  >
                     <FieldLabel htmlFor="form-rhf-demo-description">
                       Description
                     </FieldLabel>
@@ -320,24 +335,24 @@ export function TenantForm() {
           </div>
         </form>
       </CardContent>
-      
+
       <CardFooter className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-6">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={() => form.reset()}
-            className="w-full sm:w-auto"
-          >
-            Reset
-          </Button>
-          <Button
-            type="submit"
-            form="form-rhf-demo"
-            disabled={createTenant.isPending}
-            className="w-full sm:w-auto"
-          >
-            {createTenant.isPending ? "Creating..." : "Create Tenant"}
-          </Button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => form.reset()}
+          className="w-full sm:w-auto"
+        >
+          Reset
+        </Button>
+        <Button
+          type="submit"
+          form="form-rhf-demo"
+          disabled={createTenant.isPending}
+          className="w-full sm:w-auto"
+        >
+          {createTenant.isPending ? "Creating..." : "Create Tenant"}
+        </Button>
       </CardFooter>
     </Card>
   );

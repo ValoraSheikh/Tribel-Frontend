@@ -24,11 +24,13 @@ const Page = async () => {
   });
 
   return (
+    <div className="min-h-[50vh]">
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<ProfileSkeleton />}>
         <Profile />
       </Suspense>
     </HydrationBoundary>
+    </div>
   );
 };
 
