@@ -83,14 +83,7 @@ export const useUpdateRoomTemplate = (
       };
     },
 
-    onSuccess: (updateRoomTemplate) => {
-      if (updateRoomTemplate) {
-        queryClient.setQueryData<RoomTemplateProps>(
-          [...USE_ROOM_TEMPLATE_QUERY_KEY, propertyId, roomTemplateId],
-          updateRoomTemplate,
-        );
-      }
-
+    onSuccess: () => {
       toast.success("Room Template updated successfully");
     },
 

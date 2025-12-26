@@ -23,7 +23,9 @@ export function TenantProfile() {
   const { data: tenant, isLoading, isError } = useTenant();
 
   if (isLoading) {
-    <h1>Load</h1>;
+    <div className="p-8 text-center animate-pulse min-h-screen">
+      Loading Tenant Profile for you...
+    </div>;
   }
 
   if (isError) {
@@ -38,7 +40,7 @@ export function TenantProfile() {
 
   return (
     <div className="container mx-auto max-w-5xl space-y-6 p-4 md:p-8">
-      <Card className="overflow-hidden border-none shadow-md">
+      <Card className="overflow-hidden border-none shadow-md py-0">
         {/* Header Image */}
         <div className="h-32 bg-linear-to-r from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800" />
 

@@ -18,19 +18,18 @@ export function NewProperties() {
     "limit",
     parseAsInteger.withDefault(8),
   );
-  const { data: properties, isLoading, isError } = useNewProperties({ limit });
+  const { data: properties, isLoading, isError, error } = useNewProperties({ limit });
 
   if (isError) {
     return (
-      <div className="py-10 text-center text-destructive">
-        Error loading properties. Please try again later.
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>Failed to load property data. Please try again later. {error?.message || "Something went wrong"}</p>
       </div>
     );
   }
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header Section */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">New Properties</h2>

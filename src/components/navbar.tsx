@@ -109,8 +109,8 @@ const Navbar = async ({
     // },
 
     {
-      title: "Support / Help",
-      url: "#",
+      title: "Your Bookings",
+      url: "/yourBookings",
     },
   ],
   auth = {

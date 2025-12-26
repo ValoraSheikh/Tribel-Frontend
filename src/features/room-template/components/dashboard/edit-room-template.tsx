@@ -1,8 +1,6 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Dialog,
   DialogClose,
@@ -13,20 +11,19 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Edit3Icon, IndianRupeeIcon } from "lucide-react";
-import { toast } from "sonner";
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
 } from "@/components/ui/field";
-import { Controller, useForm } from "react-hook-form";
+import { Input } from "@/components/ui/input";
 import {
-  useGetRoomTemplateDetails,
-  useUpdateRoomTemplate,
-} from "@/features/room-template/hooks/use-room-template";
+  InputGroup,
+  InputGroupAddon,
+  InputGroupText,
+  InputGroupTextarea,
+} from "@/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -34,14 +31,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
-  InputGroupTextarea,
-} from "@/components/ui/input-group";
 import roomFeatures from "@/constants/rooms-icon";
-import { useEffect } from "react";
+import { useUpdateRoomTemplate } from "@/features/room-template/hooks/use-room-template";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Edit3Icon, IndianRupeeIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
+import z from "zod";
+import { RoomTemplateProps } from "../../api/room-template.api";
 
 const roomType = [
   { label: "Single Bed", value: "SINGLE" },
@@ -82,13 +80,11 @@ type RoomTemplateIdProps = {
 export function EditRoomTemplate({
   propertyId,
   roomTemplateId,
-}: PropertyIdProps & RoomTemplateIdProps) {
+  room,
+}: PropertyIdProps & RoomTemplateIdProps & { room: RoomTemplateProps }) {
   const updateRoomTemplate = useUpdateRoomTemplate(propertyId, roomTemplateId);
-  const {
-    data: room,
-    isLoading,
-    isError,
-  } = useGetRoomTemplateDetails(propertyId, roomTemplateId);
+
+  const [open, setOpen] = useState<boolean>(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -116,28 +112,32 @@ export function EditRoomTemplate({
     }
   }, [room, form]);
 
-  if (isLoading) return <h1>Loading...</h1>;
-
-  if (isError) console.log("There is an error here");
-
   function onSubmit(data: z.infer<typeof formSchema>) {
     updateRoomTemplate.mutate(data, {
       onSuccess: () => {
         toast("Success", {
-          description: "Room template created successfully.",
+          description: "Room template updated successfully.",
         });
         form.reset();
+        setOpen(false)
       },
-      onError: () => {
-        toast.error("Error", {
-          description: "Failed to create room template.",
+      onError: (error) => {
+        toast.error("Failed to update room template", {
+          description: error.message || "Something went wrong.",
+          position: "bottom-right",
+          classNames: {
+            content: "flex flex-col gap-2",
+          },
+          style: {
+            "--border-radius": "calc(var(--radius)  + 4px)",
+          } as React.CSSProperties,
         });
       },
     });
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button
           variant="outline"

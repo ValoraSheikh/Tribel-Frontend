@@ -41,7 +41,10 @@ import { DeletePropertyModal } from "./delete-modal";
 import states from "@/constants/states";
 import hostelType from "@/constants/hostel-type";
 import availableAmenities from "@/constants/amenities";
-import { usePropertyDetails, useUpdateProperty } from "../../hooks/use-property";
+import {
+  usePropertyDetails,
+  useUpdateProperty,
+} from "../../hooks/use-property";
 
 const formSchema = z.object({
   title: z
@@ -97,7 +100,7 @@ const formSchema = z.object({
 
 type PropertyIdProps = {
   propertyId: string;
-}
+};
 
 export function EditPropertyForm({ propertyId }: PropertyIdProps) {
   const router = useRouter();
@@ -105,6 +108,7 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
     data: propertyDetail,
     isLoading,
     isError,
+    error,
   } = usePropertyDetails(propertyId);
   const updateProperty = useUpdateProperty(propertyId);
 
@@ -156,7 +160,16 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
     return <h1>Loading...</h1>;
   }
 
-  if (isError)  console.log(isError);
+  if (isError) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>
+          Failed to load property details. Please try again later.{" "}
+          {error.message || "Something went wrong"}
+        </p>
+      </div>
+    );
+  }
 
   if (!propertyDetail) return null;
 
@@ -180,8 +193,17 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
 
         router.push("/properties");
       },
-      onError: () => {
-        toast.error("Failed to create property");
+      onError: (error) => {
+        toast.error("Failed to update property", {
+          description: error.message || "Something went wrong.",
+          position: "bottom-right",
+          classNames: {
+            content: "flex flex-col gap-2",
+          },
+          style: {
+            "--border-radius": "calc(var(--radius)  + 4px)",
+          } as React.CSSProperties,
+        });
       },
     });
   }

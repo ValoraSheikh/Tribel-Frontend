@@ -6,7 +6,7 @@ export default function TenantProfileSkeleton() {
   return (
     <div className="container mx-auto max-w-5xl space-y-6 p-4 md:p-8">
       {/* --- Section 1: Tenant Header Skeleton --- */}
-      <Card className="overflow-hidden border-none shadow-md">
+      <Card className="overflow-hidden border-none shadow-md py-0">
         {/* Banner */}
         <Skeleton className="h-32 w-full rounded-none" />
         

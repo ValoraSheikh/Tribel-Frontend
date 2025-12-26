@@ -103,14 +103,7 @@ export const useUpdateProperty = (propertyId: string) => {
       return { previousProperty };
     },
 
-    onSuccess: (updateProperty) => {
-      if (updateProperty) {
-        queryClient.setQueryData<PropertyProps>(
-          [...USE_PROPERTY_QUERY_KEY, propertyId],
-          updateProperty,
-        );
-      }
-
+    onSuccess: () => {
       toast.success("Property updated successfully");
     },
 
@@ -127,7 +120,7 @@ export const useUpdateProperty = (propertyId: string) => {
           [...USE_PROPERTY_QUERY_KEY, propertyId],
           context.previousProperty,
         );
-        toast.error("Failed to update property");
+        toast.error(`Failed to update property ${err}`);
       }
     },
   });

@@ -23,7 +23,9 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { Controller, useForm } from "react-hook-form";
-import { useProfile, useUpdateProfile } from "../hooks/use-user";
+import { useUpdateProfile } from "../hooks/use-user";
+import { useState } from "react";
+import { UserProps } from "../api/user.api";
 
 const formSchema = z.object({
   firstName: z
@@ -39,8 +41,8 @@ const formSchema = z.object({
     .regex(/^[0-9]{10}$/, "Phone number must be exactly 10 digits"),
 });
 
-export function EditProfile() {
-  const { data: user, isLoading, error } = useProfile();
+export function EditProfile({ user }: { user: UserProps }) {
+  const [open, setOpen] = useState<boolean>(false);
   const updateProfile = useUpdateProfile();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,14 +53,6 @@ export function EditProfile() {
       phoneNo: user?.phoneNo || "",
     },
   });
-
-  if (isLoading) {
-    <h1>Loading...</h1>;
-  }
-
-  if (error) {
-    console.log(error);
-  }
 
   if (!user) return null;
 
@@ -79,14 +73,12 @@ export function EditProfile() {
             "--border-radius": "calc(var(--radius)  + 4px)",
           } as React.CSSProperties,
         });
+
+        setOpen(false);
       },
-      onError: () => {
-        toast.error("You submitted the following values Failed:", {
-          description: (
-            <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-              <code>{JSON.stringify(data, null, 2)}</code>
-            </pre>
-          ),
+      onError: (error) => {
+        toast.error("Your submitted values Failed:", {
+          description: error.message || "Something went wrong.",
           position: "bottom-right",
           classNames: {
             content: "flex flex-col gap-2",
@@ -100,7 +92,7 @@ export function EditProfile() {
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <SquarePenIcon size="30px" className="h-6 w-6" />
       </DialogTrigger>

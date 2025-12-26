@@ -7,14 +7,21 @@ import { EditProfile } from "./edit-profile";
 import { useProfile } from "../hooks/use-user";
 
 const Profile = () => {
-  const { data: user, isLoading, error } = useProfile();
+  const { data: user, isLoading, error, isError } = useProfile();
 
   if (isLoading) {
     <h1>Loading...</h1>;
   }
 
-  if (error) {
-    console.log(error);
+  if (isError) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>
+          Failed to load profile. Please try again later.{" "}
+          {error.message || "Something went wrong"}
+        </p>
+      </div>
+    );
   }
 
   if (!user) return null;
@@ -44,7 +51,7 @@ const Profile = () => {
               aria-label="Edit profile"
               className="p-2 hover:rounded hover:bg-muted"
             >
-              <EditProfile />
+              <EditProfile user={user} />
             </button>
           </div>
         </div>
