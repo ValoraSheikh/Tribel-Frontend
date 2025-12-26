@@ -63,7 +63,7 @@ const timezones = [
 ] as const;
 
 export function EditTenant() {
-  const { data: tenant, isLoading, error } = useTenant();
+  const { data: tenant, isLoading, error, isError } = useTenant();
 
   const updateTenant = useUpdateTenant();
 
@@ -80,11 +80,20 @@ export function EditTenant() {
   });
 
   if (isLoading) {
-    <h1>Loading...</h1>;
+    <div className="p-8 text-center animate-pulse min-h-screen">
+      Loading Tenant Profile for you...
+    </div>;
   }
 
-  if (error) {
-    console.log(error);
+  if (isError) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>
+          Failed to load tenant details. Please try again later.{" "}
+          {error.message || "Something went wrong"}
+        </p>
+      </div>
+    );
   }
 
   if (!tenant) return null;
@@ -107,13 +116,9 @@ export function EditTenant() {
           } as React.CSSProperties,
         });
       },
-      onError: () => {
-        toast.error("You submitted the following values Failed:", {
-          description: (
-            <pre className="bg-code text-code-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-              <code>{JSON.stringify(data, null, 2)}</code>
-            </pre>
-          ),
+      onError: (error) => {
+        toast.error("Failed to update tenant", {
+          description: error.message || "Something went wrong.",
           position: "bottom-right",
           classNames: {
             content: "flex flex-col gap-2",

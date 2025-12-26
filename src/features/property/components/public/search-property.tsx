@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { parseAsInteger, useQueryState } from "nuqs";
-import { Search, LayoutGrid } from "lucide-react";
+import { Search, LayoutGrid, ShieldAlertIcon } from "lucide-react";
 import { useSearchProperty } from "../../hooks/use-property";
 import { PropertyCard1 } from "./property-card";
 import { PropertyProps } from "../../api/property.api";
@@ -28,7 +28,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function SearchProperty() {
   const [propertySearch, setPropertySearch] = useQueryState("property", {
     defaultValue: "",
-    shallow: true,
+    // shallow: true,
     throttleMs: 500,
   });
 
@@ -43,11 +43,25 @@ export function SearchProperty() {
     data: response,
     isLoading,
     isError,
+    error,
   } = useSearchProperty({ property: propertySearch, limit, page });
 
   const totalPages = response?.totalPages || 0;
   const totalProperties = response?.totalProperty || 0;
 
+  if(isError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in-50">
+        <div className="bg-primary/10 p-4 rounded-full mb-4">
+          <ShieldAlertIcon className="h-8 w-8 text-primary" />
+        </div>
+        <h1 className="text-2xl font-bold tracking-tight mb-2">
+          {error.message}
+        </h1>
+      </div>
+    )
+  }
+  
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
       setPage(newPage);
@@ -55,7 +69,6 @@ export function SearchProperty() {
     }
   };
   
-  console.log(response)
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-8 min-h-screen">

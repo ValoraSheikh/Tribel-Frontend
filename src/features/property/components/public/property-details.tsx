@@ -21,6 +21,7 @@ import Image from "next/image";
 import availableAmenities from "@/constants/amenities";
 import { Amenity } from "../../api/property.api";
 import { ListRoomTemplate1 } from "@/features/room-template/components/dashboard/room-templates";
+import { CreateBooking } from "@/features/booking/components/public/booking-form";
 
 interface PropertyIdProps {
   propertyId: string;
@@ -33,7 +34,7 @@ const getAmenityIcon = (iconName: string) => {
 };
 
 export function PropertyDetails({ propertyId }: PropertyIdProps) {
-  const { data: property, isLoading, isError } = usePropertyDetails(propertyId);
+  const { data: property, isLoading, isError, error } = usePropertyDetails(propertyId);
 
   if (isLoading) {
     return (
@@ -44,8 +45,8 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
   }
   if (isError || !property)
     return (
-      <div className="p-10 text-center text-red-500">
-        Failed to load property data.
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>Failed to load property data. Please try again later. {error?.message || "Something went wrong"}</p>
       </div>
     );
 
@@ -286,9 +287,7 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
 
                 <Separator />
 
-                <Button className="w-full h-12 text-md font-semibold bg-linear-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-md">
-                  Request Booking
-                </Button>
+                <CreateBooking propertyId={property.id} />
 
                 <div className="flex justify-center items-center gap-2 mt-2">
                   <Badge

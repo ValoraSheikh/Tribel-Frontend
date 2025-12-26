@@ -12,33 +12,27 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Trash2Icon } from "lucide-react";
-import { useDeleteRoomTemplate } from "../../hooks/use-room-template";
+import { useCancelAdminBooking } from "../../hooks/use-booking";
 import { useState } from "react";
 
-type PropertyIdProps = {
-  propertyId: string;
-};
-
-type RoomTemplateIdProps = {
-  roomTemplateId: string;
-};
-
-export function DeleteRoomTemplateModal({
+export function CancelAdminBookingModal({
   propertyId,
-  roomTemplateId,
-}: PropertyIdProps & RoomTemplateIdProps) {
-  const [open, setOpen] = useState<boolean>(false);
-  const deleteRoomTemplate = useDeleteRoomTemplate(propertyId, roomTemplateId);
+  bookingId,
+}: {
+  propertyId: string;
+  bookingId: string;
+}) {
+  const [open, setOpen] = useState<boolean>(false)
+  const cancelAdminBooking = useCancelAdminBooking(propertyId, bookingId);
 
-  function handleDelete() {
-    deleteRoomTemplate.mutate(undefined, {
+  function handleCancel() {
+    cancelAdminBooking.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Room template deleted successfully ");
-        setOpen(false);
+        toast.success("Booking cancelled successfully ");
+        setOpen(false)
       },
       onError: (error) => {
-        toast.error("Failed to delete room template", {
+        toast.error("Failed to cancel booking", {
           description: error.message || "Something went wrong.",
           position: "bottom-right",
           classNames: {
@@ -51,24 +45,17 @@ export function DeleteRoomTemplateModal({
       },
     });
   }
+
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 text-xs text-muted-foreground hover:text-destructive px-2"
-        >
-          <Trash2Icon className="w-3.5 h-3.5 mr-1.5" />
-          Delete
-        </Button>
+        <span className="cursor-pointer">Cancel Booking</span>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will permanently delete this room
-            template and remove your data from our servers.
+            This action cannot be undone. This will cancel booking.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -77,13 +64,13 @@ export function DeleteRoomTemplateModal({
             <Button
               type="button"
               variant="destructive"
-              disabled={deleteRoomTemplate.isPending}
-              onClick={() => handleDelete()}
+              disabled={cancelAdminBooking.isPending}
+              onClick={() => handleCancel()}
               className="min-w-[100px]"
             >
-              {deleteRoomTemplate.isPending
-                ? "Deleting..."
-                : "Delete Room Template"}
+              {cancelAdminBooking.isPending
+                ? "Cancelling..."
+                : "Cancel Booking"}
             </Button>
           </>
         </AlertDialogFooter>

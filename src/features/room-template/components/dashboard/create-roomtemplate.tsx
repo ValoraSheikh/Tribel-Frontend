@@ -99,9 +99,16 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
         });
         form.reset();
       },
-      onError: () => {
-        toast.error("Error", {
-          description: "Failed to create room template.",
+      onError: (error) => {
+        toast.error("Failed to create room template", {
+          description: error.message || "Something went wrong.",
+          position: "bottom-right",
+          classNames: {
+            content: "flex flex-col gap-2",
+          },
+          style: {
+            "--border-radius": "calc(var(--radius)  + 4px)",
+          } as React.CSSProperties,
         });
       },
     });

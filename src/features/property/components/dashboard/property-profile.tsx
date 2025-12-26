@@ -10,6 +10,7 @@ import {
   Mail,
   Phone,
   ShieldCheck,
+  NotebookTabsIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -32,19 +33,27 @@ const getAmenityIcon = (iconName: string) => {
 };
 
 export function PropertyProfile({ propertyId }: PropertyIdProps) {
-  const { data: property, isLoading, isError } = usePropertyDetails(propertyId);
+  const {
+    data: property,
+    isLoading,
+    isError,
+    error,
+  } = usePropertyDetails(propertyId);
 
   if (isLoading) {
     return (
       <div className="p-8 text-center animate-pulse">
         Loading Properties Profile for you...
       </div>
-    )
-  };
+    );
+  }
   if (isError || !property)
     return (
-      <div className="p-10 text-center text-red-500">
-        Failed to load property data.
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>
+          Failed to load property data. Please try again later.{" "}
+          {error?.message || "Something went wrong"}
+        </p>
       </div>
     );
 
@@ -89,13 +98,22 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                 <Edit className="h-4 w-4" /> Edit Property
               </Button>
             </Link>
+            
+            <Link href={`/properties/${property.id}/bookings`}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-primary/20 hover:bg-primary/5"
+              >
+                <NotebookTabsIcon className="h-4 w-4" /> See Your Bookings
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
 
       {/* --- IMAGE GRID --- */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[300px] md:h-[450px] rounded-2xl overflow-hidden mb-10 relative">
-
         <div
           className={`relative h-full ${property.images?.length > 1 ? "md:col-span-2" : "md:col-span-4"}`}
         >
@@ -141,7 +159,6 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
 
       {/* --- MAIN CONTENT GRID --- */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-
         <div className="lg:col-span-2 space-y-8">
           {/* Host Info Header */}
           <div className="flex items-center justify-between">
@@ -295,7 +312,6 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                     <span>{tenantProfile.currency}</span>
                   </div>
                 </div>
-
               </CardContent>
             </Card>
           </div>

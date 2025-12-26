@@ -108,8 +108,17 @@ export function TenantForm() {
 
         form.reset();
       },
-      onError: () => {
-        toast.error("Failed to create tenant");
+      onError: (error) => {
+        toast.error("Failed to create tenant", {
+          description: error.message || "Something went wrong.",
+          position: "bottom-right",
+          classNames: {
+            content: "flex flex-col gap-2",
+          },
+          style: {
+            "--border-radius": "calc(var(--radius)  + 4px)",
+          } as React.CSSProperties,
+        });
       },
     });
   }
@@ -127,12 +136,8 @@ export function TenantForm() {
 
       <CardContent>
         <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
-          {/* GRID SYSTEM:
-             - Mobile: 1 column (stack)
-             - Tablet/Desktop (md): 2 columns
-          */}
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* ROW 1: Name (Full Width) */}
             <div className="col-span-1 md:col-span-2">
               <Controller
                 name="name"
@@ -159,7 +164,6 @@ export function TenantForm() {
               />
             </div>
 
-            {/* ROW 2: Slug & Profile (Side by Side on Desktop) */}
             <Controller
               name="slug"
               control={form.control}
@@ -208,7 +212,6 @@ export function TenantForm() {
               )}
             />
 
-            {/* ROW 3: Currency & Timezone (Side by Side on Desktop) */}
             <Controller
               name="currency"
               control={form.control}
@@ -294,7 +297,6 @@ export function TenantForm() {
               )}
             />
 
-            {/* ROW 4: Description (Full Width) */}
             <div className="col-span-1 md:col-span-2">
               <Controller
                 name="description"

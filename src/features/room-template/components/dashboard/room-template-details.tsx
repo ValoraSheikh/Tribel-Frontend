@@ -30,6 +30,7 @@ export function RoomTemplateDetails({
     data: room,
     isLoading,
     isError,
+    error,
   } = useGetRoomTemplateDetails(propertyId, roomTemplateId);
 
   if (isLoading)
@@ -40,8 +41,11 @@ export function RoomTemplateDetails({
     );
   if (isError || !room)
     return (
-      <div className="p-8 text-center text-destructive">
-        Error loading data.
+      <div className="flex h-[50vh] items-center justify-center text-red-500">
+        <p>
+          Failed to load room template details. Please try again later.{" "}
+          {error?.message || "Something went wrong"}
+        </p>
       </div>
     );
 
@@ -104,7 +108,6 @@ export function RoomTemplateDetails({
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           {room.amenities?.map((amenity: Amenity, idx: number) => {
-            
             return (
               <Badge
                 key={idx}

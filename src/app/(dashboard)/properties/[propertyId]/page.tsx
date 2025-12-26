@@ -1,11 +1,7 @@
+import { redirect } from "next/navigation";
 
 const Page = () => {
-  return (
-    <div>
-      Property details Hey there
-    
-    </div>
-  );
+  redirect("/properties");
 };
 
 export default Page;

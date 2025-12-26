@@ -10,6 +10,8 @@ import {
   Calendar1Icon,
   Clock2Icon,
   Globe2Icon,
+  Building2,
+  PlusIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,10 +38,13 @@ export const AdminProperties = () => {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
   const [limit, setLimit] = useQueryState(
     "limit",
-    parseAsInteger.withDefault(10),
+    parseAsInteger.withDefault(4),
   );
 
-  const { data, isLoading, isError } = useGetAdminProperties({ page, limit });
+  const { data, isLoading, isError, error } = useGetAdminProperties({
+    page,
+    limit,
+  });
 
   const handleNextPage = () => {
     if (data && page < data.totalPages) {
@@ -69,24 +74,42 @@ export const AdminProperties = () => {
   if (isError) {
     return (
       <div className="flex h-[50vh] items-center justify-center text-red-500">
-        <p>Failed to load properties. Please try again later.</p>
+        <p>
+          Failed to load properties. Please try again later.{" "}
+          {error.message || "Something went wrong"}
+        </p>
       </div>
     );
   }
 
-  if (!data || !data.properties) {
-    return(
-      <div className="p-8 text-center animate-pulse">
-        You have to Create properties there are no properties here
-      </div>
-    )
-  };
+  if (!data || !data.properties || data.properties.length === 0) {
+    return (
+      <div className="flex h-[450px] shrink-0 items-center justify-center rounded-md border border-dashed">
+        <div className="mx-auto flex max-w-[420px] flex-col items-center justify-center text-center">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+            <Building2 className="h-10 w-10 text-muted-foreground" />
+          </div>
 
+          <h3 className="mt-4 text-lg font-semibold">No properties found</h3>
+          <p className="mb-4 mt-2 text-sm text-muted-foreground">
+            You haven&apos;t added any properties yet. Start by creating your
+            first property listing.
+          </p>
+
+          <Button asChild>
+            <Link href="/createProperty" prefetch>
+              <PlusIcon className="mr-2 h-4 w-4" />
+              Create Property
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
   const { properties, totalProperty, totalPages } = data;
 
   return (
     <div className="container mx-auto space-y-6 p-4 pb-20 md:p-8">
-      {/* --- Header Section --- */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Properties</h1>
@@ -105,7 +128,7 @@ export const AdminProperties = () => {
               <SelectValue placeholder={limit} />
             </SelectTrigger>
             <SelectContent>
-              {[10, 20, 50, 100].map((val) => (
+              {[4, 8, 12, 16].map((val) => (
                 <SelectItem key={val} value={val.toString()}>
                   {val}
                 </SelectItem>

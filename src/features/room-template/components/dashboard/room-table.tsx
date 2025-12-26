@@ -15,7 +15,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Bed, Room } from "../api/room-template.api";
+import { Bed, Room } from "../../api/room-template.api";
 
 export function RoomTable({ rooms }: { rooms: Room[] }) {
   return (

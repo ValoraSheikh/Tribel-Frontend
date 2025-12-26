@@ -10,7 +10,6 @@ import { EditRoomTemplate } from "./edit-room-template";
 import Link from "next/link";
 import { useGetRoomTemplates } from "../../hooks/use-room-template";
 import { Amenity, RoomTemplateProps } from "../../api/room-template.api";
-import { Button } from "@/components/ui/button";
 
 type PropertyIdProps = {
   propertyId: string;
@@ -23,7 +22,12 @@ const AmenityIcon = ({ iconName }: { iconName: string }) => {
 };
 
 export function ListRoomTemplate({ propertyId }: PropertyIdProps) {
-  const { data: rooms, isLoading, isError } = useGetRoomTemplates(propertyId);
+  const {
+    data: rooms,
+    isLoading,
+    isError,
+    error,
+  } = useGetRoomTemplates(propertyId);
 
   if (isLoading) {
     return (
@@ -38,6 +42,10 @@ export function ListRoomTemplate({ propertyId }: PropertyIdProps) {
       <div className="p-6 text-center border border-dashed rounded-lg bg-red-50 text-red-500 mt-4">
         <h3 className="font-medium">Failed to load rooms</h3>
         <p className="text-xs">Please try refreshing the page.</p>
+        <p>
+          Failed to load room templates. Please try again later.{" "}
+          {error.message || "Something went wrong"}
+        </p>
       </div>
     );
   }
@@ -157,7 +165,7 @@ function RoomCard({
             propertyId={propertyId}
             roomTemplateId={room.id}
           />
-          <EditRoomTemplate propertyId={propertyId} roomTemplateId={room.id} />
+          <EditRoomTemplate propertyId={propertyId} roomTemplateId={room.id} room={room} />
         </div>
       </div>
     </Card>
@@ -165,7 +173,7 @@ function RoomCard({
 }
 
 export function ListRoomTemplate1({ propertyId }: PropertyIdProps) {
-  const { data: rooms, isLoading, isError } = useGetRoomTemplates(propertyId);
+  const { data: rooms, isLoading, isError, error } = useGetRoomTemplates(propertyId);
 
   if (isLoading) {
     return (
@@ -180,6 +188,10 @@ export function ListRoomTemplate1({ propertyId }: PropertyIdProps) {
       <div className="p-6 text-center border border-dashed rounded-lg bg-red-50 text-red-500 mt-4">
         <h3 className="font-medium">Failed to load rooms</h3>
         <p className="text-xs">Please try refreshing the page.</p>
+        <p>
+          Failed to load room templates. Please try again later.{" "}
+          {error.message || "Something went wrong"}
+        </p>
       </div>
     );
   }
@@ -195,16 +207,13 @@ export function ListRoomTemplate1({ propertyId }: PropertyIdProps) {
   return (
     <div className="flex flex-col gap-3 mt-4 pb-12">
       {rooms.map((room: RoomTemplateProps) => (
-        <RoomCard1 key={room.id} room={room} propertyId={propertyId} />
+        <RoomCard1 key={room.id} room={room} />
       ))}
     </div>
   );
 }
 
-function RoomCard1({
-  room,
-  propertyId,
-}: { room: RoomTemplateProps } & PropertyIdProps) {
+export function RoomCard1({ room }: { room: RoomTemplateProps }) {
   return (
     <Card className="group overflow-hidden flex flex-col sm:flex-row border-border transition-all duration-250 hover:shadow-md rounded-xl bg-white py-0">
       <div className="relative w-full h-48 sm:h-auto sm:w-44 md:w-52 shrink-0 bg-muted overflow-hidden">
@@ -229,11 +238,9 @@ function RoomCard1({
         <div className="space-y-1">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
             <div className="min-w-0">
-              <Link href={`/properties/${propertyId}/roomtemplate/${room.id}`}>
-                <h3 className="text-base sm:text-lg font-semibold text-foreground leading-tight truncate">
-                  {room.title}
-                </h3>
-              </Link>
+              <h3 className="text-base sm:text-lg font-semibold text-foreground leading-tight truncate">
+                {room.title}
+              </h3>
 
               <div className="flex items-center gap-2 text-[11px] text-muted-foreground mt-1">
                 <span className="flex items-center bg-muted/40 px-2 py-0.5 rounded-md">
@@ -291,12 +298,12 @@ function RoomCard1({
         </div>
 
         {/* Footer actions */}
-        <div
+        {/*<div
           className="flex items-center justify-end gap-2 pt-2 mt-1 border-t
           border-dashed border-border/60"
         >
           <Button variant="outline">Select</Button>
-        </div>
+        </div>*/}
       </div>
     </Card>
   );
