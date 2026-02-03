@@ -3,13 +3,12 @@
 import {
   BirdhouseIcon,
   Building2Icon,
-  CreditCardIcon,
   HousePlusIcon,
   LayoutDashboardIcon,
-  LogOutIcon,
-  LucideLayoutList,
-  StarIcon,
 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarContent,
@@ -21,9 +20,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "./ui/sidebar";
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { NavUser } from "./nav-user";
 
 const menuItems = [
   {
@@ -45,11 +42,6 @@ const menuItems = [
         url: "/properties",
       },
       {
-        title: "Bookings",
-        icon: LucideLayoutList,
-        url: "/bookings",
-      },
-      {
         title: "Create Property",
         icon: HousePlusIcon,
         url: "/createProperty",
@@ -60,7 +52,6 @@ const menuItems = [
 
 export const AppSidebar = () => {
   const pathname = usePathname();
-  const router = useRouter();
 
   return (
     <Sidebar collapsible="icon">
@@ -105,50 +96,7 @@ export const AppSidebar = () => {
       </SidebarContent>
 
       <SidebarFooter>
-        <SidebarMenu>
-          {/*{!hasActiveSubscription && !isLoading && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                tooltip="Upgrage to pro"
-                className="gap-x-4 h-10 px-4"
-                onClick={() => authClient.checkout({ slug: "pro" })}
-              >
-                <StarIcon className="h-4 w-4" />
-                <span>Upgrade to Pro</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}*/}
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Billing Portal"
-              className="gap-x-4 h-10 px-4"
-              // onClick={() => authClient.customer.portal()}
-            >
-              <CreditCardIcon className="h-4 w-4" />
-              <span>Billing Portal</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              tooltip="Sign out"
-              className="gap-x-4 h-10 px-4"
-              onClick={() => router.push("/logout")}
-              // onClick={() =>
-              //   authClient.signOut({
-              //     fetchOptions: {
-              //       onSuccess: () => {
-              //         router.push("/login");
-              //       },
-              //     },
-              //   })
-              // }
-            >
-              <LogOutIcon className="h-4 w-4" />
-              <span>Sign out</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );

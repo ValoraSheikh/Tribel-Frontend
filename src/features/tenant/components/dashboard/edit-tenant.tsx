@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 import { useTenant, useUpdateTenant } from "../../hooks/use-tenant";
+import { useState } from "react";
 
 const formSchema = z.object({
   name: z
@@ -64,6 +65,7 @@ const timezones = [
 
 export function EditTenant() {
   const { data: tenant, isLoading, error, isError } = useTenant();
+  const [open, setOpen] = useState<boolean>(false);
 
   const updateTenant = useUpdateTenant();
 
@@ -116,6 +118,7 @@ export function EditTenant() {
           } as React.CSSProperties,
         });
       },
+
       onError: (error) => {
         toast.error("Failed to update tenant", {
           description: error.message || "Something went wrong.",
@@ -129,10 +132,12 @@ export function EditTenant() {
         });
       },
     });
+
+    setOpen(false);
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <SquarePenIcon size={18} />
       </DialogTrigger>

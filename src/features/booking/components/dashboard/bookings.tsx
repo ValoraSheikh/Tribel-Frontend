@@ -1,22 +1,8 @@
 "use client";
 
-import { parseAsInteger, useQueryState } from "nuqs";
-import { useAdminBookings } from "../../hooks/use-booking";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,21 +11,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { format } from "date-fns";
 import {
   ChevronLeft,
   ChevronRight,
-  Loader2,
   Copy,
   Eye,
-  Trash,
-  Pencil,
   MoreHorizontalIcon,
+  Pencil,
+  Trash,
 } from "lucide-react";
+import { parseAsInteger, useQueryState } from "nuqs";
 import { BookingProps } from "../../api/booking.api";
+import { useAdminBookings } from "../../hooks/use-booking";
 import { BookingDetails } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
 
@@ -85,9 +84,8 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
 
   if (isLoading) {
     return (
-      <div className="flex h-[50vh] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        <span className="ml-2 text-muted-foreground">Loading bookings...</span>
+      <div className="p-8 text-center animate-pulse">
+        Loading Bookings for you...
       </div>
     );
   }
@@ -106,7 +104,6 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
     totalPages: 0,
     totalBookings: 0,
   };
-
 
   return (
     <div className="space-y-6 p-4 md:p-8">

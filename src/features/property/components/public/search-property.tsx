@@ -49,18 +49,6 @@ export function SearchProperty() {
   const totalPages = response?.totalPages || 0;
   const totalProperties = response?.totalProperty || 0;
 
-  if(isError) {
-    return (
-      <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in-50">
-        <div className="bg-primary/10 p-4 rounded-full mb-4">
-          <ShieldAlertIcon className="h-8 w-8 text-primary" />
-        </div>
-        <h1 className="text-2xl font-bold tracking-tight mb-2">
-          {error.message}
-        </h1>
-      </div>
-    )
-  }
   
   const handlePageChange = (newPage: number) => {
     if (newPage >= 0 && newPage < totalPages) {
@@ -141,8 +129,13 @@ export function SearchProperty() {
           {isLoading ? (
             <PropertiesSkeleton />
           ) : isError ? (
-            <div className="text-center py-20 text-red-500">
-              Failed to load properties. Please try again.
+            <div className="flex flex-col items-center justify-center py-20 text-center animate-in fade-in-50">
+              <div className="bg-primary/10 p-4 rounded-full mb-4">
+                <ShieldAlertIcon className="h-8 w-8 text-primary" />
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight mb-2">
+                {error.message}
+              </h1>
             </div>
           ) : response?.properties && response.properties.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

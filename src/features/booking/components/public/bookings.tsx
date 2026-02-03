@@ -1,18 +1,18 @@
 "use client";
 
 import {
-  Bed,
+  BedIcon,
   Building,
-  CalendarDays,
+  CalendarDaysIcon,
   ChevronLeft,
   ChevronRight,
-  Copy,
-  Eye,
-  History,
+  CopyIcon,
+  EyeIcon,
+  HistoryIcon,
   MapPin,
   MoreHorizontalIcon,
-  Pencil,
-  Trash,
+  PencilIcon,
+  Trash2Icon,
 } from "lucide-react";
 import Image from "next/image";
 import { parseAsInteger, useQueryState } from "nuqs";
@@ -70,7 +70,7 @@ export const Bookings = () => {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-4 text-center p-6">
         <div className="p-4 bg-red-100 text-red-600 rounded-full">
-          <History className="w-8 h-8" />
+          <HistoryIcon className="w-8 h-8" />
         </div>
         <h2 className="text-xl font-semibold">Something went wrong</h2>
         <p className="text-muted-foreground max-w-md">{error.message}</p>
@@ -240,7 +240,7 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                 Room
               </p>
               <div className="flex items-center gap-2 text-sm font-medium">
-                <Bed className="w-4 h-4 text-primary shrink-0" />
+                <BedIcon className="w-4 h-4 text-primary shrink-0" />
                 <span className="line-clamp-1">{booking.room.title}</span>
               </div>
             </div>
@@ -250,7 +250,7 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                 Stay Dates
               </p>
               <div className="flex items-center gap-2 text-sm font-medium">
-                <CalendarDays className="w-4 h-4 text-primary shrink-0" />
+                <CalendarDaysIcon className="w-4 h-4 text-primary shrink-0" />
                 <span className="whitespace-nowrap">
                   {new Date(booking.startDate).toLocaleDateString(undefined, {
                     month: "short",
@@ -303,7 +303,7 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                   onClick={() => navigator.clipboard.writeText(booking.id)}
                   className="flex items-center"
                 >
-                  <Copy className="mr-2 h-4 w-4" />
+                  <CopyIcon className="mr-2 h-4 w-4" />
                   Copy ID
                 </DropdownMenuItem>
 
@@ -313,12 +313,12 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                   onSelect={(e) => e.preventDefault()}
                   className="flex items-center"
                 >
-                  <Eye className="mr-2 h-4 w-4" />
+                  <EyeIcon className="mr-2 h-4 w-4" />
                   <BookingDetails booking={booking} />
                 </DropdownMenuItem>
 
                 <DropdownMenuItem className="flex items-center">
-                  <Pencil className="mr-2 h-4 w-4" />
+                  <PencilIcon className="mr-2 h-4 w-4" />
                   Edit Booking
                 </DropdownMenuItem>
 
@@ -334,7 +334,7 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                          focus:bg-destructive/10 focus:outline-none
                        "
                 >
-                  <Trash className="mr-2 h-4 w-4" />
+                  <Trash2Icon className="mr-2 h-4 w-4" />
                   <CancelBookingModal bookingId={booking.id} />
                 </div>
               </DropdownMenuContent>
