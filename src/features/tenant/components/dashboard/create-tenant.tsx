@@ -37,6 +37,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateTenant } from "../../hooks/use-tenant";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z
@@ -76,6 +77,7 @@ const timezones = [
 ] as const;
 
 export function TenantForm() {
+  const router = useRouter()
   const createTenant = useCreateTenant();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -107,6 +109,7 @@ export function TenantForm() {
         });
 
         form.reset();
+        router.push("/main")
       },
       onError: (error) => {
         toast.error("Failed to create tenant", {

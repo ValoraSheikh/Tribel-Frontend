@@ -106,6 +106,7 @@ export const AdminProperties = () => {
       </div>
     );
   }
+
   const { properties, totalProperty, totalPages } = data;
 
   return (

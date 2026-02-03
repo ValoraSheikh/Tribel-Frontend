@@ -24,11 +24,13 @@ import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
 import { CalendarIcon, CheckCircle2 } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { useCreateBooking } from "../../hooks/use-booking";
+import { v4 as uuidv4 } from "uuid";
+import { useRouter } from "next/navigation";
 
 interface DateRange {
   from: Date;
@@ -50,6 +52,8 @@ const formSchema = z.object({
 
 export function CreateBooking({ propertyId }: { propertyId: string }) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
+  const idempotencyKey = useRef(uuidv4());
 
   const createBooking = useCreateBooking();
   const {
@@ -78,27 +82,32 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
       endDate: data.dateRange.to,
     };
 
-    createBooking.mutate(payload, {
-      onSuccess: () => {
-        toast.success("Booking Request Sent", {
-          description: "Your booking has been successfully submitted.",
-        });
-        setOpen(false);
-        form.reset();
+    createBooking.mutate(
+      { payload, idempotencyKey: idempotencyKey.current },
+      {
+        onSuccess: () => {
+          toast.success("Booking Request Sent", {
+            description: "Your booking has been successfully submitted.",
+          });
+          setOpen(false);
+          form.reset();
+          idempotencyKey.current = uuidv4();
+          router.push("/yourBookings");
+        },
+        onError: (error) => {
+          toast.error("Booking Failed", {
+            description: error.message || "Something went wrong.",
+            position: "bottom-right",
+            classNames: {
+              content: "flex flex-col gap-2",
+            },
+            style: {
+              "--border-radius": "calc(var(--radius)  + 4px)",
+            } as React.CSSProperties,
+          });
+        },
       },
-      onError: (error) => {
-        toast.error("Booking Failed", {
-          description: error.message || "Something went wrong.",
-          position: "bottom-right",
-          classNames: {
-            content: "flex flex-col gap-2",
-          },
-          style: {
-            "--border-radius": "calc(var(--radius)  + 4px)",
-          } as React.CSSProperties,
-        });
-      },
-    });
+    );
   }
 
   const selectedRoomId = form.watch("roomTemplateId");

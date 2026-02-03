@@ -1,9 +1,4 @@
-import {
-  keepPreviousData,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   bookingApi,
@@ -21,7 +16,6 @@ export const useUserBookings = (query?: { limit?: number; page?: number }) => {
   return useQuery({
     queryKey: [...USE_USER_BOOKINGS_KEY, query?.limit ?? 8, query?.page ?? 1],
     queryFn: () => bookingApi.getUserBookings(query),
-    staleTime: 0,
   });
 };
 
@@ -29,7 +23,6 @@ export const useBookingDetails = (bookingId: string) => {
   return useQuery({
     queryKey: [...USE_USER_BOOKING_KEY, bookingId],
     queryFn: () => bookingApi.getBookingDetails(bookingId),
-    staleTime: 0,
   });
 };
 
@@ -45,7 +38,16 @@ export const useAdminBookings = (
       query?.page ?? 1,
     ],
     queryFn: () => bookingApi.getBookingsForAdmin(propertyId, query),
-    placeholderData: keepPreviousData,
+  });
+};
+
+export const useGetAllBookings = (query?: {
+  limit?: number;
+  page?: number;
+}) => {
+  return useQuery({
+    queryKey: [...USE_BOOKINGS_KEY, query?.limit ?? 8, query?.page ?? 1],
+    queryFn: () => bookingApi.getAllBookings(query),
   });
 };
 
@@ -71,20 +73,11 @@ export const useCancelAdminBooking = (
       });
     },
 
-    onError: () => {
-      toast.error("Failed to cancel this booking");
+    onError: (err) => {
+      toast.error(
+        `Failed to cancel this booking: ${err.message || "Something went wrong"}`,
+      );
     },
-  });
-};
-
-export const useGetAllBookings = (query?: {
-  limit?: number;
-  page?: number;
-}) => {
-  return useQuery({
-    queryKey: [...USE_BOOKINGS_KEY, query?.limit ?? 8, query?.page ?? 1],
-    queryFn: () => bookingApi.getAllBookings(query),
-    placeholderData: keepPreviousData,
   });
 };
 
@@ -92,8 +85,14 @@ export const useCreateBooking = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payload: CreateBookingPayload) =>
-      bookingApi.createBooking(payload),
+    mutationFn: ({
+      payload,
+      idempotencyKey,
+    }: {
+      payload: CreateBookingPayload;
+      idempotencyKey: string;
+    }) => bookingApi.createBooking({ payload, idempotencyKey }),
+    retry: 1,
     onSuccess: () => {
       toast.success("Booking Created successfully");
     },
@@ -103,7 +102,9 @@ export const useCreateBooking = () => {
       });
     },
     onError: (err) => {
-      toast.error(`Failed to create booking ${err.message}`);
+      toast.error(
+        `Failed to create booking ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };
@@ -161,7 +162,9 @@ export const useUpdateBookings = (bookingId: string) => {
         );
       }
 
-      toast.error(`Failed to update your booking ${err.message}`);
+      toast.error(
+        `Failed to update your booking ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };
@@ -186,7 +189,9 @@ export const useCancelBooking = (bookingId: string) => {
     },
 
     onError: (err) => {
-      toast.error(`Failed to cancel booking ${err.message}`);
+      toast.error(
+        `Failed to cancel booking ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };

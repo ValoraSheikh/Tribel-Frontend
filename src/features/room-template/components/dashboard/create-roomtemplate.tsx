@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { PlusCircleIcon, IndianRupeeIcon, PlusIcon } from "lucide-react";
+import { IndianRupeeIcon, PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 import {
   Field,
@@ -38,6 +38,7 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import roomFeatures from "@/constants/rooms-icon";
+import { useState } from "react";
 
 const roomType = [
   { label: "Single Bed", value: "SINGLE" },
@@ -74,6 +75,8 @@ type PropertyIdProps = {
 };
 
 export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
+  const [open, setOpen] = useState<boolean>(false);
+
   const createRoomTemplate = useCreateRoomTemplate(propertyId);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -98,6 +101,7 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
           description: "Room template created successfully.",
         });
         form.reset();
+        setOpen(false);
       },
       onError: (error) => {
         toast.error("Failed to create room template", {
@@ -112,10 +116,11 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
         });
       },
     });
+
   }
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="w-full sm:w-auto gap-2 shadow-sm">
           <PlusIcon className="h-4 w-4" />
@@ -137,7 +142,6 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
 
           {/* Grid Layout: 1 column on mobile, 2 columns on desktop (md) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            {/* Title - Spans full width */}
             <div className="md:col-span-2">
               <Controller
                 name="title"

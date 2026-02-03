@@ -1,5 +1,4 @@
 import {
-  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
@@ -18,7 +17,6 @@ export const usePropertyDetails = (propertyId: string) => {
   return useQuery({
     queryKey: [...USE_PROPERTY_QUERY_KEY, propertyId],
     queryFn: () => propertyApi.getPropertyDetails(propertyId),
-    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -26,8 +24,6 @@ export const useNewProperties = (query?: { limit?: number }) => {
   return useQuery({
     queryKey: [...USE_PROPERTIES_QUERY_KEY, query?.limit ?? 8],
     queryFn: () => propertyApi.getNewProperty(query),
-    refetchOnWindowFocus: false,
-    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -42,20 +38,17 @@ export const useGetAdminProperties = (query?: {
       query?.limit ?? 10,
     ],
     queryFn: () => propertyApi.getAdminProperties(query),
-    placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000,
   });
 };
 
 export const useSearchProperty = (query?: {
   property?: string;
   limit?: number;
-  page?: number
+  page?: number;
 }) => {
   return useQuery({
     queryKey: [...USE_PROPERTIES_QUERY_KEY, "property", query],
     queryFn: () => propertyApi.getSearchProperty(query),
-    staleTime: 1 * 60 * 1000,
   });
 };
 
@@ -69,8 +62,10 @@ export const useCreateProperty = () => {
         toast.success("Property created successfully");
       }
     },
-    onError: () => {
-      toast.error("Failed to create property");
+    onError: (err) => {
+      toast.error(
+        `Failed to create property: ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };
@@ -120,7 +115,9 @@ export const useUpdateProperty = (propertyId: string) => {
           [...USE_PROPERTY_QUERY_KEY, propertyId],
           context.previousProperty,
         );
-        toast.error(`Failed to update property ${err}`);
+        toast.error(
+          `Failed to update property: ${err.message || "Something went wrong"}`,
+        );
       }
     },
   });
@@ -143,8 +140,10 @@ export const useDeleteProperty = (propertyId: string) => {
       queryClient.invalidateQueries({ queryKey: USE_PROPERTIES_QUERY_KEY });
       toast.success("Property deleted succesfully");
     },
-    onError: () => {
-      toast.error("Failed to delete property");
+    onError: (err) => {
+      toast.error(
+        `Failed to delete property ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };

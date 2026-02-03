@@ -10,7 +10,6 @@ export const useTenant = () => {
   return useQuery({
     queryKey: USE_TENANT_QUERY_KEY,
     queryFn: tenantApi.getTenant,
-    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -57,7 +56,9 @@ export const useUpdateTenant = () => {
           context.previousTenant,
         );
       }
-      toast.error("Failed to update tenant");
+      toast.error(
+        `Failed to update tenant: ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };
@@ -78,8 +79,10 @@ export const useCreateTenant = () => {
 
       toast.success("Tenant created successfully");
     },
-    onError: () => {
-      toast.error("Failed to create tenant");
+    onError: (err) => {
+      toast.error(
+        `Failed to create tenant: ${err.message || "Something went wrong"}`,
+      );
     },
   });
 };

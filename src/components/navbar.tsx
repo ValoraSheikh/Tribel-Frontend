@@ -69,7 +69,7 @@ const Navbar = async ({
   session,
   tenant,
   logo = {
-    url: "/",
+    url: "/discover",
     src: "./logoname.svg",
     alt: "logo",
     title: "Tribel",

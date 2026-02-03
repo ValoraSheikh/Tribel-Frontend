@@ -10,7 +10,6 @@ export const useProfile = () => {
   return useQuery({
     queryKey: USE_QUERY_KEY,
     queryFn: userApi.getProfile,
-    staleTime: 5 * 60 * 1000,
   });
 };
 
@@ -50,7 +49,7 @@ export const useUpdateProfile = () => {
         );
       }
 
-      toast.error("Failed to update profile");
+      toast.error(`Failed to update profile: ${err.message || "Something went wrong"}`);
     },
   });
 };
@@ -64,8 +63,8 @@ export const useDeleteUser = () => {
       queryClient.clear();
       toast.success("Account deleted successfully");
     },
-    onError: () => {
-      toast.error("Failed to delete Account");
+    onError: (err) => {
+      toast.error(`Failed to delete Account: ${err.message || "Something went wrong"}`);
     },
   });
 };
