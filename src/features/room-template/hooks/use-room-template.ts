@@ -5,7 +5,6 @@ import {
   RoomTemplateProps,
   UpdateRoomTemplate,
 } from "../api/room-template.api";
-import { toast } from "sonner";
 
 export const USE_ROOM_TEMPLATE_QUERY_KEY = ["roomtemplate"] as const;
 export const USE_ROOM_TEMPLATES_QUERY_KEY = ["roomtemplates"] as const;
@@ -28,14 +27,11 @@ export const useCreateRoomTemplate = (propertyId: string) => {
         queryClient.invalidateQueries({
           queryKey: [...USE_ROOM_TEMPLATES_QUERY_KEY, propertyId],
         });
-        toast.success("Room template created successfully");
       }
     },
 
     onError: (err) => {
-      toast.error(
-        `Failed to create room template: ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };
@@ -84,7 +80,7 @@ export const useUpdateRoomTemplate = (
     },
 
     onSuccess: () => {
-      toast.success("Room Template updated successfully");
+      // Something if you want
     },
 
     onSettled: () => {
@@ -104,10 +100,6 @@ export const useUpdateRoomTemplate = (
           context?.previousRoomTemplate,
         );
       }
-
-      toast.error(
-        `Failed to update room template: ${err.message || "Something went wrong"}`,
-      );
     },
   });
 };
@@ -153,12 +145,9 @@ export const useDeleteRoomTemplate = (
       queryClient.invalidateQueries({
         queryKey: [...USE_ROOM_TEMPLATES_QUERY_KEY, propertyId],
       });
-      toast.success("Room template deleted successfully");
     },
     onError: (err) => {
-      toast.error(
-        `Failed to delete room template: ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };

@@ -1,6 +1,5 @@
 import { axiosClient } from "@/lib/axios/axios-client";
 import { AxiosInstance } from "axios";
-import { v4 as uuidv4 } from "uuid";
 
 export interface BookingProps {
   id: string;
@@ -111,15 +110,13 @@ export const bookingApi = {
     return data.data;
   },
 
-  createBooking: async (
-    {
-      payload,
-      idempotencyKey,
-    }: {
-      payload: CreateBookingPayload;
-      idempotencyKey: string;
-    }
-  ) => {
+  createBooking: async ({
+    payload,
+    idempotencyKey,
+  }: {
+    payload: CreateBookingPayload;
+    idempotencyKey: string;
+  }) => {
     const { data } = await axiosClient.post<BookingResponse>(
       `/api/v1/booking`,
       payload,

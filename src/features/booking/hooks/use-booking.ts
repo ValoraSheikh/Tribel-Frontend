@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   bookingApi,
   BookingProps,
@@ -61,7 +60,7 @@ export const useCancelAdminBooking = (
     mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
     mutationFn: () => bookingApi.cancelAdminBooking(propertyId, bookingId),
     onSuccess: () => {
-      toast.success("Booking cancelled successfully");
+      // Something if you want
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -74,9 +73,7 @@ export const useCancelAdminBooking = (
     },
 
     onError: (err) => {
-      toast.error(
-        `Failed to cancel this booking: ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };
@@ -92,9 +89,9 @@ export const useCreateBooking = () => {
       payload: CreateBookingPayload;
       idempotencyKey: string;
     }) => bookingApi.createBooking({ payload, idempotencyKey }),
-    retry: 1,
+    retry: 0,
     onSuccess: () => {
-      toast.success("Booking Created successfully");
+      // Something if you want
     },
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -102,9 +99,7 @@ export const useCreateBooking = () => {
       });
     },
     onError: (err) => {
-      toast.error(
-        `Failed to create booking ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };
@@ -142,7 +137,7 @@ export const useUpdateBookings = (bookingId: string) => {
     },
 
     onSuccess: () => {
-      toast.success("Booking updated successfully");
+      // Something if you want
     },
 
     onSettled: () => {
@@ -161,10 +156,6 @@ export const useUpdateBookings = (bookingId: string) => {
           context?.previousBooking,
         );
       }
-
-      toast.error(
-        `Failed to update your booking ${err.message || "Something went wrong"}`,
-      );
     },
   });
 };
@@ -179,7 +170,6 @@ export const useCancelBooking = (bookingId: string) => {
       queryClient.invalidateQueries({
         queryKey: [...USE_USER_BOOKING_KEY, bookingId],
       });
-      toast.success("Booking cancelled successfully");
     },
 
     onSettled: () => {
@@ -189,9 +179,7 @@ export const useCancelBooking = (bookingId: string) => {
     },
 
     onError: (err) => {
-      toast.error(
-        `Failed to cancel booking ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };

@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { tenantApi, TenantProps } from "../api/tenant.api";
 
 export const USE_TENANT_QUERY_KEY = ["tenant"] as const;
@@ -42,7 +41,6 @@ export const useUpdateTenant = () => {
           updateTenant,
         );
       }
-      toast.success("Tenant Updated successfully");
     },
 
     onSettled: () => {
@@ -56,9 +54,6 @@ export const useUpdateTenant = () => {
           context.previousTenant,
         );
       }
-      toast.error(
-        `Failed to update tenant: ${err.message || "Something went wrong"}`,
-      );
     },
   });
 };
@@ -76,13 +71,9 @@ export const useCreateTenant = () => {
         );
       }
       queryClient.invalidateQueries({ queryKey: USE_TENANT_QUERY_KEY });
-
-      toast.success("Tenant created successfully");
     },
     onError: (err) => {
-      toast.error(
-        `Failed to create tenant: ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };

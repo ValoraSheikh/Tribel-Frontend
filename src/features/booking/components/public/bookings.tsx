@@ -51,7 +51,6 @@ const formatPrice = (price: number) => {
   }).format(price);
 };
 
-
 export const Bookings = () => {
   const [limit, setLimit] = useQueryState(
     "limit",
@@ -174,7 +173,6 @@ export const Bookings = () => {
 const BookingCard = ({ booking }: { booking: BookingProps }) => {
   const status = booking.status;
 
-  console.log(booking)
   const statusKey = (status || "").toLowerCase();
   const statusClasses = (() => {
     switch (statusKey) {

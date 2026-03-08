@@ -209,7 +209,7 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
   }
 
   return (
-    <Card className="w-full border-muted/60 shadow-md">
+    <Card className="w-full border-muted/60 shadow-md py-0">
       <CardHeader className="space-y-1 border-b bg-gray-50/50 px-6 py-5">
         <CardTitle className="text-2xl font-bold">
           Edit your Property details
