@@ -208,10 +208,10 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
               <ScrollArea className="h-[300px] sm:h-[400px] pr-4 border rounded-md p-2 bg-muted/10">
                 <div className="flex flex-col gap-4">
                   {rooms.map((room: RoomTemplateProps) => {
-                    // Type as RoomTemplateProps if available
                     const isSelected = selectedRoomId === room.id;
                     return (
                       <div
+                        data-testid="room-card-select"
                         key={room.id}
                         onClick={() =>
                           form.setValue("roomTemplateId", room.id, {
@@ -271,6 +271,3 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
   );
 }
 
-// NOTE: Ensure RoomCard1 is imported or defined here.
-// I have made slight CSS adjustments to RoomCard1 wrapper in the logic above
-// to ensure it handles "Selection" state visually.
