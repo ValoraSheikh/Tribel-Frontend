@@ -109,7 +109,7 @@ export function TenantForm() {
         });
 
         form.reset();
-        router.push("/main")
+        router.push("/tenant")
       },
       onError: (error) => {
         toast.error("Failed to create tenant", {

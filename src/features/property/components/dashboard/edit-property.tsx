@@ -176,20 +176,7 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
   function onSubmit(data: z.infer<typeof formSchema>) {
     updateProperty.mutate(data, {
       onSuccess: () => {
-        toast("You submitted the following values:", {
-          description: (
-            <pre className="bg-code text-muted-foreground mt-2 w-[320px] overflow-x-auto rounded-md p-4">
-              <code>{JSON.stringify(data, null, 2)}</code>
-            </pre>
-          ),
-          position: "bottom-right",
-          classNames: {
-            content: "flex flex-col gap-2",
-          },
-          style: {
-            "--border-radius": "calc(var(--radius)  + 4px)",
-          } as React.CSSProperties,
-        });
+        toast.success("Property updated successfully");
 
         router.push("/properties");
       },
@@ -209,7 +196,7 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
   }
 
   return (
-    <Card className="w-full border-muted/60 shadow-md">
+    <Card className="w-full border-muted/60 shadow-md py-0">
       <CardHeader className="space-y-1 border-b bg-gray-50/50 px-6 py-5">
         <CardTitle className="text-2xl font-bold">
           Edit your Property details

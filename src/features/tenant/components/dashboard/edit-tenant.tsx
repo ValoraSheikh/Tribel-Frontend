@@ -117,6 +117,8 @@ export function EditTenant() {
             "--border-radius": "calc(var(--radius)  + 4px)",
           } as React.CSSProperties,
         });
+        
+        setOpen(false);
       },
 
       onError: (error) => {
@@ -133,7 +135,6 @@ export function EditTenant() {
       },
     });
 
-    setOpen(false);
   }
 
   return (

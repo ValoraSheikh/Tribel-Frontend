@@ -1,7 +1,6 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { userApi, UserProps } from "../api/user.api";
 
 export const USE_QUERY_KEY = ["user", "profile"] as const;
@@ -33,10 +32,6 @@ export const useUpdateProfile = () => {
       return { previousUser };
     },
 
-    onSuccess: () => {
-      toast.success("Profile Updated Successfully");
-    },
-
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: USE_QUERY_KEY });
     },
@@ -48,8 +43,6 @@ export const useUpdateProfile = () => {
           context.previousUser,
         );
       }
-
-      toast.error(`Failed to update profile: ${err.message || "Something went wrong"}`);
     },
   });
 };
@@ -61,10 +54,9 @@ export const useDeleteUser = () => {
     mutationFn: userApi.deleteUser,
     onSuccess: () => {
       queryClient.clear();
-      toast.success("Account deleted successfully");
     },
     onError: (err) => {
-      toast.error(`Failed to delete Account: ${err.message || "Something went wrong"}`);
+      // Something if you want
     },
   });
 };

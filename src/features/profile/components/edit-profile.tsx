@@ -94,7 +94,9 @@ export function EditProfile({ user }: { user: UserProps }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <SquarePenIcon size="30px" className="h-6 w-6" />
+        <button aria-label="Edit Profile" data-testid="edit-profile-trigger" className="p-0 m-0">
+          <SquarePenIcon size="30px" className="h-6 w-6" />
+        </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <form

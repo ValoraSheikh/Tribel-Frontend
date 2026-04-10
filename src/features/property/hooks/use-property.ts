@@ -3,7 +3,6 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
-import { toast } from "sonner";
 import {
   propertyApi,
   PropertyProps,
@@ -58,14 +57,11 @@ export const useCreateProperty = () => {
     mutationFn: propertyApi.createProperty,
     onSuccess: (createProperty) => {
       if (createProperty) {
-        queryClient.invalidateQueries({ queryKey: USE_PROPERTIES_QUERY_KEY });
-        toast.success("Property created successfully");
+        queryClient.invalidateQueries({ queryKey: USE_PROPERTIES_QUERY_KEY })
       }
     },
     onError: (err) => {
-      toast.error(
-        `Failed to create property: ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };
@@ -99,7 +95,7 @@ export const useUpdateProperty = (propertyId: string) => {
     },
 
     onSuccess: () => {
-      toast.success("Property updated successfully");
+      // Something if you want 
     },
 
     onSettled: () => {
@@ -114,9 +110,6 @@ export const useUpdateProperty = (propertyId: string) => {
         queryClient.setQueryData<PropertyProps>(
           [...USE_PROPERTY_QUERY_KEY, propertyId],
           context.previousProperty,
-        );
-        toast.error(
-          `Failed to update property: ${err.message || "Something went wrong"}`,
         );
       }
     },
@@ -138,12 +131,9 @@ export const useDeleteProperty = (propertyId: string) => {
         queryKey: [...USE_PROPERTY_QUERY_KEY, propertyId],
       });
       queryClient.invalidateQueries({ queryKey: USE_PROPERTIES_QUERY_KEY });
-      toast.success("Property deleted succesfully");
     },
     onError: (err) => {
-      toast.error(
-        `Failed to delete property ${err.message || "Something went wrong"}`,
-      );
+      // Something if you want
     },
   });
 };

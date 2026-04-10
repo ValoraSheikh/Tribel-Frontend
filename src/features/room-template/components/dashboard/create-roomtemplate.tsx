@@ -169,7 +169,7 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="room_type">Hostel Type</FieldLabel>
+                  <FieldLabel htmlFor="room_type">Room Type</FieldLabel>
                   <Select
                     name={field.name}
                     value={field.value}
