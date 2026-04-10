@@ -16,9 +16,6 @@ setup("authenticate via Auth0", async ({ page }) => {
   await page.getByRole("button", { name: "Accept", exact: true }).click();
 
   await page.waitForURL("http://localhost:3001/");
-  await page.goto(
-    "http://localhost:3001/property/32825c3b-47ec-493c-947e-64046ad9c815",
-  );
 
   await page.context().storageState({ path: authFile });
 });
