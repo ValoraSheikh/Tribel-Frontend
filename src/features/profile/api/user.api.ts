@@ -22,6 +22,11 @@ interface UpdateUserPayload {
   phoneNo: string;
 }
 
+interface avatarUrl{
+  avatarUrl: string;
+  key:string
+}
+
 export const userApi = {
   getProfile: async (): Promise<UserProps> => {
     const { data } = await axiosClient.get<UserResponse>(
@@ -38,8 +43,12 @@ export const userApi = {
     return data.data;
   },
 
+  updateAvatar: async (payload: avatarUrl): Promise<void> => {
+    await axiosClient.patch("/api/v1/user/avatar", payload);
+  },
+
   deleteUser: async (): Promise<void> => {
-    await axiosClient.delete("/api/v1/delete");
+    await axiosClient.delete("/api/v1/user/delete");
   },
 };
 
