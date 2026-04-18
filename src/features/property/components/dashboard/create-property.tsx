@@ -41,6 +41,7 @@ import states from "@/constants/states";
 import hostelType from "@/constants/hostel-type";
 import availableAmenities from "@/constants/amenities";
 import { useCreateProperty } from "../../hooks/use-property";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   title: z
@@ -623,7 +624,14 @@ export function PropertyForm() {
             disabled={createProperty.isPending}
             className="min-w-[100px]"
           >
-            {createProperty.isPending ? "Submitting..." : "Submit Property"}
+            {createProperty.isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4" />
+                <span>Submitting...</span>
+              </span>
+            ) : (
+              "Submit Property"
+            )}
           </Button>
         </div>
       </CardFooter>
