@@ -17,12 +17,16 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Camera, UploadCloud, X } from "lucide-react";
 import { toast } from "sonner";
+import { toUrl } from "@/utils/image";
+import { Spinner } from "@/components/ui/spinner";
 
 export function UpdateAvatar({
+  userId,
   avatarUrl,
   firstName,
   lastName,
 }: {
+  userId: string;
   avatarUrl: string;
   firstName: string;
   lastName: string;
@@ -34,9 +38,9 @@ export function UpdateAvatar({
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { mutateAsync: getUploadUrl } = useGetUploadUrl();
-  const { mutateAsync: uploadFile } = useUploadFile();
-  const { mutateAsync: updateAvatar } = useUpdateAvatar();
+  const getUploadUrl = useGetUploadUrl();
+  const uploadFile = useUploadFile();
+  const updateAvatar = useUpdateAvatar();
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -58,26 +62,25 @@ export function UpdateAvatar({
     try {
       setIsUploading(true);
 
-      const { uploadUrl, key } = await getUploadUrl({
+      const { uploadUrl, key } = await getUploadUrl.mutateAsync({
         entity: "user",
         fileType: selectedFile.type,
-        entityId: "9687a46s54f",
+        entityId: userId,
       });
-      
-      await uploadFile({
+
+      uploadFile.mutate({
         url: uploadUrl,
         file: selectedFile,
       });
-      
-      await updateAvatar({
+
+      await updateAvatar.mutateAsync({
         key: key,
-        avatarUrl: `https://s3.ap-south-1.amazonaws.com/bucket.tribel.in/${key}`,
       });
 
       setOpen(false);
       handleRemovePreview();
     } catch (error) {
-      toast.error("Failed to update avatar")
+      toast.error("Failed to update avatar");
     } finally {
       setIsUploading(false);
     }
@@ -94,7 +97,7 @@ export function UpdateAvatar({
       <DialogTrigger asChild>
         <div className="relative group cursor-pointer inline-block rounded-full">
           <Avatar className="h-24 w-24 border-2 border-border transition-opacity group-hover:opacity-80">
-            <AvatarImage src={avatarUrl} className="object-cover" />
+            <AvatarImage src={toUrl(avatarUrl)} className="object-cover" />
             <AvatarFallback className="text-xl">
               {firstName[0]}
               {lastName[0]}
@@ -106,7 +109,11 @@ export function UpdateAvatar({
         </div>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent
+        className="sm:max-w-[425px]"
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>Update Profile Picture</DialogTitle>
           <DialogDescription>
@@ -164,7 +171,14 @@ export function UpdateAvatar({
             onClick={handleUpload}
             disabled={!selectedFile || isUploading}
           >
-            {isUploading ? "Uploading..." : "Save Image"}
+            {isUploading ? (
+              <span className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4" />
+                <span>Processing...</span>
+              </span>
+            ) : (
+              "Save Image"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>
