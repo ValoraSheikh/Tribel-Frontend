@@ -31,17 +31,11 @@ const Profile = () => {
       <Card className="p-6">
         <div className="flex items-center gap-4">
           <UpdateAvatar
+            userId={user.id}
             avatarUrl={user.avatar}
             firstName={user.firstName}
             lastName={user.lastName}
           />
-          {/*<Avatar className="h-20 w-20">
-            <AvatarImage src={user.avatar} />
-            <AvatarFallback>
-              {user.firstName[0]}
-              {user.lastName[0]}
-            </AvatarFallback>
-          </Avatar>*/}
 
           <div>
             <h1 className="text-2xl font-semibold">
