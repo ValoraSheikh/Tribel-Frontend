@@ -80,6 +80,8 @@ export function EditTenant() {
       description: tenant?.description,
     },
   });
+  
+  const { isDirty } = form.formState;
 
   if (isLoading) {
     <div className="p-8 text-center animate-pulse min-h-screen">
@@ -134,7 +136,6 @@ export function EditTenant() {
         });
       },
     });
-
   }
 
   return (
@@ -322,7 +323,7 @@ export function EditTenant() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
 
-            <Button type="submit" disabled={updateTenant.isPending}>
+            <Button type="submit" disabled={updateTenant.isPending || !isDirty}>
               {updateTenant.isPending ? "Saving changes..." : "Save changes"}
             </Button>
           </DialogFooter>
