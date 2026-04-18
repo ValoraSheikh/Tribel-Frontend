@@ -53,13 +53,33 @@ export const useUpdateAvatar = () => {
 
   return useMutation({
     mutationFn: userApi.updateAvatar,
+    onMutate: async (newKey) => {
+      await queryClient.cancelQueries({ queryKey: USE_QUERY_KEY });
+      
+      const previousUser = queryClient.getQueryData<UserProps>(USE_QUERY_KEY);
+      
+      if (previousUser)
+        queryClient.setQueryData(USE_QUERY_KEY,  {
+          ...previousUser,
+          avatar: newKey,
+        });
+
+      return {
+        previousUser,
+      };
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USE_QUERY_KEY });
       toast.success("Profile avatar updated successfully");
     },
-    onError: () => {
-      toast.error("Failed to update avatar")
-    }
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: USE_QUERY_KEY });
+    },
+    onError: (err, newKey, context) => {
+      if (context?.previousUser) {
+        queryClient.setQueryData(USE_QUERY_KEY, context.previousUser);
+      }
+      toast.error("Failed to update avatar");
+    },
   });
 };
 
