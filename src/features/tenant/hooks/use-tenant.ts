@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { tenantApi, TenantProps } from "../api/tenant.api";
+import { toast } from "sonner";
 
 export const USE_TENANT_QUERY_KEY = ["tenant"] as const;
 
@@ -53,6 +54,39 @@ export const useUpdateTenant = () => {
           USE_TENANT_QUERY_KEY,
           context.previousTenant,
         );
+      }
+    },
+  });
+};
+
+export const useUpdateTenantProfile = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: tenantApi.updateTenantProfile,
+    onMutate: async (newKey) => {
+      await queryClient.cancelQueries({ queryKey: USE_TENANT_QUERY_KEY });
+      const previousTenant = queryClient.getQueryData(USE_TENANT_QUERY_KEY);
+
+      if (previousTenant)
+        queryClient.setQueryData(USE_TENANT_QUERY_KEY, {
+          ...previousTenant,
+          prefile: newKey,
+        });
+
+      return {
+        previousTenant,
+      };
+    },
+    onSuccess: () => {
+      
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: USE_TENANT_QUERY_KEY });
+    },
+    onError: (err, newKey, context) => {
+      if (context?.previousTenant) {
+        queryClient.setQueryData(USE_TENANT_QUERY_KEY, context.previousTenant);
       }
     },
   });

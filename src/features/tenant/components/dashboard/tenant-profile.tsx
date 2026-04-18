@@ -14,6 +14,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EditTenant } from "./edit-tenant";
 import { useTenant } from "../../hooks/use-tenant";
+import { toUrl } from "@/utils/image";
+import { UpdateProfile } from "./update-profile-avatar";
 
 const getInitials = (first: string = "", last: string = "") => {
   return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
@@ -46,13 +48,11 @@ export function TenantProfile() {
 
         <CardContent className="relative px-6 pb-6">
           <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
-            {/* Avatar */}
-            <Avatar className="-mt-12 h-24 w-24 border-4 border-background shadow-sm">
-              <AvatarImage src={tenant.profile || ""} alt={tenant.name} />
-              <AvatarFallback className="text-xl font-bold">
-                {tenant.name.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
+            <UpdateProfile
+              tenantName={tenant.name}
+              avatarUrl={tenant.profile}
+              tenantId={tenant.id}
+            />
 
             {/* Text Info */}
             <div className="flex-1 space-y-1 pt-2">
@@ -160,7 +160,7 @@ export function TenantProfile() {
               {tenant.user ? (
                 <div className="flex flex-col items-center space-y-4 text-center">
                   <Avatar className="h-20 w-20">
-                    <AvatarImage src={tenant.user.avatar || ""} />
+                    <AvatarImage src={toUrl(tenant.user.avatar) || ""} />
                     <AvatarFallback>
                       {getInitials(tenant.user.firstName, tenant.user.lastName)}
                     </AvatarFallback>
