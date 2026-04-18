@@ -57,7 +57,6 @@ export function UpdateProfile({
   const handleUpload = async () => {
     if (!selectedFile) return;
 
-    const start = performance.now();
     try {
       setIsUploading(true);
 
@@ -71,8 +70,6 @@ export function UpdateProfile({
         url: uploadUrl,
         file: selectedFile,
       });
-
-      const end = performance.now();
 
       await updateAvatar.mutateAsync(
         {
@@ -90,7 +87,6 @@ export function UpdateProfile({
 
       setOpen(false);
       handleRemovePreview();
-      console.log(`Execution time aws upload: ${end - start} ms completed 👍`);
     } catch (error) {
       toast.error("Failed to update avatar");
     } finally {
