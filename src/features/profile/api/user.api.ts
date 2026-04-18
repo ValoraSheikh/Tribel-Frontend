@@ -2,6 +2,7 @@ import { axiosClient } from "@/lib/axios/axios-client";
 import type { AxiosInstance } from "axios";
 
 export interface UserProps {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -23,7 +24,6 @@ interface UpdateUserPayload {
 }
 
 interface avatarUrl{
-  avatarUrl: string;
   key:string
 }
 
