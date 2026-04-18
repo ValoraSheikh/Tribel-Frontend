@@ -70,16 +70,14 @@ export const useUpdateTenantProfile = () => {
       if (previousTenant)
         queryClient.setQueryData(USE_TENANT_QUERY_KEY, {
           ...previousTenant,
-          prefile: newKey,
+          profile: newKey,
         });
 
       return {
         previousTenant,
       };
     },
-    onSuccess: () => {
-      
-    },
+    onSuccess: () => {},
 
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: USE_TENANT_QUERY_KEY });
