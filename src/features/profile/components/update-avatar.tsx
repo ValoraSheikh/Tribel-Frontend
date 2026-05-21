@@ -62,20 +62,35 @@ export function UpdateAvatar({
     try {
       setIsUploading(true);
 
-      const { uploadUrl, key } = await getUploadUrl.mutateAsync({
-        entity: "user",
-        fileType: selectedFile.type,
-        entityId: userId,
-      });
+      const { uploadUrl, key } = await getUploadUrl.mutateAsync(
+        {
+          entity: "user",
+          fileType: selectedFile.type,
+          entityId: userId,
+        },
+        {
+          onError: () => toast.error("Didn't about to create URL"),
+        },
+      );
 
-      uploadFile.mutate({
-        url: uploadUrl,
-        file: selectedFile,
-      });
+      uploadFile.mutate(
+        {
+          url: uploadUrl,
+          file: selectedFile,
+        },
+        {
+          onError: () => toast.error("Failed to upload Image"),
+        },
+      );
 
-      await updateAvatar.mutateAsync({
-        key: key,
-      });
+      await updateAvatar.mutateAsync(
+        {
+          key: key,
+        },
+        {
+          onError: () => toast.error("Failed to update Image"),
+        },
+      );
 
       setOpen(false);
       handleRemovePreview();
