@@ -38,7 +38,6 @@ interface CreateTenantPayload {
 export interface UpdateTenant {
   name: string;
   description: string;
-  profile: string;
   currency: string;
   timezone: string;
 }
