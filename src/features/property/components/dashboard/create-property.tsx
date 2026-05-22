@@ -7,14 +7,9 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { MapPin } from "lucide-react";
 
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   InputGroup,
@@ -36,11 +31,7 @@ import availableAmenities from "@/constants/amenities";
 import { useCreateProperty } from "../../hooks/use-property";
 import { Spinner } from "@/components/ui/spinner";
 
-import {
-  useGetUploadUrl,
-  useUploadFile,
-} from "@/features/upload/hooks/use-upload";
-import { FileUpload } from "@/components/file-upload";
+import { FileUpload } from "@/features/upload/components/file-upload";
 
 const formSchema = z.object({
   title: z
@@ -50,9 +41,14 @@ const formSchema = z.object({
   type: z.string().min(1).max(20),
   gstin: z
     .string()
-    .regex(
-      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/,
-      "Enter a valid 15-character GSTIN.",
+    .transform((val) => val.toUpperCase())
+    .pipe(
+      z
+        .string()
+        .regex(
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+          "Enter a valid 15-character GSTIN.",
+        ),
     ),
   city: z
     .string()
@@ -60,39 +56,28 @@ const formSchema = z.object({
     .max(32, "City must be at most 32 characters."),
   state: z.string().min(2, "State is required."),
   country: z.string().min(2, "Country is required."),
-
   postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code."),
-
   latitude: z.coerce
-    .number<number>()
+    .number<number>({ error: "Latitude is necessary" })
     .min(-90, "Latitude must be ≥ -90.")
     .max(90, "Latitude must be ≤ 90."),
-
   longitude: z.coerce
-    .number<number>()
+    .number<number>({ error: "Longitude is necessary" })
     .min(-180, "Longitude must be ≥ -180.")
     .max(180, "Longitude must be ≤ 180."),
-
   contact_email: z.string().email("Enter a valid email address."),
-
   contact_phone: z
     .string()
     .regex(/^\d{10}$/, "Enter a valid Indian phone number."),
-
   address: z
     .string()
     .min(20, "Address must be at least 20 characters.")
     .max(150, "Address must be at most 150 characters."),
-
   description: z
     .string()
     .min(20, "Address must be at least 20 characters.")
     .max(150, "Address must be at most 150 characters."),
-
-  images: z
-    .array(z.string().url("Images must be valid URLs."))
-    .min(1, "Add at least one image URL."),
-
+  // images: z.array(z.string()).min(1, "Add at least one image URL.").optional(),
   amenities: z
     .array(
       z.object({
@@ -104,11 +89,10 @@ const formSchema = z.object({
 });
 
 export function PropertyForm() {
-  const getUploadUrl = useGetUploadUrl();
-  const uploadFile = useUploadFile();
   const router = useRouter();
   const createProperty = useCreateProperty();
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isLocating, setIsLocating] = useState(false);
+  const [imageKeys, setImageKeys] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -121,39 +105,76 @@ export function PropertyForm() {
       contact_phone: "",
       country: "",
       gstin: "",
-      latitude: 0,
-      longitude: 0,
+      latitude: undefined,
+      longitude: undefined,
       postal_code: "",
       state: "",
       type: undefined as unknown as z.infer<typeof formSchema>["type"],
-      images: [],
+      // images: [],
       description: "",
       amenities: [],
     },
   });
-  const images: string[] = [];
 
-  async function handleUpload() {
-    const { uploadUrl, key } = await getUploadUrl.mutateAsync({
-      entity: "property",
-      entityId: "",
-      fileType: selectedFile?.type,
-    });
+  async function getLocation() {
+    if (!("geolocation" in navigator)) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
 
-    uploadFile.mutate({
-      file: selectedFile,
-      url: uploadUrl,
-    });
+    setIsLocating(true);
 
-    images.push(key);
-    return key;
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        form.setValue("latitude", lat, { shouldValidate: true });
+        form.setValue("longitude", lon, { shouldValidate: true });
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
+          );
+          const data = await response.json();
+
+          if (data.address) {
+            const { city, town, village, state, country, postcode } =
+              data.address;
+            form.setValue("city", city || town || village || "", {
+              shouldValidate: true,
+            });
+            form.setValue("state", state || "", { shouldValidate: true });
+            form.setValue("country", country || "", { shouldValidate: true });
+            form.setValue("postal_code", postcode || "", {
+              shouldValidate: true,
+            });
+
+            toast.success("Location and address auto-filled!");
+          }
+        } catch (error) {
+          toast.warning("Coordinates found, but address lookup failed.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        toast.error("Location access denied, Turn On Location", {
+          description: error.message,
+        });
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true },
+    );
   }
 
   function onSubmit(data: z.infer<typeof formSchema>) {
     const payload = {
       ...data,
-      images: images,
+      images: imageKeys,
     };
+
+    console.log("Here is the payload", payload);
 
     createProperty.mutate(payload, {
       onSuccess: () => {
@@ -185,19 +206,28 @@ export function PropertyForm() {
           Create your Property
         </h1>
         <p className="text-base text-muted-foreground max-w-2xl">
-          Fill in the details below to list your property on the platform. Provide accurate information to help guests find and choose your location.
+          Fill in the details below to list your property on the platform.
+          Provide accurate information to help guests find and choose your
+          location.
         </p>
       </div>
 
-      <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)} className="space-y-14">
-        
+      <form
+        id="form-rhf-demo"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-14"
+      >
         {/* Section 1: Basic Information */}
         <div className="space-y-6">
           <div className="border-b border-border/50 pb-2">
-            <h3 className="text-lg font-medium text-foreground tracking-tight">Basic Information</h3>
-            <p className="text-sm text-muted-foreground">General details and description of the property.</p>
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Basic Information
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              General details and description of the property.
+            </p>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div className="md:col-span-2">
               <Controller
@@ -205,7 +235,9 @@ export function PropertyForm() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="property-title">Property Title</FieldLabel>
+                    <FieldLabel htmlFor="property-title">
+                      Property Title
+                    </FieldLabel>
                     <Input
                       {...field}
                       id="property-title"
@@ -214,7 +246,9 @@ export function PropertyForm() {
                       autoComplete="off"
                       className="max-w-2xl"
                     />
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
@@ -231,7 +265,10 @@ export function PropertyForm() {
                     value={field.value}
                     onValueChange={field.onChange}
                   >
-                    <SelectTrigger id="hostel_type" aria-invalid={fieldState.invalid}>
+                    <SelectTrigger
+                      id="hostel_type"
+                      aria-invalid={fieldState.invalid}
+                    >
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -242,7 +279,9 @@ export function PropertyForm() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -260,7 +299,9 @@ export function PropertyForm() {
                     placeholder="Enter 15-character GSTIN"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -271,7 +312,9 @@ export function PropertyForm() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="hostel-description">Hostel Description</FieldLabel>
+                    <FieldLabel htmlFor="hostel-description">
+                      Hostel Description
+                    </FieldLabel>
                     <InputGroup className="max-w-3xl">
                       <InputGroupTextarea
                         {...field}
@@ -287,7 +330,9 @@ export function PropertyForm() {
                         </InputGroupText>
                       </InputGroupAddon>
                     </InputGroup>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
@@ -298,10 +343,14 @@ export function PropertyForm() {
         {/* Section 2: Contact Details */}
         <div className="space-y-6">
           <div className="border-b border-border/50 pb-2">
-            <h3 className="text-lg font-medium text-foreground tracking-tight">Contact Details</h3>
-            <p className="text-sm text-muted-foreground">How guests or admins can reach the property.</p>
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Contact Details
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              How guests or admins can reach the property.
+            </p>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Controller
               name="contact_email"
@@ -316,7 +365,9 @@ export function PropertyForm() {
                     placeholder="contact@example.com"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -334,7 +385,9 @@ export function PropertyForm() {
                     placeholder="99999 99999"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -344,10 +397,14 @@ export function PropertyForm() {
         {/* Section 3: Location Details */}
         <div className="space-y-6">
           <div className="border-b border-border/50 pb-2">
-            <h3 className="text-lg font-medium text-foreground tracking-tight">Location Details</h3>
-            <p className="text-sm text-muted-foreground">Physical address and map coordinates.</p>
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Location Details
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Physical address and map coordinates.
+            </p>
           </div>
-          
+
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <div className="sm:col-span-2 lg:col-span-3">
               <Controller
@@ -355,7 +412,9 @@ export function PropertyForm() {
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-rhf-demo-address">Hostel Address</FieldLabel>
+                    <FieldLabel htmlFor="form-rhf-demo-address">
+                      Hostel Address
+                    </FieldLabel>
                     <InputGroup className="max-w-3xl">
                       <InputGroupTextarea
                         {...field}
@@ -371,10 +430,40 @@ export function PropertyForm() {
                         </InputGroupText>
                       </InputGroupAddon>
                     </InputGroup>
-                    {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
                   </Field>
                 )}
               />
+            </div>
+
+            {/* Location Fetcher Banner */}
+            <div className="sm:col-span-2 lg:col-span-3 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-muted/40 p-4 rounded-xl border border-border/50">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  GPS Coordinates
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Use your device to auto-fill your exact latitude and
+                  longitude.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={getLocation}
+                disabled={isLocating}
+                className="w-full sm:w-auto gap-2  shadow-sm hover:bg-accent"
+              >
+                {isLocating ? (
+                  <Spinner className="h-4 w-4 animate-spin text-primary" />
+                ) : (
+                  <MapPin className="h-4 w-4" />
+                )}
+                {isLocating ? "Locating..." : "Use Current Location"}
+              </Button>
             </div>
 
             <Controller
@@ -390,7 +479,9 @@ export function PropertyForm() {
                     placeholder="City name"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -417,7 +508,9 @@ export function PropertyForm() {
                       ))}
                     </SelectContent>
                   </Select>
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -435,7 +528,9 @@ export function PropertyForm() {
                     placeholder="Country"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -453,7 +548,9 @@ export function PropertyForm() {
                     placeholder="6-digit code"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -466,12 +563,16 @@ export function PropertyForm() {
                   <FieldLabel htmlFor="latitude">Latitude</FieldLabel>
                   <Input
                     {...field}
+                    value={field.value ?? ""}
                     id="latitude"
+                    readOnly
                     aria-invalid={fieldState.invalid}
                     placeholder="e.g. 28.6139"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -484,12 +585,16 @@ export function PropertyForm() {
                   <FieldLabel htmlFor="longitude">Longitude</FieldLabel>
                   <Input
                     {...field}
+                    value={field.value ?? ""}
                     id="longitude"
                     aria-invalid={fieldState.invalid}
+                    readOnly
                     placeholder="e.g. 77.2090"
                     autoComplete="off"
                   />
-                  {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
                 </Field>
               )}
             />
@@ -499,23 +604,34 @@ export function PropertyForm() {
         {/* Section 4: Media Upload */}
         <div className="space-y-6">
           <div className="border-b border-border/50 pb-2">
-            <h3 className="text-lg font-medium text-foreground tracking-tight">Property Images</h3>
-            <p className="text-sm text-muted-foreground">Upload high-quality images showcasing your property.</p>
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Property Images
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Upload high-quality images showcasing your property.
+            </p>
           </div>
-          
+
           <div className="max-w-4xl">
             <FieldLabel className="mb-4 block">Image Upload</FieldLabel>
-            <FileUpload className="py-8 max-w-full" />
+            <FileUpload
+              className="py-8 max-w-full"
+              onImageKeys={(keys) => setImageKeys(keys)}
+            />
           </div>
         </div>
 
         {/* Section 5: Amenities */}
         <div className="space-y-6">
           <div className="border-b border-border/50 pb-2">
-            <h3 className="text-lg font-medium text-foreground tracking-tight">Amenities</h3>
-            <p className="text-sm text-muted-foreground">Select the facilities and amenities available to guests.</p>
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Amenities
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Select the facilities and amenities available to guests.
+            </p>
           </div>
-          
+
           <Controller
             name="amenities"
             control={form.control}
@@ -525,7 +641,8 @@ export function PropertyForm() {
                   {availableAmenities.map((amenity) => {
                     const IconComponent = amenity.IconComponent;
                     const isSelected =
-                      field.value?.some((a) => a.name === amenity.name) ?? false;
+                      field.value?.some((a) => a.name === amenity.name) ??
+                      false;
 
                     return (
                       <label
@@ -569,7 +686,9 @@ export function PropertyForm() {
                         />
                         <span
                           className={`text-xs font-medium text-center leading-tight transition-colors duration-200 ${
-                            isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+                            isSelected
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-foreground"
                           }`}
                         >
                           {amenity.name}
@@ -596,7 +715,7 @@ export function PropertyForm() {
           <Button
             type="submit"
             form="form-rhf-demo"
-            disabled={createProperty.isPending}
+            disabled={createProperty.isPending || isLocating}
             className="w-full sm:w-auto min-w-[140px] shadow-sm transition-all"
           >
             {createProperty.isPending ? (
