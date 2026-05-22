@@ -12,9 +12,11 @@ export const useUploadFile = () => {
   return useMutation({
     mutationFn: ({ url, file }: FileProps) =>
       uploadApi.uploadFile({ url, file }),
-      onError: () => {
-        toast.error("Failed to update avatar")
-      }
   });
-  
+};
+
+export const useDeleteImage = (key: string) => {
+  return useMutation({
+    mutationFn: () => uploadApi.deleteImage({ key }),
+  });
 };

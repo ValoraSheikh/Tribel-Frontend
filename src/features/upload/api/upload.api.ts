@@ -12,25 +12,32 @@ export interface FileProps {
 }
 
 interface UploadResponse {
-  data: UploadURLProps
+  data: UploadURLProps;
 }
 
-interface UploadURLProps{
+interface UploadURLProps {
   uploadUrl: string;
   key: string;
 }
 
 export const uploadApi = {
   uploadUrl: async (payload: UploadProps) => {
-    const { data } = await axiosClient.post<UploadResponse>("/api/v1/uploads/presign", payload);
+    const { data } = await axiosClient.post<UploadResponse>(
+      "/api/v1/uploads/presign",
+      payload,
+    );
     return data.data;
   },
 
   uploadFile: async ({ url, file }: FileProps) => {
     await axiosClient.put(url, file, {
       headers: {
-        "Content-Type": file.type
-      }
+        "Content-Type": file.type,
+      },
     });
+  },
+
+  deleteImage: async ({ key }: { key: string }) => {
+    await axiosClient.post("/api/v1/uploads/deleteKey", key);
   },
 };
