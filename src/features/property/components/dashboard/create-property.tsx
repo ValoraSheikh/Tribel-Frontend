@@ -5,23 +5,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldError,
-  FieldLabel,
-} from "@/components/ui/field";
+import { MapPin } from "lucide-react";
+
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   InputGroup,
@@ -41,6 +29,9 @@ import states from "@/constants/states";
 import hostelType from "@/constants/hostel-type";
 import availableAmenities from "@/constants/amenities";
 import { useCreateProperty } from "../../hooks/use-property";
+import { Spinner } from "@/components/ui/spinner";
+
+import { FileUpload } from "@/features/upload/components/file-upload";
 
 const formSchema = z.object({
   title: z
@@ -50,9 +41,14 @@ const formSchema = z.object({
   type: z.string().min(1).max(20),
   gstin: z
     .string()
-    .regex(
-      /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/,
-      "Enter a valid 15-character GSTIN.",
+    .transform((val) => val.toUpperCase())
+    .pipe(
+      z
+        .string()
+        .regex(
+          /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/,
+          "Enter a valid 15-character GSTIN.",
+        ),
     ),
   city: z
     .string()
@@ -62,14 +58,13 @@ const formSchema = z.object({
   country: z.string().min(2, "Country is required."),
   postal_code: z.string().regex(/^\d{6}$/, "Enter a valid 6-digit PIN code."),
   latitude: z.coerce
-    .number<number>()
+    .number<number>({ error: "Latitude is necessary" })
     .min(-90, "Latitude must be ≥ -90.")
     .max(90, "Latitude must be ≤ 90."),
   longitude: z.coerce
-    .number<number>()
+    .number<number>({ error: "Longitude is necessary" })
     .min(-180, "Longitude must be ≥ -180.")
     .max(180, "Longitude must be ≤ 180."),
-
   contact_email: z.string().email("Enter a valid email address."),
   contact_phone: z
     .string()
@@ -82,9 +77,7 @@ const formSchema = z.object({
     .string()
     .min(20, "Address must be at least 20 characters.")
     .max(150, "Address must be at most 150 characters."),
-  images: z
-    .array(z.string().url("Images must be valid URLs."))
-    .min(1, "Add at least one image URL."),
+  // images: z.array(z.string()).min(1, "Add at least one image URL.").optional(),
   amenities: z
     .array(
       z.object({
@@ -98,6 +91,9 @@ const formSchema = z.object({
 export function PropertyForm() {
   const router = useRouter();
   const createProperty = useCreateProperty();
+  const [isLocating, setIsLocating] = useState(false);
+  const [imageKeys, setImageKeys] = useState<string[]>([]);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     mode: "onChange",
@@ -109,25 +105,84 @@ export function PropertyForm() {
       contact_phone: "",
       country: "",
       gstin: "",
-      latitude: 0,
-      longitude: 0,
+      latitude: undefined,
+      longitude: undefined,
       postal_code: "",
       state: "",
       type: undefined as unknown as z.infer<typeof formSchema>["type"],
-      images: [],
+      // images: [],
       description: "",
       amenities: [],
     },
   });
 
+  async function getLocation() {
+    if (!("geolocation" in navigator)) {
+      toast.error("Geolocation is not supported by your browser.");
+      return;
+    }
+
+    setIsLocating(true);
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lon = position.coords.longitude;
+
+        form.setValue("latitude", lat, { shouldValidate: true });
+        form.setValue("longitude", lon, { shouldValidate: true });
+
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`,
+          );
+          const data = await response.json();
+
+          if (data.address) {
+            const { city, town, village, state, country, postcode } =
+              data.address;
+            form.setValue("city", city || town || village || "", {
+              shouldValidate: true,
+            });
+            form.setValue("state", state || "", { shouldValidate: true });
+            form.setValue("country", country || "", { shouldValidate: true });
+            form.setValue("postal_code", postcode || "", {
+              shouldValidate: true,
+            });
+
+            toast.success("Location and address auto-filled!");
+          }
+        } catch (error) {
+          toast.warning("Coordinates found, but address lookup failed.");
+        } finally {
+          setIsLocating(false);
+        }
+      },
+      (error) => {
+        toast.error("Location access denied, Turn On Location", {
+          description: error.message,
+        });
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true },
+    );
+  }
+
   function onSubmit(data: z.infer<typeof formSchema>) {
-    createProperty.mutate(data, {
+    const payload = {
+      ...data,
+      images: imageKeys,
+    };
+
+    console.log("Here is the payload", payload);
+
+    createProperty.mutate(payload, {
       onSuccess: () => {
         toast.success("Property created successfully");
-
         form.reset();
         router.push("/properties");
       },
+
       onError: (error) => {
         toast.error("Failed to create property", {
           description: error.message || "Something went wrong.",
@@ -136,7 +191,7 @@ export function PropertyForm() {
             content: "flex flex-col gap-2",
           },
           style: {
-            "--border-radius": "calc(var(--radius)  + 4px)",
+            "--border-radius": "calc(var(--radius) + 4px)",
           } as React.CSSProperties,
         });
       },
@@ -144,21 +199,37 @@ export function PropertyForm() {
   }
 
   return (
-    <Card className="w-full border-muted/60 shadow-md py-0">
-      <CardHeader className="space-y-1 border-b bg-gray-50/50 px-6 py-5">
-        <CardTitle className="text-2xl font-bold">
+    <div className="w-full max-w-5xl mx-auto px-4 py-8 sm:px-6 md:py-12 lg:px-8 bg-background">
+      {/* Page Header */}
+      <div className="space-y-2 mb-10 border-b border-border/60 pb-6">
+        <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">
           Create your Property
-        </CardTitle>
-        <CardDescription className="text-base">
+        </h1>
+        <p className="text-base text-muted-foreground max-w-2xl">
           Fill in the details below to list your property on the platform.
-        </CardDescription>
-      </CardHeader>
+          Provide accurate information to help guests find and choose your
+          location.
+        </p>
+      </div>
 
-      <CardContent className="p-6 md:p-8">
-        <form id="form-rhf-demo" onSubmit={form.handleSubmit(onSubmit)}>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {/* Title spans full width because it's the most important field */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3">
+      <form
+        id="form-rhf-demo"
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="space-y-14"
+      >
+        {/* Section 1: Basic Information */}
+        <div className="space-y-6">
+          <div className="border-b border-border/50 pb-2">
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Basic Information
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              General details and description of the property.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+            <div className="md:col-span-2">
               <Controller
                 name="title"
                 control={form.control}
@@ -173,6 +244,7 @@ export function PropertyForm() {
                       aria-invalid={fieldState.invalid}
                       placeholder="e.g. Sunshine Backpackers Hostel"
                       autoComplete="off"
+                      className="max-w-2xl"
                     />
                     {fieldState.invalid && (
                       <FieldError errors={[fieldState.error]} />
@@ -186,13 +258,8 @@ export function PropertyForm() {
               name="type"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field
-                  orientation="responsive"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldContent>
-                    <FieldLabel htmlFor="hostel_type">Hostel Type</FieldLabel>
-                  </FieldContent>
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="hostel_type">Hostel Type</FieldLabel>
                   <Select
                     name={field.name}
                     value={field.value}
@@ -229,7 +296,7 @@ export function PropertyForm() {
                     {...field}
                     id="gstin"
                     aria-invalid={fieldState.invalid}
-                    placeholder="Enter GSTIN"
+                    placeholder="Enter 15-character GSTIN"
                     autoComplete="off"
                   />
                   {fieldState.invalid && (
@@ -239,15 +306,58 @@ export function PropertyForm() {
               )}
             />
 
-            {/* Empty div to balance grid on large screens if needed, or let content flow */}
-            <div className="hidden lg:block"></div>
+            <div className="md:col-span-2">
+              <Controller
+                name="description"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="hostel-description">
+                      Hostel Description
+                    </FieldLabel>
+                    <InputGroup className="max-w-3xl">
+                      <InputGroupTextarea
+                        {...field}
+                        id="hostel-description"
+                        placeholder="Enter a detailed description for your property..."
+                        rows={5}
+                        className="min-h-[140px] resize-y"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <InputGroupAddon align="block-end">
+                        <InputGroupText className="tabular-nums text-muted-foreground text-xs">
+                          {field.value?.length ?? 0}/150
+                        </InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
+          </div>
+        </div>
 
+        {/* Section 2: Contact Details */}
+        <div className="space-y-6">
+          <div className="border-b border-border/50 pb-2">
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Contact Details
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              How guests or admins can reach the property.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <Controller
               name="contact_email"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="email">Email</FieldLabel>
+                  <FieldLabel htmlFor="email">Email Address</FieldLabel>
                   <Input
                     {...field}
                     id="email"
@@ -267,7 +377,7 @@ export function PropertyForm() {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="phone">Phone</FieldLabel>
+                  <FieldLabel htmlFor="phone">Phone Number</FieldLabel>
                   <Input
                     {...field}
                     id="phone"
@@ -281,6 +391,80 @@ export function PropertyForm() {
                 </Field>
               )}
             />
+          </div>
+        </div>
+
+        {/* Section 3: Location Details */}
+        <div className="space-y-6">
+          <div className="border-b border-border/50 pb-2">
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Location Details
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Physical address and map coordinates.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="sm:col-span-2 lg:col-span-3">
+              <Controller
+                name="address"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="form-rhf-demo-address">
+                      Hostel Address
+                    </FieldLabel>
+                    <InputGroup className="max-w-3xl">
+                      <InputGroupTextarea
+                        {...field}
+                        id="form-rhf-demo-address"
+                        placeholder="Enter full street address here..."
+                        rows={3}
+                        className="min-h-[100px] resize-y"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      <InputGroupAddon align="block-end">
+                        <InputGroupText className="tabular-nums text-muted-foreground text-xs">
+                          {field.value?.length ?? 0}/150
+                        </InputGroupText>
+                      </InputGroupAddon>
+                    </InputGroup>
+                    {fieldState.invalid && (
+                      <FieldError errors={[fieldState.error]} />
+                    )}
+                  </Field>
+                )}
+              />
+            </div>
+
+            {/* Location Fetcher Banner */}
+            <div className="sm:col-span-2 lg:col-span-3 mt-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-muted/40 p-4 rounded-xl border border-border/50">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground">
+                  GPS Coordinates
+                </h4>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Use your device to auto-fill your exact latitude and
+                  longitude.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={getLocation}
+                disabled={isLocating}
+                className="w-full sm:w-auto gap-2  shadow-sm hover:bg-accent"
+              >
+                {isLocating ? (
+                  <Spinner className="h-4 w-4 animate-spin text-primary" />
+                ) : (
+                  <MapPin className="h-4 w-4" />
+                )}
+                {isLocating ? "Locating..." : "Use Current Location"}
+              </Button>
+            </div>
 
             <Controller
               name="city"
@@ -306,13 +490,8 @@ export function PropertyForm() {
               name="state"
               control={form.control}
               render={({ field, fieldState }) => (
-                <Field
-                  orientation="responsive"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldContent>
-                    <FieldLabel htmlFor="state">State</FieldLabel>
-                  </FieldContent>
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="state">State</FieldLabel>
                   <Select
                     name={field.name}
                     value={field.value}
@@ -366,7 +545,7 @@ export function PropertyForm() {
                     {...field}
                     id="postal_code"
                     aria-invalid={fieldState.invalid}
-                    placeholder="Postal Code"
+                    placeholder="6-digit code"
                     autoComplete="off"
                   />
                   {fieldState.invalid && (
@@ -384,7 +563,9 @@ export function PropertyForm() {
                   <FieldLabel htmlFor="latitude">Latitude</FieldLabel>
                   <Input
                     {...field}
+                    value={field.value ?? ""}
                     id="latitude"
+                    readOnly
                     aria-invalid={fieldState.invalid}
                     placeholder="e.g. 28.6139"
                     autoComplete="off"
@@ -404,8 +585,10 @@ export function PropertyForm() {
                   <FieldLabel htmlFor="longitude">Longitude</FieldLabel>
                   <Input
                     {...field}
+                    value={field.value ?? ""}
                     id="longitude"
                     aria-invalid={fieldState.invalid}
+                    readOnly
                     placeholder="e.g. 77.2090"
                     autoComplete="off"
                   />
@@ -415,218 +598,137 @@ export function PropertyForm() {
                 </Field>
               )}
             />
-
-            {/* Images spans full width */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3">
-              <Controller
-                name="images"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="images">Images</FieldLabel>
-                    <Input
-                      id="images"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="https://example.com/1.jpg, https://example.com/2.jpg"
-                      autoComplete="off"
-                      // 1. DISPLAY LOGIC: Join array back to string for the input
-                      value={
-                        Array.isArray(field.value)
-                          ? field.value.join(", ")
-                          : (field.value ?? "")
-                      }
-                      // 2. UPDATE LOGIC: Split string into array for Zod
-                      onChange={(e) => {
-                        const value = e.target.value;
-                        if (value === "") {
-                          field.onChange([]);
-                        } else {
-                          // Split by comma and trim whitespace around urls
-                          field.onChange(
-                            value.split(",").map((url) => url.trim()),
-                          );
-                        }
-                      }}
-                      onBlur={field.onBlur}
-                      name={field.name}
-                      ref={field.ref}
-                    />
-                    <FieldDescription>
-                      Paste image URLs separated by commas.
-                    </FieldDescription>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-
-            {/* Description spans full width */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3">
-              <Controller
-                name="description"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="hostel-description">
-                      Hostel description
-                    </FieldLabel>
-                    <InputGroup>
-                      <InputGroupTextarea
-                        {...field}
-                        id="hostel--description"
-                        placeholder="Enter description for your hostel..."
-                        rows={4}
-                        className="min-h-[100px] resize-y"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      <InputGroupAddon align="block-end">
-                        <InputGroupText className="tabular-nums">
-                          {field.value?.length ?? 0}/150
-                        </InputGroupText>
-                      </InputGroupAddon>
-                    </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-
-            {/* Address spans full width */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3">
-              <Controller
-                name="address"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="form-rhf-demo-description">
-                      Hostel Address
-                    </FieldLabel>
-                    <InputGroup>
-                      <InputGroupTextarea
-                        {...field}
-                        id="form-rhf-demo-description"
-                        placeholder="Enter full street address here..."
-                        rows={4}
-                        className="min-h-[100px] resize-y"
-                        aria-invalid={fieldState.invalid}
-                      />
-                      <InputGroupAddon align="block-end">
-                        <InputGroupText className="tabular-nums">
-                          {field.value?.length ?? 0}/150
-                        </InputGroupText>
-                      </InputGroupAddon>
-                    </InputGroup>
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-            </div>
-
-            {/* Amenities Section */}
-            <div className="col-span-1 md:col-span-2 lg:col-span-3">
-              <Controller
-                name="amenities"
-                control={form.control}
-                render={({ field }) => (
-                  <Field>
-                    <FieldLabel>Amenities</FieldLabel>
-                    <FieldDescription>
-                      Select the amenities available at your property
-                    </FieldDescription>
-                    {/* UPDATED GRID: Scales from 2 cols (mobile) to 6 cols (desktop) */}
-                    <div className="grid grid-cols-2 gap-3 mt-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-                      {availableAmenities.map((amenity) => {
-                        const IconComponent = amenity.IconComponent;
-                        const isSelected =
-                          field.value?.some((a) => a.name === amenity.name) ??
-                          false;
-
-                        return (
-                          <label
-                            key={amenity.name}
-                            className={`flex items-center gap-2 p-2.5 border rounded-md cursor-pointer transition-all hover:bg-slate-50 ${
-                              isSelected
-                                ? "border-primary bg-primary/10 ring-1 ring-primary/20"
-                                : "border-muted hover:border-primary/50"
-                            }`}
-                          >
-                            <input
-                              type="checkbox"
-                              className="hidden"
-                              checked={isSelected}
-                              onChange={(e) => {
-                                const currentValue = field.value || [];
-                                if (e.target.checked) {
-                                  field.onChange([
-                                    ...currentValue,
-                                    {
-                                      name: amenity.name,
-                                      icon: amenity.icon,
-                                    },
-                                  ]);
-                                } else {
-                                  field.onChange(
-                                    currentValue.filter(
-                                      (a) => a.name !== amenity.name,
-                                    ),
-                                  );
-                                }
-                              }}
-                            />
-                            {/* Icon slightly smaller/adjusted color */}
-                            <IconComponent
-                              className={`w-4 h-4 ${
-                                isSelected
-                                  ? "text-primary"
-                                  : "text-muted-foreground"
-                              }`}
-                            />
-                            {/* Text truncates if too long, keeps layout neat */}
-                            <span
-                              className={`text-sm font-medium truncate ${
-                                isSelected ? "text-primary" : "text-foreground"
-                              }`}
-                            >
-                              {amenity.name}
-                            </span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </Field>
-                )}
-              />
-            </div>
           </div>
-        </form>
-      </CardContent>
+        </div>
 
-      <CardFooter className="border-t bg-gray-50/50 p-6">
-        <div className="flex w-full items-center justify-end gap-4">
+        {/* Section 4: Media Upload */}
+        <div className="space-y-6">
+          <div className="border-b border-border/50 pb-2">
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Property Images
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Upload high-quality images showcasing your property.
+            </p>
+          </div>
+
+          <div className="max-w-4xl">
+            <FieldLabel className="mb-4 block">Image Upload</FieldLabel>
+            <FileUpload
+              className="py-8 max-w-full"
+              onImageKeys={(keys) => setImageKeys(keys)}
+            />
+          </div>
+        </div>
+
+        {/* Section 5: Amenities */}
+        <div className="space-y-6">
+          <div className="border-b border-border/50 pb-2">
+            <h3 className="text-lg font-medium text-foreground tracking-tight">
+              Amenities
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Select the facilities and amenities available to guests.
+            </p>
+          </div>
+
+          <Controller
+            name="amenities"
+            control={form.control}
+            render={({ field }) => (
+              <div className="pt-2">
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  {availableAmenities.map((amenity) => {
+                    const IconComponent = amenity.IconComponent;
+                    const isSelected =
+                      field.value?.some((a) => a.name === amenity.name) ??
+                      false;
+
+                    return (
+                      <label
+                        key={amenity.name}
+                        className={`group relative flex flex-col items-center justify-center gap-3 p-4 border rounded-xl cursor-pointer transition-all duration-200 ease-in-out select-none
+                          ${
+                            isSelected
+                              ? "border-primary bg-primary/5 ring-1 ring-primary/20 shadow-sm"
+                              : "border-border bg-card hover:border-primary/40 hover:bg-accent/50"
+                          }`}
+                      >
+                        <input
+                          type="checkbox"
+                          className="absolute opacity-0 w-0 h-0"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            const currentValue = field.value || [];
+                            if (e.target.checked) {
+                              field.onChange([
+                                ...currentValue,
+                                {
+                                  name: amenity.name,
+                                  icon: amenity.icon,
+                                },
+                              ]);
+                            } else {
+                              field.onChange(
+                                currentValue.filter(
+                                  (a) => a.name !== amenity.name,
+                                ),
+                              );
+                            }
+                          }}
+                        />
+                        <IconComponent
+                          className={`w-6 h-6 transition-colors duration-200 ${
+                            isSelected
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-foreground"
+                          }`}
+                        />
+                        <span
+                          className={`text-xs font-medium text-center leading-tight transition-colors duration-200 ${
+                            isSelected
+                              ? "text-primary"
+                              : "text-muted-foreground group-hover:text-foreground"
+                          }`}
+                        >
+                          {amenity.name}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          />
+        </div>
+
+        {/* Submit Section */}
+        <div className="mt-12 pt-8 border-t border-border/60 flex flex-col-reverse sm:flex-row items-center justify-end gap-4 w-full">
           <Button
             type="button"
             variant="outline"
             onClick={() => form.reset()}
-            className="min-w-[100px]"
+            className="w-full sm:w-auto min-w-[120px] bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
           >
-            Reset
+            Reset Form
           </Button>
           <Button
             type="submit"
             form="form-rhf-demo"
-            disabled={createProperty.isPending}
-            className="min-w-[100px]"
+            disabled={createProperty.isPending || isLocating}
+            className="w-full sm:w-auto min-w-[140px] shadow-sm transition-all"
           >
-            {createProperty.isPending ? "Submitting..." : "Submit Property"}
+            {createProperty.isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4 animate-spin" />
+                <span>Submitting...</span>
+              </span>
+            ) : (
+              "Submit Property"
+            )}
           </Button>
         </div>
-      </CardFooter>
-    </Card>
+      </form>
+    </div>
   );
 }

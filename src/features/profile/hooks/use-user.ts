@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { userApi, UserProps } from "../api/user.api";
+import { toast } from "sonner";
 
 export const USE_QUERY_KEY = ["user", "profile"] as const;
 
@@ -43,6 +44,42 @@ export const useUpdateProfile = () => {
           context.previousUser,
         );
       }
+    },
+  });
+};
+
+export const useUpdateAvatar = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: userApi.updateAvatar,
+    onMutate: async (newKey) => {
+      await queryClient.cancelQueries({ queryKey: USE_QUERY_KEY });
+      
+      const previousUser = queryClient.getQueryData<UserProps>(USE_QUERY_KEY);
+      
+      if (previousUser)
+        queryClient.setQueryData(USE_QUERY_KEY,  {
+          ...previousUser,
+          avatar: newKey,
+        });
+
+      return {
+        previousUser,
+      };
+    },
+    onSuccess: (previousUser) => {
+      toast.success("Profile avatar updated successfully");
+      console.log(previousUser)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: USE_QUERY_KEY });
+    },
+    onError: (err, newKey, context) => {
+      if (context?.previousUser) {
+        queryClient.setQueryData(USE_QUERY_KEY, context.previousUser);
+      }
+      toast.error("Failed to update avatar");
     },
   });
 };

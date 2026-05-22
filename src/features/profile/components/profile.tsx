@@ -1,10 +1,10 @@
 "use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { EditProfile } from "./edit-profile";
 import { useProfile } from "../hooks/use-user";
+import { UpdateAvatar } from "./update-avatar";
 
 const Profile = () => {
   const { data: user, isLoading, error, isError } = useProfile();
@@ -30,13 +30,12 @@ const Profile = () => {
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <Card className="p-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-20 w-20">
-            <AvatarImage src={user.avatar} />
-            <AvatarFallback>
-              {user.firstName[0]}
-              {user.lastName[0]}
-            </AvatarFallback>
-          </Avatar>
+          <UpdateAvatar
+            userId={user.id}
+            avatarUrl={user.avatar}
+            firstName={user.firstName}
+            lastName={user.lastName}
+          />
 
           <div>
             <h1 className="text-2xl font-semibold">

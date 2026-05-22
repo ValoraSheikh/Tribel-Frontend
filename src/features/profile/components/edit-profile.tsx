@@ -26,6 +26,7 @@ import { Controller, useForm } from "react-hook-form";
 import { useUpdateProfile } from "../hooks/use-user";
 import { useState } from "react";
 import { UserProps } from "../api/user.api";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   firstName: z
@@ -53,6 +54,8 @@ export function EditProfile({ user }: { user: UserProps }) {
       phoneNo: user?.phoneNo || "",
     },
   });
+
+  const { isDirty } = form.formState;
 
   if (!user) return null;
 
@@ -94,7 +97,11 @@ export function EditProfile({ user }: { user: UserProps }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <button aria-label="Edit Profile" data-testid="edit-profile-trigger" className="p-0 m-0">
+        <button
+          aria-label="Edit Profile"
+          data-testid="edit-profile-trigger"
+          className="p-0 m-0"
+        >
           <SquarePenIcon size="30px" className="h-6 w-6" />
         </button>
       </DialogTrigger>
@@ -176,8 +183,18 @@ export function EditProfile({ user }: { user: UserProps }) {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
 
-            <Button type="submit" disabled={updateProfile.isPending}>
-              {updateProfile.isPending ? "Saving changes..." : "Save changes"}
+            <Button
+              type="submit"
+              disabled={updateProfile.isPending || !isDirty}
+            >
+              {updateProfile.isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="h-4 w-4" />
+                  <span>Processing...</span>
+                </span>
+              ) : (
+                "Save changes"
+              )}
             </Button>
           </DialogFooter>
         </form>

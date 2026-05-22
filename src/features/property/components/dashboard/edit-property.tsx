@@ -45,6 +45,7 @@ import {
   usePropertyDetails,
   useUpdateProperty,
 } from "../../hooks/use-property";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   title: z
@@ -665,7 +666,14 @@ export function EditPropertyForm({ propertyId }: PropertyIdProps) {
             disabled={updateProperty.isPending}
             className="min-w-[100px]"
           >
-            {updateProperty.isPending ? "Updating..." : "Update Property"}
+            {updateProperty.isPending ? (
+              <span className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4" />
+                <span>Updating...</span>
+              </span>
+            ) : (
+              "Update Property"
+            )}
           </Button>
         </div>
       </CardFooter>

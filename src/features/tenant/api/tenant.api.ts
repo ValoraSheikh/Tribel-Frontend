@@ -38,7 +38,6 @@ interface CreateTenantPayload {
 export interface UpdateTenant {
   name: string;
   description: string;
-  profile: string;
   currency: string;
   timezone: string;
 }
@@ -57,11 +56,16 @@ export const tenantApi = {
     return data.data;
   },
 
-  updateTenant: async ( payload: UpdateTenant) => {
+  updateTenant: async (payload: UpdateTenant) => {
     const { data } = await axiosClient.patch<TenantResponse>(
       `/api/v1/tenant/`,
       payload,
     );
+    return data.data;
+  },
+
+  updateTenantProfile: async ({ key }: { key: string }) => {
+    const { data } = await axiosClient.patch(`/api/v1/tenant/profile`, { key });
     return data.data;
   },
 };

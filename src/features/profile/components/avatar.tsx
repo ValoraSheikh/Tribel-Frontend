@@ -1,7 +1,7 @@
 import { Avatar, AvatarImage } from "@/components/ui/avatar";
 import Link from "next/link";
 
-function AvatarImg({ avatar }) {
+function AvatarImg({ avatar }: { avatar: string }) {
   return (
     <div>
       <Link href="/profile">

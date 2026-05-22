@@ -1,19 +1,26 @@
 "use client";
 
-import { Calendar, Coins, Globe, Mail, Phone, User, Clock } from "lucide-react";
+import { 
+  Calendar, 
+  Coins, 
+  Globe, 
+  Mail, 
+  Phone, 
+  User, 
+  Clock,
+  Check,
+  ShieldCheck,
+  Building2,
+  Loader2
+} from "lucide-react";
 
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { EditTenant } from "./edit-tenant";
 import { useTenant } from "../../hooks/use-tenant";
+import { toUrl } from "@/utils/image";
+import { UpdateProfile } from "./update-profile-avatar";
 
 const getInitials = (first: string = "", last: string = "") => {
   return `${first.charAt(0)}${last.charAt(0)}`.toUpperCase();
@@ -23,15 +30,19 @@ export function TenantProfile() {
   const { data: tenant, isLoading, isError } = useTenant();
 
   if (isLoading) {
-    <div className="p-8 text-center animate-pulse min-h-screen">
-      Loading Tenant Profile for you...
-    </div>;
+    return (
+      <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm font-medium animate-pulse">Loading profile...</p>
+      </div>
+    );
   }
 
   if (isError) {
     return (
-      <div className="flex h-[50vh] items-center justify-center text-muted-foreground">
-        Failed to load tenant profile.
+      <div className="flex min-h-[60vh] flex-col items-center justify-center gap-3 text-muted-foreground">
+        <Building2 className="h-10 w-10 text-destructive/50" />
+        <p className="text-base font-medium">Failed to load organization profile.</p>
       </div>
     );
   }
@@ -39,170 +50,175 @@ export function TenantProfile() {
   if (!tenant) return null;
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-6 p-4 md:p-8">
-      <Card className="overflow-hidden border-none shadow-md py-0">
-        {/* Header Image */}
-        <div className="h-32 bg-linear-to-r from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800" />
-
-        <CardContent className="relative px-6 pb-6">
-          <div className="flex flex-col items-start gap-4 md:flex-row md:items-end">
-            {/* Avatar */}
-            <Avatar className="-mt-12 h-24 w-24 border-4 border-background shadow-sm">
-              <AvatarImage src={tenant.profile || ""} alt={tenant.name} />
-              <AvatarFallback className="text-xl font-bold">
-                {tenant.name.substring(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-
-            {/* Text Info */}
-            <div className="flex-1 space-y-1 pt-2">
-              <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-bold tracking-tight">
-                  {tenant.name}
-                </h1>
-                <Badge variant="secondary" className="font-mono text-xs">
-                  {tenant.slug}
-                </Badge>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Tenant ID:{" "}
-                <span className="font-mono text-xs">{tenant.id}</span>
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 pt-4 md:ml-auto md:pt-0">
-              <button
-                aria-label="Edit tenant profile"
-                className="p-2 hover:rounded hover:bg-muted"
-              >
-                <EditTenant />
-              </button>
-
-              <Badge variant="outline" className="gap-1 px-3 py-1">
-                <Calendar className="h-3 w-3" />
-                Joined {new Date(tenant.createdAt).toLocaleDateString()}
-              </Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-3">
-        <div className="space-y-6 md:col-span-2">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">About</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-sm leading-relaxed text-muted-foreground">
-                {tenant.description ||
-                  "No description provided for this tenant."}
-              </p>
-
-              <Separator />
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                <div className="flex items-center gap-3 rounded-md border p-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Globe className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Timezone
-                    </p>
-                    <p className="text-sm font-medium">
-                      {tenant.timezone || "UTC"}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-3 rounded-md border p-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Coins className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Currency
-                    </p>
-                    <p className="text-sm font-medium">
-                      {tenant.currency || "USD"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                System Metadata
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col gap-2 text-sm text-muted-foreground sm:flex-row sm:gap-6">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-3 w-3" />
-                  Updated: {new Date(tenant.updatedAt).toLocaleString()}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Primary Contact</CardTitle>
-              <CardDescription>Administrative account holder</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {tenant.user ? (
-                <div className="flex flex-col items-center space-y-4 text-center">
-                  <Avatar className="h-20 w-20">
-                    <AvatarImage src={tenant.user.avatar || ""} />
-                    <AvatarFallback>
-                      {getInitials(tenant.user.firstName, tenant.user.lastName)}
-                    </AvatarFallback>
-                  </Avatar>
-
-                  <div className="space-y-1">
-                    <h3 className="font-semibold leading-none">
+    <div className="w-full bg-background min-h-screen">
+      <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 md:px-8 md:py-16">
+        
+        {/* Main Layout: Stacks on mobile, Side-by-side on desktop */}
+        <div className="flex flex-col lg:flex-row gap-12 lg:gap-20">
+          
+          {/* LEFT COLUMN: Primary Contact (The "Host" Card) */}
+          <aside className="w-full lg:w-[340px] shrink-0 order-2 lg:order-1">
+            <div className="sticky top-10 rounded-3xl border border-border/40 bg-card p-6 sm:p-8 shadow-xl shadow-black/5">
+              
+              <div className="flex flex-col items-center text-center">
+                <Avatar className="h-32 w-32 mb-4 border-4 border-background shadow-sm">
+                  <AvatarImage 
+                    src={tenant.user ? (toUrl(tenant.user.avatar) || "") : ""} 
+                    alt="Contact Avatar" 
+                  />
+                  <AvatarFallback className="text-3xl font-medium bg-primary/5 text-primary">
+                    {tenant.user ? getInitials(tenant.user.firstName, tenant.user.lastName) : "N/A"}
+                  </AvatarFallback>
+                </Avatar>
+                
+                {tenant.user ? (
+                  <>
+                    <h2 className="text-2xl font-bold tracking-tight text-foreground">
                       {tenant.user.firstName} {tenant.user.lastName}
-                    </h3>
-                    <Badge variant="secondary" className="mt-2">
+                    </h2>
+                    <Badge variant="secondary" className="mt-3 px-3 py-1 text-xs font-medium bg-secondary/60">
                       {tenant.user.role}
                     </Badge>
-                  </div>
+                  </>
+                ) : (
+                  <h2 className="text-xl font-medium text-muted-foreground">No Contact Assigned</h2>
+                )}
+              </div>
 
-                  <Separator className="my-4" />
-
-                  <div className="w-full space-y-3 text-left">
-                    <div className="flex items-center gap-3 text-sm">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <span className="truncate">{tenant.user.email}</span>
-                    </div>
-                    {tenant.user.phoneNo && (
-                      <div className="flex items-center gap-3 text-sm">
-                        <Phone className="h-4 w-4 text-muted-foreground" />
-                        <span>{tenant.user.phoneNo}</span>
+              {tenant.user && (
+                <>
+                  <Separator className="my-8 bg-border/50" />
+                  
+                  <div className="space-y-5">
+                    <h3 className="font-semibold text-lg text-foreground flex items-center gap-2">
+                      Confirmed Information
+                    </h3>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-4 text-foreground/80">
+                        <Mail className="h-5 w-5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+                        <span className="truncate font-medium">{tenant.user.email}</span>
+                        <Check className="h-4 w-4 ml-auto text-green-600 shrink-0" />
                       </div>
-                    )}
-                    <div className="flex items-center gap-3 text-sm">
-                      <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="truncate text-xs text-muted-foreground">
-                        {tenant.user.auth0Id}
-                      </span>
+                      
+                      {tenant.user.phoneNo && (
+                        <div className="flex items-center gap-4 text-foreground/80">
+                          <Phone className="h-5 w-5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+                          <span className="font-medium">{tenant.user.phoneNo}</span>
+                          <Check className="h-4 w-4 ml-auto text-green-600 shrink-0" />
+                        </div>
+                      )}
+
+                      <div className="flex items-center gap-4 text-foreground/80">
+                        <User className="h-5 w-5 text-muted-foreground shrink-0" strokeWidth={1.5} />
+                        <div className="flex flex-col truncate">
+                          <span className="text-xs text-muted-foreground">System ID</span>
+                          <span className="truncate font-mono text-sm">{tenant.user.auth0Id}</span>
+                        </div>
+                        <ShieldCheck className="h-4 w-4 ml-auto text-green-600 shrink-0" />
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div className="py-4 text-center text-sm text-muted-foreground">
-                  No user information available.
-                </div>
+                </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </aside>
+
+          {/* RIGHT COLUMN: Organization Details */}
+          <main className="flex-1 order-1 lg:order-2 space-y-10">
+            
+            {/* Header Section */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6">
+              <div className="space-y-3">
+                <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-foreground">
+                  {tenant.name}
+                </h1>
+                
+                <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                  <Badge variant="outline" className="font-mono text-xs px-2.5 py-0.5 bg-muted/30">
+                    {tenant.slug}
+                  </Badge>
+                  <span>•</span>
+                  <div className="flex items-center gap-1.5">
+                    <Calendar className="h-4 w-4" strokeWidth={1.5} />
+                    <span>Joined {new Date(tenant.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <span>•</span>
+                  <span className="font-mono text-xs bg-accent/50 px-2 py-0.5 rounded-md">
+                    ID: {tenant.id}
+                  </span>
+                </div>
+              </div>
+
+              {/* Actions & Avatar Box */}
+              <div className="flex items-center gap-4 shrink-0">
+                <div className="h-16 w-16 sm:h-20 sm:w-20 overflow-hidden rounded-full border border-border bg-muted shadow-sm flex items-center justify-center">
+                  <UpdateProfile
+                    tenantName={tenant.name}
+                    avatarUrl={tenant.profile}
+                    tenantId={tenant.id}
+                  />
+                </div>
+                <button
+                  aria-label="Edit tenant profile"
+                  className="rounded-full border border-border bg-card p-3 hover:bg-accent hover:text-accent-foreground transition-colors shadow-sm"
+                >
+                  <EditTenant />
+                </button>
+              </div>
+            </div>
+
+            <Separator className="bg-border/60" />
+
+            {/* About Section */}
+            <section className="space-y-4">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                About the Organization
+              </h2>
+              <p className="text-lg leading-relaxed font-light text-foreground/80 max-w-3xl">
+                {tenant.description || "No description has been provided for this organization yet."}
+              </p>
+            </section>
+
+            <Separator className="bg-border/60" />
+
+            {/* Quick Facts Section */}
+            <section className="space-y-6">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                Settings & Preferences
+              </h2>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 max-w-2xl">
+                
+                <div className="flex gap-4 items-start">
+                  <Globe className="h-7 w-7 text-muted-foreground shrink-0 mt-0.5" strokeWidth={1.5} />
+                  <div className="space-y-1">
+                    <h3 className="font-medium text-lg text-foreground">Timezone</h3>
+                    <p className="text-muted-foreground">{tenant.timezone || "Coordinated Universal Time (UTC)"}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-start">
+                  <Coins className="h-7 w-7 text-muted-foreground shrink-0 mt-0.5" strokeWidth={1.5} />
+                  <div className="space-y-1">
+                    <h3 className="font-medium text-lg text-foreground">Currency</h3>
+                    <p className="text-muted-foreground">{tenant.currency || "USD"}</p>
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            <Separator className="bg-border/60" />
+
+            {/* Metadata Section */}
+            <section className="pt-2">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-muted/40 text-sm text-muted-foreground border border-border/40">
+                <Clock className="h-4 w-4" />
+                <span>Profile last updated on {new Date(tenant.updatedAt).toLocaleString()}</span>
+              </div>
+            </section>
+
+          </main>
         </div>
       </div>
     </div>

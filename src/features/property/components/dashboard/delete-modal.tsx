@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useDeleteProperty } from "../../hooks/use-property";
 import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 type PropertyIdProps = {
   propertyId: string;
@@ -68,7 +69,14 @@ export function DeletePropertyModal(propertyId: PropertyIdProps) {
               onClick={() => handleDelete(propertyId.propertyId)}
               className="min-w-[100px]"
             >
-              {deleteProperty.isPending ? "Deleting..." : "Delete Property"}
+              {deleteProperty.isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="h-4 w-4" />
+                  <span>Deleteing...</span>
+                </span>
+              ) : (
+                "Delete Property"
+              )}
             </Button>
           </>
         </AlertDialogFooter>
