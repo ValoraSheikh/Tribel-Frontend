@@ -33,6 +33,7 @@ import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
 import { useGetAdminProperties } from "../../hooks/use-property";
 import { PropertyProps } from "../../api/property.api";
+import { toUrl } from "@/utils/image";
 
 export const AdminProperties = () => {
   const [page, setPage] = useQueryState("page", parseAsInteger.withDefault(1));
@@ -183,6 +184,8 @@ const PropertyCard = ({ property }: { property: PropertyProps }) => {
     property.images && property.images.length > 0
       ? property.images[0]
       : "https://placehold.co/600x400?text=No+Image";
+  
+  console.log("Cover image", toUrl(coverImage))
 
   return (
     <Card
@@ -194,7 +197,7 @@ const PropertyCard = ({ property }: { property: PropertyProps }) => {
           height={500}
           width={500}
           priority
-          src={coverImage}
+          src={toUrl(coverImage)!}
           alt={property.title}
           className="h-full w-full object-cover transition-transform duration-300"
         />
