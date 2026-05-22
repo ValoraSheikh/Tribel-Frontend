@@ -68,8 +68,9 @@ export const useUpdateAvatar = () => {
         previousUser,
       };
     },
-    onSuccess: () => {
+    onSuccess: (previousUser) => {
       toast.success("Profile avatar updated successfully");
+      console.log(previousUser)
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: USE_QUERY_KEY });
