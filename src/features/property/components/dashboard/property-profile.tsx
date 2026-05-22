@@ -21,6 +21,7 @@ import availableAmenities from "@/constants/amenities";
 import Image from "next/image";
 import { Amenity } from "../../api/property.api";
 import { usePropertyDetails } from "../../hooks/use-property";
+import { toUrl } from "@/utils/image";
 
 type PropertyIdProps = {
   propertyId: string;
@@ -60,6 +61,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
   const host = property.tenant.user;
   const tenantProfile = property.tenant;
 
+  console.log("here is the data", property)
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
       {/* --- HEADER SECTION --- */}
@@ -121,7 +123,8 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
             <Image
               height={500}
               width={500}
-              src={property.images[0]}
+              src={toUrl(property.images[0])!}
+              unoptimized={true}
               alt="Main property"
               className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
             />
@@ -140,7 +143,8 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                 <Image
                   height={500}
                   width={500}
-                  src={img}
+                  src={toUrl(img)!}
+                  unoptimized={true}
                   alt={`Property detail ${idx}`}
                   className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
                 />
@@ -172,7 +176,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
               </p>
             </div>
             <Avatar className="h-14 w-14 border-2 border-white shadow-sm">
-              <AvatarImage src={host.avatar || ""} />
+              <AvatarImage src={toUrl(host.avatar )|| ""} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {host.firstName?.[0]}
                 {host.lastName?.[0]}
