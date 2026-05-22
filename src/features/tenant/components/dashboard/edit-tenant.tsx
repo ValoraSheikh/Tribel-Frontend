@@ -33,6 +33,7 @@ import {
 import { InputGroup, InputGroupTextarea } from "@/components/ui/input-group";
 import { useTenant, useUpdateTenant } from "../../hooks/use-tenant";
 import { useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 
 const formSchema = z.object({
   name: z
@@ -44,7 +45,6 @@ const formSchema = z.object({
     .string()
     .min(20, "Description must be at least 20 characters.")
     .max(100, "Description must be at most 100 characters."),
-  profile: z.string().max(500),
   timezone: z.string().min(1, "Please select your timezone."),
   currency: z.string().min(1, "Please select your currency."),
 });
@@ -74,13 +74,12 @@ export function EditTenant() {
     mode: "onChange",
     defaultValues: {
       name: tenant?.name,
-      profile: tenant?.profile,
       timezone: tenant?.timezone,
       currency: tenant?.currency,
       description: tenant?.description,
     },
   });
-  
+
   const { isDirty } = form.formState;
 
   if (isLoading) {
@@ -119,7 +118,7 @@ export function EditTenant() {
             "--border-radius": "calc(var(--radius)  + 4px)",
           } as React.CSSProperties,
         });
-        
+
         setOpen(false);
       },
 
@@ -171,26 +170,6 @@ export function EditTenant() {
                       id="name"
                       aria-invalid={fieldState.invalid}
                       placeholder="e.g. Acme Corp"
-                      autoComplete="off"
-                    />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name="profile"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="profile">Profile URL</FieldLabel>
-                    <Input
-                      {...field}
-                      id="profile"
-                      aria-invalid={fieldState.invalid}
-                      placeholder="https://..."
                       autoComplete="off"
                     />
                     {fieldState.invalid && (
@@ -324,7 +303,10 @@ export function EditTenant() {
             </DialogClose>
 
             <Button type="submit" disabled={updateTenant.isPending || !isDirty}>
-              {updateTenant.isPending ? "Saving changes..." : "Save changes"}
+              {updateTenant.isPending ? <span className="flex items-center justify-center gap-2">
+                <Spinner className="h-4 w-4" />
+                <span>Saving...</span>
+              </span> : "Save changes"}
             </Button>
           </DialogFooter>
         </form>
