@@ -184,8 +184,6 @@ const PropertyCard = ({ property }: { property: PropertyProps }) => {
     property.images && property.images.length > 0
       ? property.images[0]
       : "https://placehold.co/600x400?text=No+Image";
-  
-  console.log("Cover image", toUrl(coverImage))
 
   return (
     <Card
@@ -199,6 +197,7 @@ const PropertyCard = ({ property }: { property: PropertyProps }) => {
           priority
           src={toUrl(coverImage)!}
           alt={property.title}
+          unoptimized={true}
           className="h-full w-full object-cover transition-transform duration-300"
         />
         <div className="absolute right-3 top-3 flex gap-2">
