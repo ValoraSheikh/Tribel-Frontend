@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 
@@ -93,6 +93,7 @@ export function PropertyForm() {
   const createProperty = useCreateProperty();
   const [isLocating, setIsLocating] = useState(false);
   const [imageKeys, setImageKeys] = useState<string[]>([]);
+  const [isImageUploading, setIsImageUploading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -168,13 +169,20 @@ export function PropertyForm() {
     );
   }
 
+  const handleImageKeys = useCallback((keys: string[]) => {
+    setImageKeys(keys);
+  }, []);
+  
   function onSubmit(data: z.infer<typeof formSchema>) {
+
+    if (imageKeys.length === 0) {
+      return toast.error("Please upload at least one image.");
+    }
+
     const payload = {
       ...data,
       images: imageKeys,
     };
-
-    console.log("Here is the payload", payload);
 
     createProperty.mutate(payload, {
       onSuccess: () => {
@@ -616,7 +624,9 @@ export function PropertyForm() {
             <FieldLabel className="mb-4 block">Image Upload</FieldLabel>
             <FileUpload
               className="py-8 max-w-full"
-              onImageKeys={(keys) => setImageKeys(keys)}
+              onImageKeys={handleImageKeys}
+              onUploadStart={() => setIsImageUploading(true)}
+              onUploadComplete={() => setIsImageUploading(false)}
             />
           </div>
         </div>
@@ -715,7 +725,9 @@ export function PropertyForm() {
           <Button
             type="submit"
             form="form-rhf-demo"
-            disabled={createProperty.isPending || isLocating}
+            disabled={
+              createProperty.isPending || isLocating || isImageUploading
+            }
             className="w-full sm:w-auto min-w-[140px] shadow-sm transition-all"
           >
             {createProperty.isPending ? (
