@@ -61,7 +61,6 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
   const host = property.tenant.user;
   const tenantProfile = property.tenant;
 
-  console.log("here is the data", property)
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
       {/* --- HEADER SECTION --- */}
