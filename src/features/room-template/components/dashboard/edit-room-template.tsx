@@ -112,6 +112,8 @@ export function EditRoomTemplate({
     }
   }, [room, form]);
 
+  const { isDirty } = form.formState;
+
   function onSubmit(data: z.infer<typeof formSchema>) {
     updateRoomTemplate.mutate(data, {
       onSuccess: () => {
@@ -119,7 +121,7 @@ export function EditRoomTemplate({
           description: "Room template updated successfully.",
         });
         form.reset();
-        setOpen(false)
+        setOpen(false);
       },
       onError: (error) => {
         toast.error("Failed to update room template", {
@@ -372,7 +374,10 @@ export function EditRoomTemplate({
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={updateRoomTemplate.isPending}>
+            <Button
+              type="submit"
+              disabled={updateRoomTemplate.isPending || !isDirty}
+            >
               {updateRoomTemplate.isPending ? "Saving..." : "Edit Template"}
             </Button>
           </DialogFooter>
