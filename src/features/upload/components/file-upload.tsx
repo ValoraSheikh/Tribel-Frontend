@@ -23,10 +23,11 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import {
+  useDeleteImage,
   useGetUploadUrl,
   useUploadFile,
 } from "@/features/upload/hooks/use-upload";
-import { Spinner } from "@/components/ui/spinner";
+import { toUrl } from "@/utils/image";
 
 interface ImageFile {
   id: string;
@@ -36,6 +37,7 @@ interface ImageFile {
   status: "uploading" | "completed" | "error";
   error?: string;
   type: string;
+  key: string;
 }
 
 type SortableImage = {
@@ -53,6 +55,7 @@ interface ImageUploadProps {
   onImagesChange?: (images: ImageFile[]) => void;
   onUploadComplete?: (images: ImageFile[]) => void;
   onImageKeys?: (images: string[]) => void;
+  onUploadStart?: () => void;
 }
 
 export function FileUpload({
@@ -62,42 +65,35 @@ export function FileUpload({
   className,
   onImagesChange,
   onUploadComplete,
-  onImageKeys
+  onImageKeys,
+  onUploadStart,
 }: ImageUploadProps) {
   const getUploadUrl = useGetUploadUrl();
   const uploadFile = useUploadFile();
+  const deleteImage = useDeleteImage();
   const [images, setImages] = useState<ImageFile[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [allImages, setAllImages] = useState<SortableImage[]>([]);
-  const [isUploading, setIsUploading] = useState<boolean>(false);
-  const keys: string[] = [];
+  const [imageKeys, setImageKeys] = useState<string[]>([]);
 
-  async function handleUpload() {
-      setIsUploading(true);
-    if (images.length > 0) {
-      images.map(async (imageFile) => {
-        const { uploadUrl, key } = await getUploadUrl.mutateAsync({
-          entity: "property",
-          entityId: "1",
-          fileType: imageFile?.type,
-        });
+  useEffect(() => {
+    onImageKeys?.(imageKeys);
+  }, [imageKeys, onImageKeys]);
 
-        keys.push(key)
-
-        uploadFile.mutate({
-          file: imageFile.file,
-          url: uploadUrl,
-        });
-      });
-
-      onImageKeys?.(keys)
-    }
-
-    setIsUploading(false);
-    toast.success("Images uploaded successfully")
-    console.log("Here are the keys", keys)
-    return keys;
+  async function removeImageKey(key: string) {
+    const deleteImageToast = toast.loading("Deleting image...");
+    await deleteImage.mutateAsync(key, {
+      onSuccess: () => {
+        toast.success("Image deleted");
+      },
+      onError: () => {
+        toast.error("Failed to delete image");
+      },
+      onSettled: () => {
+        toast.dismiss(deleteImageToast);
+      },
+    });
   }
 
   const createSortableImage = useCallback(
@@ -122,14 +118,19 @@ export function FileUpload({
     if (file.size > maxSize) {
       return `File size must be less than ${(maxSize / 1024 / 1024).toFixed(1)}MB`;
     }
-    if (images.length >= maxFiles) {
-      return `Maximum ${maxFiles} files allowed`;
-    }
     return null;
   };
 
   const addImages = useCallback(
     (files: FileList | File[]) => {
+      const availableSlots = maxFiles - images.length;
+
+      if (availableSlots <= 0) {
+        toast.error(`You have reached the maximum of ${maxFiles} images.`);
+        return;
+      }
+
+      onUploadStart?.();
       const newImages: ImageFile[] = [];
       const newErrors: string[] = [];
 
@@ -147,6 +148,7 @@ export function FileUpload({
           progress: 0,
           status: "uploading",
           type: file.type,
+          key: "",
         };
 
         newImages.push(imageFile);
@@ -157,15 +159,41 @@ export function FileUpload({
       }
 
       if (newImages.length > 0) {
+        newImages.map(async (imageFile) => {
+          const toastId = toast.loading("Uploading image...", {
+            description: imageFile.file.name,
+          });
+          const { uploadUrl, key } = await getUploadUrl.mutateAsync({
+            entity: "property",
+            entityId: imageFile.id,
+            fileType: imageFile?.type,
+          });
+
+          setImageKeys((prev) => [...prev, key]);
+          imageFile.key = key;
+
+          await uploadFile.mutateAsync(
+            {
+              file: imageFile.file,
+              url: uploadUrl,
+            },
+            {
+              onError: () => {
+                toast.error("Failed to upload image");
+              },
+            },
+          );
+
+          simulateUpload(imageFile);
+          toast.dismiss(toastId);
+        });
+
         const updatedImages = [...images, ...newImages];
         setImages(updatedImages);
         onImagesChange?.(updatedImages);
 
         const newSortableImages = newImages.map(createSortableImage);
         setAllImages((prev) => [...prev, ...newSortableImages]);
-        newImages.forEach((imageFile) => {
-          simulateUpload(imageFile);
-        });
       }
     },
     [images, maxSize, maxFiles, onImagesChange, createSortableImage],
@@ -209,6 +237,12 @@ export function FileUpload({
   const removeImage = useCallback(
     (id: string) => {
       setAllImages((prev) => prev.filter((img) => img.id !== id));
+      const image = images.find((img) => img.id === id);
+      if (image?.key) {
+        removeImageKey(image.key);
+      }
+
+      setImageKeys((prev) => prev.filter((key) => key !== image?.key));
 
       const uploadedImage = images.find((img) => img.id === id);
       if (uploadedImage) {
@@ -216,7 +250,7 @@ export function FileUpload({
         setImages((prev) => prev.filter((img) => img.id !== id));
       }
     },
-    [images],
+    [images, onImageKeys, imageKeys],
   );
 
   const handleDragEnter = useCallback((e: React.DragEvent) => {
@@ -250,19 +284,23 @@ export function FileUpload({
     [addImages],
   );
 
-  const openFileDialog = useCallback(() => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.multiple = true;
-    input.accept = accept;
-    input.onchange = (e) => {
-      const target = e.target as HTMLInputElement;
-      if (target.files) {
-        addImages(target.files);
-      }
-    };
-    input.click();
-  }, [accept, addImages]);
+  const openFileDialog = useCallback(
+    (e: React.MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      const input = document.createElement("input");
+      input.type = "file";
+      input.multiple = true;
+      input.accept = accept;
+      input.onchange = (e) => {
+        const target = e.target as HTMLInputElement;
+        if (target.files) {
+          addImages(target.files);
+        }
+      };
+      input.click();
+    },
+    [accept, addImages],
+  );
 
   const formatBytes = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -378,7 +416,7 @@ export function FileUpload({
           <span className="text-secondary-foreground mb-3 block text-xs font-normal">
             JPEG, PNG, up to {formatBytes(maxSize)}.
           </span>
-          <Button size="sm" onClick={openFileDialog}>
+          <Button size="sm" type="button" onClick={openFileDialog}>
             Browse File
           </Button>
         </CardContent>
@@ -387,7 +425,7 @@ export function FileUpload({
       {/* Upload Progress Cards */}
       {images.length > 0 && (
         /* Changed space-y-3 to a responsive grid layout with gap-3 */
-        <div className="mt-6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 ">
+        <div className="mt-6 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-3 ">
           {images.map((imageFile) => (
             <Card key={imageFile.id} className="rounded-md shadow-none py-0">
               <CardContent className="flex items-center gap-2 p-2.5">
@@ -451,18 +489,6 @@ export function FileUpload({
         </Alert>
       )}
 
-      <div className="mt-6">
-        <Button onClick={handleUpload} disabled={!!!(images.length > 0) || isUploading}>
-          {isUploading ? (
-            <span className="flex items-center justify-center gap-2">
-              <Spinner className="h-4 w-4" />
-              <span>Processing...</span>
-            </span>
-          ) : (
-            "Upload Images"
-          )}
-        </Button>
-      </div>
     </div>
   );
 }
