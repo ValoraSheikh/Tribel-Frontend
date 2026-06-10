@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { IndianRupeeIcon, PlusIcon } from "lucide-react";
+import { IndianRupeeIcon, PlusIcon, UploadCloudIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import {
   Field,
@@ -38,7 +38,9 @@ import {
   InputGroupTextarea,
 } from "@/components/ui/input-group";
 import roomFeatures from "@/constants/rooms-icon";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useGetUploadUrl, useUploadFile } from "@/features/upload/hooks/use-upload";
+import Image from "next/image";
 
 const roomType = [
   { label: "Single Bed", value: "SINGLE" },
@@ -59,7 +61,7 @@ const formSchema = z.object({
   numberOfRooms: z.coerce.number<number>().min(1).max(500),
   pricePerBed: z.coerce.number<number>().min(1),
   type: z.string().min(1).max(20),
-  image: z.string().url("Please enter a valid URL"), // Added URL validation
+  // image: z.string().url("Please enter a valid URL"), // Added URL validation
   amenities: z
     .array(
       z.object({
@@ -78,6 +80,14 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
   const [open, setOpen] = useState<boolean>(false);
 
   const createRoomTemplate = useCreateRoomTemplate(propertyId);
+  const getUploadUrl = useGetUploadUrl();
+  const uploadFile = useUploadFile();
+
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [fileError, setFileError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -88,35 +98,77 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
       bedsPerRoom: 0,
       numberOfRooms: 0,
       pricePerBed: 0,
-      image: "",
       type: "",
       amenities: [],
     },
   });
 
-  function onSubmit(data: z.infer<typeof formSchema>) {
-    createRoomTemplate.mutate(data, {
-      onSuccess: () => {
-        toast("Success", {
-          description: "Room template created successfully.",
-        });
-        form.reset();
-        setOpen(false);
-      },
-      onError: (error) => {
-        toast.error("Failed to create room template", {
-          description: error.message || "Something went wrong.",
-          position: "bottom-right",
-          classNames: {
-            content: "flex flex-col gap-2",
-          },
-          style: {
-            "--border-radius": "calc(var(--radius)  + 4px)",
-          } as React.CSSProperties,
-        });
-      },
-    });
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+      setFileError(null);
+    }
+  };
 
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    setPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  async function onSubmit(data: z.infer<typeof formSchema>) {
+    if (!selectedFile) {
+      setFileError("Room image is required.");
+      toast.error("Please upload a room image before proceeding.");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try { 
+      const { uploadUrl, key } = await getUploadUrl.mutateAsync({
+        entity: "tenant",
+        entityId: "98a7sef654a6s5d4f",
+        fileType: selectedFile.type,
+      });
+  
+      await uploadFile.mutateAsync({
+        url: uploadUrl,
+        file: selectedFile,
+      });
+  
+      const payload = { ...data, image: key };
+
+      console.log("payload", payload);
+      
+      createRoomTemplate.mutate(payload, {
+        onSuccess: () => {
+          toast("Success", {
+            description: "Room template created successfully.",
+          });
+          form.reset();
+          setOpen(false);
+        },
+        onError: (error) => {
+          toast.error("Failed to create room template", {
+            description: error.message || "Something went wrong.",
+            position: "bottom-right",
+            classNames: {
+              content: "flex flex-col gap-2",
+            },
+            style: {
+              "--border-radius": "calc(var(--radius)  + 4px)",
+            } as React.CSSProperties,
+          });
+        },
+      });
+    } catch (error) {
+      toast.error("Image upload failed. Please try again.");
+    } finally {
+      setIsUploading(false);
+    }
   }
 
   return (
@@ -257,20 +309,64 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
               )}
             />
 
-            {/* Image URL - Spans full width */}
-            <div className="md:col-span-2">
-              <Controller
-                name="image"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor="image">Cover Image URL</FieldLabel>
-                    <Input {...field} id="image" placeholder="https://..." />
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
+            {/* Image Upload Dropzone - Full Width */}
+            <div className="col-span-1 md:col-span-2 space-y-1.5">
+              <FieldLabel>Room Image</FieldLabel>
+              {!previewUrl ? (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
+                    fileError
+                      ? "border-destructive bg-destructive/5 hover:bg-destructive/10"
+                      : "border-muted-foreground/25 hover:bg-muted/50"
+                  }`}
+                >
+                  <UploadCloudIcon
+                    className={`w-6 h-6 ${fileError ? "text-destructive" : "text-muted-foreground"}`}
+                  />
+                  <p
+                    className={`text-sm font-medium ${fileError ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    Click to select an image
+                  </p>
+                  <p
+                    className={`text-xs ${fileError ? "text-destructive/80" : "text-muted-foreground/70"}`}
+                  >
+                    PNG, JPG or WEBP (max. 2MB)
+                  </p>
+                </div>
+              ) : (
+                <div className="relative flex items-center justify-center border rounded-lg p-4 bg-muted/20">
+                  <Image
+                    height={100}
+                    width={100}
+                    src={previewUrl}
+                    alt="Preview"
+                    className="max-h-32 rounded-md object-contain"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7 rounded-full shadow-md"
+                    onClick={handleRemoveFile}
+                    disabled={isUploading || createRoomTemplate.isPending}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
+              {fileError && (
+                <p className="text-[0.8rem] font-medium text-destructive">
+                  {fileError}
+                </p>
+              )}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/png, image/jpeg, image/webp"
+                className="hidden"
               />
             </div>
 
@@ -392,8 +488,8 @@ export function CreateRoomTemplate({ propertyId }: PropertyIdProps) {
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="submit" disabled={createRoomTemplate.isPending}>
-              {createRoomTemplate.isPending ? "Saving..." : "Create Template"}
+            <Button type="submit" disabled={createRoomTemplate.isPending || isUploading}>
+              {(createRoomTemplate.isPending || isUploading) ? "Saving..." : "Create Template"}
             </Button>
           </DialogFooter>
         </form>
