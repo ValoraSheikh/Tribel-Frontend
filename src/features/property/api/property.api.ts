@@ -138,6 +138,7 @@ export const propertyApi = {
   },
 
   updateProperty: async (propertyId: string, payload: UpdateProperty) => {
+    console.log("payload is here", payload);
     const { data } = await axiosClient.patch<PropertyResponse>(
       `/api/v1/properties/${propertyId}`,
       payload,
