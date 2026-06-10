@@ -57,10 +57,10 @@ const formSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters.")
     .max(50, "Description must be at most 50 characters."),
-  bedsPerRoom: z.coerce.number<number>().min(1).max(100),
-  numberOfRooms: z.coerce.number<number>().min(1).max(500),
-  pricePerBed: z.coerce.number<number>().min(1),
-  type: z.string().min(1).max(20),
+  bedsPerRoom: z.coerce.number<number>().min(1, "Beds per room must be at least 1.").max(100),
+  numberOfRooms: z.coerce.number<number>().min(1, "Number of rooms must be at least 1.").max(500),
+  pricePerBed: z.coerce.number<number>().min(1, "Price per bed must be at least 1."),
+  type: z.string().min(1, "Type must have at least 1 character").max(20, "Type must be at most 20 characters."),
   // image: z.string().url("Please enter a valid URL"), // Added URL validation
   amenities: z
     .array(
