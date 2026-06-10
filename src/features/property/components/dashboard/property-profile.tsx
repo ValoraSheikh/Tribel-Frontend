@@ -22,10 +22,19 @@ import Image from "next/image";
 import { Amenity } from "../../api/property.api";
 import { usePropertyDetails } from "../../hooks/use-property";
 import { toUrl } from "@/utils/image";
+import dynamic from "next/dynamic";
 
 type PropertyIdProps = {
   propertyId: string;
 };
+
+
+const PropertyMap1 = dynamic(() => import("@/components/leaf-let-map"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[300px] rounded-xl border bg-muted/30" />
+  ),
+});
 
 const getAmenityIcon = (iconName: string) => {
   const icons = availableAmenities.find((icon) => icon.icon == iconName);
@@ -99,7 +108,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                 <Edit className="h-4 w-4" /> Edit Property
               </Button>
             </Link>
-            
+
             <Link href={`/properties/${property.id}/bookings`}>
               <Button
                 variant="outline"
@@ -175,7 +184,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
               </p>
             </div>
             <Avatar className="h-14 w-14 border-2 border-white shadow-sm">
-              <AvatarImage src={toUrl(host.avatar )|| ""} />
+              <AvatarImage src={toUrl(host.avatar) || ""} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {host.firstName?.[0]}
                 {host.lastName?.[0]}
@@ -329,11 +338,16 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
           {property.address}, {property.city}, {property.country}
         </p>
 
-        <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
+        {/*<div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
           <MapPin className="h-10 w-10 text-muted-foreground/50 mb-2" />
           <span className="absolute bottom-4 right-4 bg-white/80 px-3 py-1 text-xs rounded-md shadow backdrop-blur-sm">
             Lat: {property.latitude} | Long: {property.longitude}
           </span>
+        </div>*/}
+
+        <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
+          {/*<PropertyMap lat={property.latitude} lng={property.longitude} />*/}
+          <PropertyMap1 lat={property.latitude} lng={property.longitude} />
         </div>
       </div>
     </div>
