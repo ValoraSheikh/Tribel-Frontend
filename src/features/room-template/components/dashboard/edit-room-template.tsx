@@ -62,8 +62,8 @@ const formSchema = z.object({
     .string()
     .min(10, "Description must be at least 10 characters.")
     .max(50, "Description must be at most 50 characters."),
-  pricePerBed: z.coerce.number<number>().min(1),
-  type: z.string().min(1).max(20),
+  pricePerBed: z.coerce.number<number>().min(1, "Price per bed must be at least 1."),
+  type: z.string().min(1, "Type must have at least 1 character").max(20, "Type must be at most 20 characters."),
   // image: z.string(),
   amenities: z
     .array(
@@ -107,7 +107,7 @@ export function EditRoomTemplate({
       title: room?.title,
       description: room?.description,
       pricePerBed: room?.pricePerBed,
-      image: room?.image,
+      // image: room?.image,
       type: room?.type,
       amenities: room?.amenities || [],
     },
