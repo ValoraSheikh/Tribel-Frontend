@@ -9,6 +9,7 @@ import { StarIcon } from "lucide-react";
 import roomFeatures from "@/constants/rooms-icon";
 import { useGetRoomTemplateDetails } from "../../hooks/use-room-template";
 import { Amenity } from "../../api/room-template.api";
+import { toUrl } from "@/utils/image";
 
 type RoomTemplateProps = {
   roomTemplateId: string;
@@ -49,6 +50,7 @@ export function RoomTemplateDetails({
       </div>
     );
 
+
   return (
     <div className="flex flex-col space-y-6 p-6">
       {/* Header Section */}
@@ -56,7 +58,8 @@ export function RoomTemplateDetails({
         <div className="relative w-full md:w-1/3 aspect-video rounded-xl overflow-hidden border">
           {room.image ? (
             <Image
-              src={room.image}
+              src={toUrl(room.image)!}
+              unoptimized={true}
               alt={room.title}
               fill
               className="object-cover"
