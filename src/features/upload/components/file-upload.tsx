@@ -56,6 +56,7 @@ interface ImageUploadProps {
   onUploadComplete?: (images: ImageFile[]) => void;
   onImageKeys?: (images: string[]) => void;
   onUploadStart?: () => void;
+  initialImages?: string[];
 }
 
 export function FileUpload({
@@ -64,6 +65,7 @@ export function FileUpload({
   accept = "image/*",
   className,
   onImagesChange,
+  initialImages = [],
   onUploadComplete,
   onImageKeys,
   onUploadStart,
@@ -76,25 +78,27 @@ export function FileUpload({
   const [errors, setErrors] = useState<string[]>([]);
   const [allImages, setAllImages] = useState<SortableImage[]>([]);
   const [imageKeys, setImageKeys] = useState<string[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    if (!isInitialized && initialImages.length > 0) {
+      const defaultImages: SortableImage[] = initialImages.map((key) => ({
+        id: key,
+        src: toUrl(key) ?? "",
+        alt: "Property Image",
+        type: "default",
+      }));
+
+      setAllImages(defaultImages);
+      setImageKeys(initialImages);
+      onImageKeys?.(initialImages);
+      setIsInitialized(true);
+    }
+  }, [initialImages, isInitialized, onImageKeys]);
 
   useEffect(() => {
     onImageKeys?.(imageKeys);
   }, [imageKeys, onImageKeys]);
-
-  async function removeImageKey(key: string) {
-    const deleteImageToast = toast.loading("Deleting image...");
-    await deleteImage.mutateAsync(key, {
-      onSuccess: () => {
-        toast.success("Image deleted");
-      },
-      onError: () => {
-        toast.error("Failed to delete image");
-      },
-      onSettled: () => {
-        toast.dismiss(deleteImageToast);
-      },
-    });
-  }
 
   const createSortableImage = useCallback(
     (imageFile: ImageFile): SortableImage => ({
@@ -234,15 +238,38 @@ export function FileUpload({
     }, 100);
   };
 
+  async function removeImageKey(key: string) {
+    
+    const deleteImageToast = toast.loading("Deleting image...");
+    await deleteImage.mutateAsync(key, {
+      onSuccess: () => {
+        toast.success("Image deleted");
+      },
+      onError: () => {
+        toast.error("Failed to delete image");
+      },
+      onSettled: () => {
+        toast.dismiss(deleteImageToast);
+      },
+    });
+
+    setImageKeys((prev) => prev.filter((k) => k !== key));
+    onImageKeys?.(imageKeys);
+  }
+  
   const removeImage = useCallback(
     (id: string) => {
       setAllImages((prev) => prev.filter((img) => img.id !== id));
       const image = images.find((img) => img.id === id);
-      if (image?.key) {
-        removeImageKey(image.key);
+      
+      if (image?.key || id?.startsWith("public/")) {
+        removeImageKey(image?.key || id);
       }
 
-      setImageKeys((prev) => prev.filter((key) => key !== image?.key));
+      // setImageKeys((prev) => prev.filter((key) => key !== image?.key));
+      // console.log("removeImage", imageKeys);
+      // onImageKeys?.(imageKeys);
+
 
       const uploadedImage = images.find((img) => img.id === id);
       if (uploadedImage) {
@@ -363,6 +390,7 @@ export function FileUpload({
                   height={100}
                   width={500}
                   src={item.src}
+                  unoptimized={true}
                   className="rounded-md pointer-events-none h-[120px] w-full object-cover"
                   alt={item.alt}
                 />
@@ -380,7 +408,7 @@ export function FileUpload({
 
                 {/* Remove Button Overlay */}
                 <Button
-                  onClick={() => removeImage(item.id)}
+                  onClick={() => removeImage(item.id, item.src)}
                   variant="outline"
                   size="icon"
                   className="absolute end-2 top-2 size-6 rounded-full opacity-0 shadow-sm group-hover/item:opacity-100 dark:bg-zinc-800 hover:dark:bg-zinc-700"
@@ -488,7 +516,6 @@ export function FileUpload({
           </AlertDescription>
         </Alert>
       )}
-
     </div>
   );
 }
