@@ -7,6 +7,7 @@ import "@fontsource-variable/fraunces";
 import "@fontsource-variable/plus-jakarta-sans";
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { Toaster } from "@/components/ui/sonner";
+import "leaflet/dist/leaflet.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
