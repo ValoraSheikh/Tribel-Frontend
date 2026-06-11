@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import Image from "next/image";
 import { NewPropertyProps, PropertyProps } from "../../api/property.api";
 import Link from "next/link";
+import { toUrl } from "@/utils/image";
 
 export function PropertyCard({ property }: { property: NewPropertyProps }) {
   return (
@@ -17,7 +18,8 @@ export function PropertyCard({ property }: { property: NewPropertyProps }) {
             <Image
               height={500}
               width={500}
-              src={property.images[0] || "/api/placeholder/400/400"}
+              src={toUrl(property.images[0])!}
+              unoptimized={true}
               alt={property.title}
               className="h-full w-full object-cover transition-transform duration-300"
             />

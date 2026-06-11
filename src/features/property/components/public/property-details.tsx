@@ -22,6 +22,8 @@ import availableAmenities from "@/constants/amenities";
 import { Amenity } from "../../api/property.api";
 import { ListRoomTemplate1 } from "@/features/room-template/components/dashboard/room-templates";
 import { CreateBooking } from "@/features/booking/components/public/booking-form";
+import { toUrl } from "@/utils/image";
+import PropertyMap from "@/components/map/map";
 
 interface PropertyIdProps {
   propertyId: string;
@@ -95,7 +97,8 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
             <Image
               height={500}
               width={500}
-              src={property.images[0]}
+              src={toUrl(property.images[0])!}
+              unoptimized={true}
               alt="Main property"
               className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
             />
@@ -113,7 +116,8 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
                 <Image
                   height={500}
                   width={500}
-                  src={img}
+                  src={toUrl(img)!}
+                  unoptimized={true}
                   alt={`Property detail ${idx}`}
                   className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
                 />
@@ -218,7 +222,7 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
           <ListRoomTemplate1 propertyId={property.id} />
         </div>
 
-        {/* --- RIGHT COLUMN: STICKY SIDEBAR (Contact/Booking) --- */}
+        {/* STICKY SIDEBAR (Contact/Booking) */}
         <div className="lg:col-span-1">
           <div className="sticky top-24">
             <Card className="shadow-lg border-muted/60">
@@ -321,12 +325,8 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
           {property.address}, {property.city}, {property.country}
         </p>
 
-        {/* Placeholder for Map - Logic uses latitude/longitude */}
         <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
-          <MapPin className="h-10 w-10 text-muted-foreground/50 mb-2" />
-          <span className="absolute bottom-4 right-4 bg-white/80 px-3 py-1 text-xs rounded-md shadow backdrop-blur-sm">
-            Lat: {property.latitude} | Long: {property.longitude}
-          </span>
+          <PropertyMap lat={property.latitude} lng={property.longitude} />
         </div>
       </div>
     </div>
