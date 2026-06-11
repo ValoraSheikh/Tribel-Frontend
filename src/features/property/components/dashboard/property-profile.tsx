@@ -22,19 +22,11 @@ import Image from "next/image";
 import { Amenity } from "../../api/property.api";
 import { usePropertyDetails } from "../../hooks/use-property";
 import { toUrl } from "@/utils/image";
-import dynamic from "next/dynamic";
+import PropertyMap from "@/components/map/map";
 
 type PropertyIdProps = {
   propertyId: string;
 };
-
-
-const PropertyMap1 = dynamic(() => import("@/components/leaf-let-map"), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-[300px] rounded-xl border bg-muted/30" />
-  ),
-});
 
 const getAmenityIcon = (iconName: string) => {
   const icons = availableAmenities.find((icon) => icon.icon == iconName);
@@ -346,8 +338,8 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
         </div>*/}
 
         <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
-          {/*<PropertyMap lat={property.latitude} lng={property.longitude} />*/}
-          <PropertyMap1 lat={property.latitude} lng={property.longitude} />
+          <PropertyMap lat={property.latitude} lng={property.longitude} />
+          {/*<PropertyMap1 lat={property.latitude} lng={property.longitude} />*/}
         </div>
       </div>
     </div>
