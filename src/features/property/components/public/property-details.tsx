@@ -24,6 +24,7 @@ import { ListRoomTemplate1 } from "@/features/room-template/components/dashboard
 import { CreateBooking } from "@/features/booking/components/public/booking-form";
 import { toUrl } from "@/utils/image";
 import PropertyMap from "@/components/map/map";
+import ImageGalleryDialog from "../dashboard/image-dialog-box";
 
 interface PropertyIdProps {
   propertyId: string;
@@ -126,12 +127,13 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
           </div>
         )}
 
-        <Button
+        <ImageGalleryDialog images={property.images} />
+        {/*<Button
           variant="secondary"
           className="absolute bottom-4 right-4 text-xs"
         >
           Show all photos
-        </Button>
+        </Button>*/}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
