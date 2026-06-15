@@ -23,6 +23,7 @@ import { Amenity } from "../../api/property.api";
 import { usePropertyDetails } from "../../hooks/use-property";
 import { toUrl } from "@/utils/image";
 import PropertyMap from "@/components/map/map";
+import ImageGalleryDialog from "./image-dialog-box";
 
 type PropertyIdProps = {
   propertyId: string;
@@ -114,7 +115,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
         </div>
       </div>
 
-      {/* --- IMAGE GRID --- */}
+      {/* IMAGE GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[300px] md:h-[450px] rounded-2xl overflow-hidden mb-10 relative">
         <div
           className={`relative h-full ${property.images?.length > 1 ? "md:col-span-2" : "md:col-span-4"}`}
@@ -153,12 +154,13 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
           </div>
         )}
 
-        <Button
+        {/*<Button
           variant="secondary"
           className="absolute bottom-4 right-4 text-xs"
         >
-          Show all photos
-        </Button>
+          Show all photos*/}
+          <ImageGalleryDialog images={property.images} />
+        {/*</Button>*/}
       </div>
 
       {/* --- MAIN CONTENT GRID --- */}
