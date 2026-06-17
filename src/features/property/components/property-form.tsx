@@ -30,6 +30,7 @@ import availableAmenities from "@/constants/amenities";
 import { Spinner } from "@/components/ui/spinner";
 import { FileUpload } from "@/features/upload/components/file-upload";
 import { Amenity } from "@/features/room-template/api/room-template.api";
+import { DeletePropertyModal } from "./dashboard/delete-modal";
 
 const formSchema = z.object({
   title: z
@@ -87,6 +88,7 @@ const formSchema = z.object({
 });
 
 interface PropertyValuesProps {
+  id: string;
   title: string;
   type: string;
   gstin: string;
@@ -111,6 +113,7 @@ interface PropertyFormProps {
   isSubmitting?: boolean;
   heading?: string;
   paragraph?: string;
+  propertyId?: string;
 }
 
 export function PropertyForm({
@@ -120,6 +123,7 @@ export function PropertyForm({
   mode,
   onSubmit,
   isSubmitting = false,
+  propertyId,
 }: PropertyFormProps) {
   const [isLocating, setIsLocating] = useState(false);
   const [imageKeys, setImageKeys] = useState<string[]>([]);
@@ -734,19 +738,26 @@ export function PropertyForm({
         </div>
 
         {/* Submit Section */}
-        <div className="mt-12 pt-8 border-t border-border/60 flex flex-col-reverse sm:flex-row items-center justify-end gap-4 w-full">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => {
-              form.reset();
-              setImageKeys([]);
-            }}
-            disabled={isSubmitting || isLocating || isImageUploading}
-            className="w-full sm:w-auto min-w-[120px] bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            Reset Form
-          </Button>
+        <div className="mt-12 pt-8 border-t border-border/60 flex flex-col-reverse sm:flex-row items-center justify-between gap-4 w-full">
+          <div className="w-full sm:w-auto">
+            {mode === "edit" ? (
+              <DeletePropertyModal propertyId={propertyId ?? ""} />
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  form.reset();
+                  setImageKeys([]);
+                }}
+                disabled={isSubmitting || isLocating || isImageUploading}
+                className="w-full sm:w-auto min-w-[120px] bg-background hover:bg-accent hover:text-accent-foreground transition-colors"
+              >
+                Reset Form
+              </Button>
+            )}
+          </div>
+        
           <Button
             type="submit"
             form="form-rhf-demo"
@@ -758,8 +769,10 @@ export function PropertyForm({
                 <Spinner className="h-4 w-4 animate-spin" />
                 <span>Submitting...</span>
               </span>
+            ) : mode === "edit" ? (
+              "Save Changes"
             ) : (
-              "Submit Property"
+              "Create Property"
             )}
           </Button>
         </div>
