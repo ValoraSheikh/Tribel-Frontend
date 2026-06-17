@@ -6,6 +6,7 @@ import {
   DialogContent,
   DialogTrigger,
   DialogClose,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toUrl } from "@/utils/image";
@@ -19,7 +20,6 @@ export default function ImageGalleryDialog({
   images,
   triggerText = "Show all photos",
 }: ZappoTelGalleryProps) {
-  
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -31,12 +31,10 @@ export default function ImageGalleryDialog({
         </Button>
       </DialogTrigger>
 
-      {/* FIX 1: Added `sm:max-w-full sm:rounded-none w-full` to explicitly override 
+      {/* FIX 1: Added `sm:max-w-full sm:rounded-none w-full` to explicitly override
         ShadCN's default desktop constraints.
       */}
-      <DialogContent 
-        className="max-w-full sm:max-w-full w-full h-[100dvh] m-0 p-0 border-none rounded-none sm:rounded-none bg-background overflow-y-auto flex flex-col gap-0 shadow-none duration-300"
-      >
+      <DialogContent className="max-w-full sm:max-w-full w-full h-[100dvh] m-0 p-0 border-none rounded-none sm:rounded-none bg-background overflow-y-auto flex flex-col gap-0 shadow-none duration-300">
         {/* Sticky Header */}
         <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-background/90 backdrop-blur-md border-b">
           <DialogClose asChild>
@@ -50,24 +48,26 @@ export default function ImageGalleryDialog({
             </Button>
           </DialogClose>
 
-          <div className="text-sm font-semibold">{images.length} Images</div>
+          <DialogTitle className="text-sm font-semibold">
+            {images.length} Images
+          </DialogTitle>
 
           <div className="w-9" />
         </div>
 
-        {/* Masonry Image Grid 
+        {/* Masonry Image Grid
           Expanded max-width to allow big Airbnb-style images on large screens.
         */}
         <div className="p-4 md:p-8 lg:p-12 mx-auto w-full max-w-[1600px]">
           {/* 1 column mobile, 2 columns tablet, 3 columns desktop */}
-          <div className="columns-1 sm:columns-2 lg:columns-3 gap-4 md:gap-6">
+          <div className="columns-1 sm:columns-2 lg:columns-2 gap-4 md:gap-6">
             {images.map((url, index) => (
               <div
                 key={index}
                 className="relative break-inside-avoid w-full group overflow-hidden  bg-muted mb-4 md:mb-6"
               >
-                {/* FIX 2: Switched to standard HTML <img>. 
-                  This allows the browser to calculate the natural height based on the true 
+                {/* FIX 2: Switched to standard HTML <img>.
+                  This allows the browser to calculate the natural height based on the true
                   image dimensions, letting vertical/horizontal images stack properly.
                 */}
                 <img
