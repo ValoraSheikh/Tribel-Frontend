@@ -19,7 +19,7 @@ import {
 import { PlusIcon } from "lucide-react";
 import { useCreateRoomTemplate } from "@/features/room-template/hooks/use-room-template";
 import { useGetUploadUrl, useUploadFile } from "@/features/upload/hooks/use-upload";
-import { CreateRoomTemplateValues, RoomTemplateFormFields } from "../room-template-form";
+import { RoomTemplateFormFields, RoomTemplateFormValues } from "../room-template-form";
 
 const createSchema = z.object({
   title: z.string().min(2).max(24),
@@ -50,7 +50,7 @@ export function CreateRoomTemplate({ propertyId }: Props) {
   const getUploadUrl = useGetUploadUrl();
   const uploadFile = useUploadFile();
 
-  const form = useForm<CreateRoomTemplateValues>({
+  const form = useForm<RoomTemplateFormValues>({
     resolver: zodResolver(createSchema),
     defaultValues: {
       title: "",
@@ -136,10 +136,10 @@ export function CreateRoomTemplate({ propertyId }: Props) {
             </DialogDescription>
           </DialogHeader>
 
-          <RoomTemplateFormFields<CreateRoomTemplateValues>
+          <RoomTemplateFormFields
             form={form}
             mode="create"
-            selectedFile={selectedFile}
+            // selectedFile={selectedFile}
             previewUrl={previewUrl}
             fileError={fileError}
             isUploading={isUploading || createRoomTemplate.isPending}
