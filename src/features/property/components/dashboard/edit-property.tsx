@@ -28,7 +28,11 @@ export function EditProperty({ propertyId }: PropertyIdProps) {
 
 
   if (isLoading) {
-    return <h1>Loading...</h1>;
+    return  (
+      <div className="p-8 text-center animate-pulse">
+        Loading Edit Property for you...
+      </div>
+    )
   }
 
   if (isError) {
@@ -88,6 +92,7 @@ export function EditProperty({ propertyId }: PropertyIdProps) {
         location."
         mode="edit"
         initials={propertyDetail}
+        propertyId={propertyId}
       />
 
       
