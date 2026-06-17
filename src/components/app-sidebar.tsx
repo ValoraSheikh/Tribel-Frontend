@@ -19,6 +19,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "./ui/sidebar";
 import { NavUser } from "./navbar/nav-user";
 
@@ -52,6 +53,7 @@ const menuItems = [
 
 export const AppSidebar = () => {
   const pathname = usePathname();
+  const { setOpenMobile } = useSidebar();
 
   return (
     <Sidebar collapsible="icon">
@@ -82,7 +84,11 @@ export const AppSidebar = () => {
                       asChild
                       className="gap-x-4 h-10 px-4"
                     >
-                      <Link href={item.url} prefetch>
+                      <Link
+                        href={item.url}
+                        prefetch
+                        onClick={() => setOpenMobile(false)}
+                      >
                         <item.icon className="size-4" />
                         <span>{item.title}</span>
                       </Link>
