@@ -3,7 +3,12 @@
 import * as React from "react";
 import { Controller, UseFormReturn } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel,
+} from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import {
   InputGroup,
@@ -28,27 +33,21 @@ const roomType = [
   { label: "Bunk Bed", value: "BUNK" },
 ] as const;
 
-type RoomTemplateBaseValues = {
+export type RoomTemplateFormValues = {
   title: string;
   description: string;
   pricePerBed: number;
   type: string;
-  amenities?: { name: string; icon: string }[];
+  bedsPerRoom: number;
+  numberOfRooms: number;
+  amenities?: {
+    name: string;
+    icon: string;
+  }[];
 };
-
-export type CreateRoomTemplateValues = RoomTemplateBaseValues & {
-  bedsPerRoom?: number;
-  numberOfRooms?: number;
-};
-
-export type EditRoomTemplateValues = RoomTemplateBaseValues;
-
-export type RoomTemplateFormValues =
-  | CreateRoomTemplateValues
-  | EditRoomTemplateValues;
 
 type Props = {
-  form: UseFormReturn<RoomTemplateFormValues >;
+  form: UseFormReturn<RoomTemplateFormValues>;
   mode: "create" | "edit";
   previewUrl: string | null;
   fileError: string | null;
@@ -95,7 +94,11 @@ export function RoomTemplateFormFields({
         render={({ field, fieldState }) => (
           <Field data-invalid={fieldState.invalid}>
             <FieldLabel htmlFor="room_type">Room Type</FieldLabel>
-            <Select name={field.name} value={field.value} onValueChange={field.onChange}>
+            <Select
+              name={field.name}
+              value={field.value}
+              onValueChange={field.onChange}
+            >
               <SelectTrigger id="room_type">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
@@ -133,7 +136,7 @@ export function RoomTemplateFormFields({
         )}
       />
 
-      {showCreateOnlyFields && (
+      {showCreateOnlyFields ? (
         <>
           <Controller
             name="numberOfRooms"
@@ -141,8 +144,18 @@ export function RoomTemplateFormFields({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="numberOfRooms">Total Rooms</FieldLabel>
-                <Input {...field} id="numberOfRooms" type="number" placeholder="e.g. 10" />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldDescription className="">
+                  You can&apos;t change this later
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id="numberOfRooms"
+                  type="number"
+                  placeholder="e.g. 10"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
               </Field>
             )}
           />
@@ -153,8 +166,66 @@ export function RoomTemplateFormFields({
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
                 <FieldLabel htmlFor="bedsPerRoom">Beds per Room</FieldLabel>
-                <Input {...field} id="bedsPerRoom" type="number" placeholder="e.g. 2" />
-                {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+                <FieldDescription className="">
+                  You can&apos;t change this later
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id="bedsPerRoom"
+                  type="number"
+                  placeholder="e.g. 2"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+        </>
+      ) : (
+        <>
+          <Controller
+            name="numberOfRooms"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="numberOfRooms">Total Rooms</FieldLabel>
+                <FieldDescription className="">
+                  You can&apos;t change this
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id="numberOfRooms"
+                  type="number"
+                  readOnly
+                  placeholder="e.g. 10"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+
+          <Controller
+            name="bedsPerRoom"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="bedsPerRoom">Beds per Room</FieldLabel>
+                <FieldDescription className="">
+                  You can&apos;t change this
+                </FieldDescription>
+                <Input
+                  {...field}
+                  id="bedsPerRoom"
+                  type="number"
+                  readOnly
+                  placeholder="e.g. 2"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
               </Field>
             )}
           />
@@ -166,7 +237,9 @@ export function RoomTemplateFormFields({
 
         {!previewUrl ? (
           <div
-            onClick={() => document.getElementById("room-template-file")?.click()}
+            onClick={() =>
+              document.getElementById("room-template-file")?.click()
+            }
             className={`border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center gap-2 cursor-pointer transition-colors ${
               fileError
                 ? "border-destructive bg-destructive/5 hover:bg-destructive/10"
@@ -210,7 +283,11 @@ export function RoomTemplateFormFields({
           </div>
         )}
 
-        {fileError && <p className="text-[0.8rem] font-medium text-destructive">{fileError}</p>}
+        {fileError && (
+          <p className="text-[0.8rem] font-medium text-destructive">
+            {fileError}
+          </p>
+        )}
 
         <input
           id="room-template-file"
@@ -255,7 +332,9 @@ export function RoomTemplateFormFields({
           render={({ field }) => (
             <Field>
               <FieldLabel>Amenities</FieldLabel>
-              <FieldDescription className="mb-3">Select all that apply</FieldDescription>
+              <FieldDescription className="mb-3">
+                Select all that apply
+              </FieldDescription>
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
                 {roomFeatures.map((amenity) => {
@@ -285,7 +364,9 @@ export function RoomTemplateFormFields({
                             ]);
                           } else {
                             field.onChange(
-                              currentValue.filter((a) => a.name !== amenity.name),
+                              currentValue.filter(
+                                (a) => a.name !== amenity.name,
+                              ),
                             );
                           }
                         }}
