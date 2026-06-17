@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState, useEffect } from "react";
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -28,6 +29,8 @@ const editSchema = z.object({
   description: z.string().min(10).max(50),
   pricePerBed: z.coerce.number<number>().min(1),
   type: z.string().min(1).max(20),
+  bedsPerRoom: z.coerce.number<number>().min(1),
+  numberOfRooms: z.coerce.number<number>().min(1),
   amenities: z
     .array(z.object({ name: z.string(), icon: z.string() }))
     .optional(),
@@ -42,11 +45,11 @@ type Props = {
 };
 
 export function EditRoomTemplate({ propertyId, roomTemplateId, room }: Props) {
-  const [open, setOpen] = React.useState(false);
-  const [selectedFile, setSelectedFile] = React.useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = React.useState<string | null>(toUrl(room.image) ?? "");
-  const [fileError, setFileError] = React.useState<string | null>(null);
-  const [isUploading, setIsUploading] = React.useState(false);
+  const [open, setOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(toUrl(room.image) ?? "");
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const updateRoomTemplate = useUpdateRoomTemplate(propertyId, roomTemplateId);
   const getUploadUrl = useGetUploadUrl();
@@ -59,16 +62,20 @@ export function EditRoomTemplate({ propertyId, roomTemplateId, room }: Props) {
       title: room.title,
       description: room.description,
       pricePerBed: room.pricePerBed,
+      bedsPerRoom: room.bedsPerRoom,
+      numberOfRooms: room.numberOfRooms,
       type: room.type,
       amenities: room.amenities || [],
     },
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     form.reset({
       title: room.title,
       description: room.description,
       pricePerBed: room.pricePerBed,
+      bedsPerRoom: room.bedsPerRoom,
+      numberOfRooms: room.numberOfRooms,
       type: room.type,
       amenities: room.amenities || [],
     });
@@ -95,21 +102,21 @@ export function EditRoomTemplate({ propertyId, roomTemplateId, room }: Props) {
     setIsUploading(true);
 
     try {
-      let imageKey = room.image;
+      let imageKeys = room.image;
 
       if (selectedFile) {
         const { uploadUrl, key } = await getUploadUrl.mutateAsync({
           entity: "tenant",
-          entityId: propertyId,
+          entityId: roomTemplateId,
           fileType: selectedFile.type,
         });
 
         await uploadFile.mutateAsync({ url: uploadUrl, file: selectedFile });
-        imageKey = key;
+        imageKeys = key;
       }
 
       updateRoomTemplate.mutate(
-        { ...data, image: imageKey },
+        { ...data, image: imageKeys,  },
         {
           onSuccess: () => {
             toast.success("Room template updated successfully.");
@@ -154,7 +161,6 @@ export function EditRoomTemplate({ propertyId, roomTemplateId, room }: Props) {
           <RoomTemplateFormFields
             form={form}
             mode="edit"
-            selectedFile={selectedFile}
             previewUrl={previewUrl}
             fileError={fileError}
             isUploading={isUploading || updateRoomTemplate.isPending}
