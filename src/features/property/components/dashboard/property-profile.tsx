@@ -65,7 +65,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
-      {/* --- HEADER SECTION --- */}
+      {/* HEADER SECTION */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">
           {property.title}
@@ -98,7 +98,10 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                 size="sm"
                 className="gap-2 border-primary/20 hover:bg-primary/5"
               >
-                <Edit className="h-4 w-4" /> Edit Property
+                <Edit className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  Edit Property
+                </span>
               </Button>
             </Link>
 
