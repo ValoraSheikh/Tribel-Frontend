@@ -1,5 +1,5 @@
 import { AppHeader } from "@/components/app-header";
-import { AppSidebar } from "@/components/app-siidebar";
+import { AppSidebar } from "@/components/app-sidebar";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { requireAuth } from "@/lib/auth/auth-utils";
 

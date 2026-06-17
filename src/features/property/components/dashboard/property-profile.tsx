@@ -22,6 +22,8 @@ import Image from "next/image";
 import { Amenity } from "../../api/property.api";
 import { usePropertyDetails } from "../../hooks/use-property";
 import { toUrl } from "@/utils/image";
+import PropertyMap from "@/components/map/map";
+import ImageGalleryDialog from "./image-dialog-box";
 
 type PropertyIdProps = {
   propertyId: string;
@@ -61,10 +63,9 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
   const host = property.tenant.user;
   const tenantProfile = property.tenant;
 
-  console.log("here is the data", property)
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-in fade-in duration-500">
-      {/* --- HEADER SECTION --- */}
+      {/* HEADER SECTION */}
       <div className="mb-6">
         <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-2">
           {property.title}
@@ -97,10 +98,13 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
                 size="sm"
                 className="gap-2 border-primary/20 hover:bg-primary/5"
               >
-                <Edit className="h-4 w-4" /> Edit Property
+                <Edit className="h-4 w-4" />
+                <span className="hidden sm:inline">
+                  Edit Property
+                </span>
               </Button>
             </Link>
-            
+
             <Link href={`/properties/${property.id}/bookings`}>
               <Button
                 variant="outline"
@@ -114,7 +118,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
         </div>
       </div>
 
-      {/* --- IMAGE GRID --- */}
+      {/* IMAGE GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-2 h-[300px] md:h-[450px] rounded-2xl overflow-hidden mb-10 relative">
         <div
           className={`relative h-full ${property.images?.length > 1 ? "md:col-span-2" : "md:col-span-4"}`}
@@ -153,12 +157,13 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
           </div>
         )}
 
-        <Button
+        {/*<Button
           variant="secondary"
           className="absolute bottom-4 right-4 text-xs"
         >
-          Show all photos
-        </Button>
+          Show all photos*/}
+          <ImageGalleryDialog images={property.images} />
+        {/*</Button>*/}
       </div>
 
       {/* --- MAIN CONTENT GRID --- */}
@@ -176,7 +181,7 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
               </p>
             </div>
             <Avatar className="h-14 w-14 border-2 border-white shadow-sm">
-              <AvatarImage src={toUrl(host.avatar )|| ""} />
+              <AvatarImage src={toUrl(host.avatar) || ""} />
               <AvatarFallback className="bg-primary/10 text-primary">
                 {host.firstName?.[0]}
                 {host.lastName?.[0]}
@@ -330,11 +335,16 @@ export function PropertyProfile({ propertyId }: PropertyIdProps) {
           {property.address}, {property.city}, {property.country}
         </p>
 
-        <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
+        {/*<div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
           <MapPin className="h-10 w-10 text-muted-foreground/50 mb-2" />
           <span className="absolute bottom-4 right-4 bg-white/80 px-3 py-1 text-xs rounded-md shadow backdrop-blur-sm">
             Lat: {property.latitude} | Long: {property.longitude}
           </span>
+        </div>*/}
+
+        <div className="w-full h-[300px] bg-muted/40 rounded-xl flex items-center justify-center border-2 border-dashed relative overflow-hidden">
+          <PropertyMap lat={property.latitude} lng={property.longitude} />
+          {/*<PropertyMap1 lat={property.latitude} lng={property.longitude} />*/}
         </div>
       </div>
     </div>

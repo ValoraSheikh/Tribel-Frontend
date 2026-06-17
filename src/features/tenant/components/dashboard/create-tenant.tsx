@@ -162,7 +162,6 @@ export function TenantForm() {
         },
       });
     } catch (error) {
-      console.error("Upload failed:", error);
       toast.error("Image upload failed. Please try again.");
     } finally {
       setIsUploading(false);

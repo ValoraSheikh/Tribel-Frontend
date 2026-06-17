@@ -15,8 +15,8 @@ export const useUploadFile = () => {
   });
 };
 
-export const useDeleteImage = (key: string) => {
+export const useDeleteImage = () => {
   return useMutation({
-    mutationFn: () => uploadApi.deleteImage({ key }),
+    mutationFn: (key: string) => uploadApi.deleteImage({ key }),
   });
 };

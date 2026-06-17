@@ -49,7 +49,7 @@ export function DeletePropertyModal(propertyId: PropertyIdProps) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="outline">Delete Property</Button>
+        <Button variant="outline" className="w-full sm:w-auto min-w-[120px] bg-background hover:bg-accent hover:text-accent-foreground transition-colors">Delete Property</Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

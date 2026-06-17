@@ -38,6 +38,9 @@ export const uploadApi = {
   },
 
   deleteImage: async ({ key }: { key: string }) => {
-    await axiosClient.post("/api/v1/uploads/deleteKey", key);
+    const { data } = await axiosClient.post("/api/v1/uploads/deleteKey", {
+      key,
+    });
+    return data.data;
   },
 };

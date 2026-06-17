@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { Suspense } from "react";
 import EditPropertySkeleton from "./loading";
-import { EditPropertyForm } from "@/features/property/components/dashboard/edit-property";
+import { EditProperty } from "@/features/property/components/dashboard/edit-property";
 
 type props = {
   params: { propertyId: string };
@@ -30,7 +30,7 @@ const Page = async ({ params }: props) => {
       <div className="mx-auto max-w-7xl">
         <HydrationBoundary state={dehydrate(queryClient)}>
           <Suspense fallback={<EditPropertySkeleton />}>
-            <EditPropertyForm propertyId={propertyId} />
+            <EditProperty propertyId={propertyId} />
           </Suspense>
         </HydrationBoundary>
       </div>

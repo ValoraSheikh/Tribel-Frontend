@@ -10,6 +10,7 @@ import { EditRoomTemplate } from "./edit-room-template";
 import Link from "next/link";
 import { useGetRoomTemplates } from "../../hooks/use-room-template";
 import { Amenity, RoomTemplateProps } from "../../api/room-template.api";
+import { toUrl } from "@/utils/image";
 
 type PropertyIdProps = {
   propertyId: string;
@@ -75,7 +76,8 @@ function RoomCard({
     <Card className="group overflow-hidden flex flex-col sm:flex-row border-border transition-all duration-250 hover:shadow-md rounded-xl bg-white py-0">
       <div className="relative w-full h-48 sm:h-auto sm:w-44 md:w-52 shrink-0 bg-muted overflow-hidden">
         <Image
-          src={room.image}
+          src={toUrl(room.image)!}
+          unoptimized={true}
           alt={room.title}
           fill
           className="object-cover w-full h-full transition-transform duration-500 "
@@ -218,7 +220,8 @@ export function RoomCard1({ room }: { room: RoomTemplateProps }) {
     <Card className="group overflow-hidden flex flex-col sm:flex-row border-border transition-all duration-250 hover:shadow-md rounded-xl bg-white py-0">
       <div className="relative w-full h-48 sm:h-auto sm:w-44 md:w-52 shrink-0 bg-muted overflow-hidden">
         <Image
-          src={room.image}
+          src={toUrl(room.image)!}
+          unoptimized={true}
           alt={room.title}
           fill
           className="object-cover w-full h-full transition-transform duration-500 "

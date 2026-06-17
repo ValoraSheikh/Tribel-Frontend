@@ -46,12 +46,12 @@ const Profile = () => {
 
           <div className="ml-auto">
             {/* modal approach */}
-            <button
+            <div
               aria-label="Edit profile"
               className="p-2 hover:rounded hover:bg-muted"
             >
               <EditProfile user={user} />
-            </button>
+            </div>
           </div>
         </div>
       </Card>
