@@ -16,6 +16,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RoomTemplateProps } from "@/features/room-template/api/room-template.api";
 import { RoomCard1 } from "@/features/room-template/components/dashboard/room-templates";
@@ -23,9 +25,9 @@ import { useGetRoomTemplates } from "@/features/room-template/hooks/use-room-tem
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { format } from "date-fns";
-import { CalendarIcon, CheckCircle2 } from "lucide-react";
-import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { CalendarIcon, CheckCircle2, CreditCard, Wallet } from "lucide-react";
+import { useState } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 import { useCreateBooking } from "../../hooks/use-booking";
@@ -37,9 +39,27 @@ interface DateRange {
   to: Date;
 }
 
+const paymentOptions = [
+  {
+    value: "ONLINE",
+    title: "Online Payment",
+    description: "Pay securely online after your booking request is accepted.",
+    icon: CreditCard,
+  },
+  {
+    value: "OFFLINE",
+    title: "Offline Payment",
+    description: "Pay directly at the property or as instructed by the host.",
+    icon: Wallet,
+  },
+] as const;
+
 const formSchema = z.object({
   propertyId: z.string().min(1, "Property ID is required"),
   roomTemplateId: z.string().min(1, "Please select a room"),
+  paymentMode: z.enum(["ONLINE", "OFFLINE"], {
+    message: "Please select a payment mode",
+  }),
   dateRange: z
     .object({
       from: z.date("Start date is required"),
@@ -53,7 +73,7 @@ const formSchema = z.object({
 export function CreateBooking({ propertyId }: { propertyId: string }) {
   const [open, setOpen] = useState(false);
   const router = useRouter();
-  const idempotencyKey = useRef(uuidv4());
+  const [idempotencyKey, setIdempotencyKey] = useState(() => uuidv4());
 
   const createBooking = useCreateBooking();
   const {
@@ -68,6 +88,7 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
     defaultValues: {
       propertyId: propertyId,
       roomTemplateId: "",
+      paymentMode: "ONLINE",
     },
   });
 
@@ -80,10 +101,11 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
       roomTemplateId: data.roomTemplateId,
       startDate: data.dateRange.from,
       endDate: data.dateRange.to,
+      paymentMode: data.paymentMode,
     };
 
     createBooking.mutate(
-      { payload, idempotencyKey: idempotencyKey.current },
+      { payload, idempotencyKey },
       {
         onSuccess: () => {
           toast.success("Booking Request Sent", {
@@ -91,7 +113,7 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
           });
           setOpen(false);
           form.reset();
-          idempotencyKey.current = uuidv4();
+          setIdempotencyKey(uuidv4());
           router.push("/yourBookings");
         },
         onError: (error) => {
@@ -110,8 +132,18 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
     );
   }
 
-  const selectedRoomId = form.watch("roomTemplateId");
-  const selectedDateRange = form.watch("dateRange");
+  const selectedRoomId = useWatch({
+    control: form.control,
+    name: "roomTemplateId",
+  });
+  const selectedPaymentMode = useWatch({
+    control: form.control,
+    name: "paymentMode",
+  });
+  const selectedDateRange = useWatch({
+    control: form.control,
+    name: "dateRange",
+  });
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -182,6 +214,82 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
               <span className="text-sm font-medium text-destructive">
                 {form.formState.errors.dateRange.message ||
                   form.formState.errors.dateRange.root?.message}
+              </span>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <div className="space-y-1">
+              <Label className="text-sm font-medium leading-none">
+                Payment Mode
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                Choose how you want to complete the payment for this booking.
+              </p>
+            </div>
+
+            <RadioGroup
+              value={selectedPaymentMode}
+              onValueChange={(value) =>
+                form.setValue("paymentMode", value as "ONLINE" | "OFFLINE", {
+                  shouldValidate: true,
+                })
+              }
+              className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+            >
+              {paymentOptions.map((option) => {
+                const Icon = option.icon;
+                const isSelected = selectedPaymentMode === option.value;
+
+                return (
+                  <Label
+                    key={option.value}
+                    htmlFor={`payment-${option.value.toLowerCase()}`}
+                    className={cn(
+                      "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-background p-4 shadow-xs transition-all hover:border-rose-300 hover:bg-rose-50/40 sm:min-h-32",
+                      isSelected
+                        ? "border-rose-500 bg-rose-50 ring-2 ring-rose-500/20"
+                        : "border-border",
+                    )}
+                  >
+                    <RadioGroupItem
+                      id={`payment-${option.value.toLowerCase()}`}
+                      value={option.value}
+                      className="mt-1 border-rose-500 text-rose-600"
+                    />
+                    <div className="flex min-w-0 flex-1 gap-3">
+                      <div
+                        className={cn(
+                          "hidden size-10 shrink-0 items-center justify-center rounded-full sm:flex",
+                          isSelected
+                            ? "bg-rose-500 text-white"
+                            : "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        <Icon className="size-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-semibold text-foreground">
+                            {option.title}
+                          </span>
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-bold tracking-wide text-muted-foreground">
+                            {option.value}
+                          </span>
+                        </div>
+                        <p className="text-sm leading-5 text-muted-foreground">
+                          {option.description}
+                        </p>
+                      </div>
+                    </div>
+                  </Label>
+                );
+              })}
+            </RadioGroup>
+
+            {form.formState.errors.paymentMode && (
+              <span className="text-sm font-medium text-destructive">
+                {form.formState.errors.paymentMode.message}
               </span>
             )}
           </div>
@@ -270,4 +378,3 @@ export function CreateBooking({ propertyId }: { propertyId: string }) {
     </Dialog>
   );
 }
-
