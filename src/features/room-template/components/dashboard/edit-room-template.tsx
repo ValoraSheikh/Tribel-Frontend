@@ -25,12 +25,12 @@ import { toUrl } from "@/utils/image";
 import { RoomTemplateFormFields } from "../room-template-form";
 
 const editSchema = z.object({
-  title: z.string().min(2).max(24),
-  description: z.string().min(10).max(50),
-  pricePerBed: z.coerce.number<number>().min(1),
-  type: z.string().min(1).max(20),
-  bedsPerRoom: z.coerce.number<number>().min(1),
-  numberOfRooms: z.coerce.number<number>().min(1),
+  title: z.string().min(2, "Title must be at least 2 characters").max(24),
+  description: z.string().min(10, "Description must be at least 10 characters").max(50),
+  pricePerBed: z.coerce.number<number>().min(1, "Price per bed must be at least 1"),
+  type: z.string().min(1, "Type must be at least 1 character").max(20, "Type must be at most 20 characters"),
+  bedsPerRoom: z.coerce.number<number>().min(1, "Beds per room must be at least 1"),
+  numberOfRooms: z.coerce.number<number>().min(1, "Number of rooms must be at least 1"),
   amenities: z
     .array(z.object({ name: z.string(), icon: z.string() }))
     .optional(),
