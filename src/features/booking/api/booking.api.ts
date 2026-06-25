@@ -66,6 +66,7 @@ export interface CreateBookingPayload {
   roomTemplateId: string;
   startDate: Date;
   endDate: Date;
+  paymentMode: "ONLINE" | "OFFLINE";
 }
 
 export const bookingApi = {
