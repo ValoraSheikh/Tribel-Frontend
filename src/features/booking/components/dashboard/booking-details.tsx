@@ -22,6 +22,7 @@ import {
   Building,
 } from "lucide-react";
 import Image from "next/image";
+import { toUrl } from "@/utils/image";
 
 export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
   const formatDate = (dateString: string) => {
@@ -37,8 +38,8 @@ export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
     }).format(amount);
   };
 
-  const coverImage = booking.property?.images?.[0] || null;
-
+  const coverImage = toUrl(booking.property?.images?.[0]) || null;
+  
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -53,6 +54,7 @@ export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
               height={500}
               width={500}
               src={coverImage}
+              unoptimized
               alt={booking.property?.title}
               className="w-full h-full object-cover"
             />

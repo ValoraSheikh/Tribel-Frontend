@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CancelBookingModal } from "./cancel-booking";
+import { toUrl } from "@/utils/image";
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-IN", {
@@ -199,9 +200,10 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
         <div className="relative w-full md:w-64 lg:w-72 shrink-0 aspect-video md:aspect-auto">
           {booking.property.images?.length > 0 ? (
             <Image
-              src={booking.property.images[0]}
+              src={toUrl(booking.property.images[0])!}
               alt={booking.property.title}
               fill
+              unoptimized
               className="object-cover"
             />
           ) : (
