@@ -6,6 +6,7 @@ import {
   AdvancedMarker,
   Pin,
   Circle,
+  Marker,
 } from "@vis.gl/react-google-maps";
 
 type PropertyMapProps = {
@@ -38,19 +39,20 @@ export default function PropertyMap({
           gestureHandling="greedy"
           disableDefaultUI={false}
         >
-          <AdvancedMarker position={position}>
+          {/*<AdvancedMarker position={position}>
             <Pin
               background="#111827"
               glyphColor="#ffffff"
               borderColor="#ffffff"
             />
-          </AdvancedMarker>
+          </AdvancedMarker>*/}
+          <Marker position={position} title="" />
           <Circle
-            center={{lat: lat, lng: lng}}
+            center={{ lat: lat, lng: lng }}
             radius={100}
-            fillColor={'#0088ff'}
+            fillColor={"#0088ff"}
             fillOpacity={0.3}
-            strokeColor={'#0088ff'}
+            strokeColor={"#0088ff"}
             strokeWeight={2}
           />
         </Map>
