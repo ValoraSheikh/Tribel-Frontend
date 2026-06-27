@@ -21,8 +21,8 @@ import Image from "next/image";
 import availableAmenities from "@/constants/amenities";
 import { Amenity } from "../../api/property.api";
 import { ListRoomTemplate1 } from "@/features/room-template/components/dashboard/room-templates";
-import { CreateBooking } from "@/features/booking/components/public/booking-form";
 import { toUrl } from "@/utils/image";
+import { useRouter } from "next/navigation";
 import PropertyMap from "@/components/map/map";
 import ImageGalleryDialog from "../dashboard/image-dialog-box";
 
@@ -37,6 +37,7 @@ const getAmenityIcon = (iconName: string) => {
 };
 
 export function PropertyDetails({ propertyId }: PropertyIdProps) {
+  const router = useRouter();
   const { data: property, isLoading, isError, error } = usePropertyDetails(propertyId);
 
   if (isLoading) {
@@ -293,7 +294,12 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
 
                 <Separator />
 
-                <CreateBooking propertyId={property.id} />
+                <Button
+                  className="w-full h-12 text-md font-semibold bg-linear-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-md text-white"
+                  onClick={() => router.push(`/bookings/new?propertyId=${property.id}`)}
+                >
+                  Request Booking
+                </Button>
 
                 <div className="flex justify-center items-center gap-2 mt-2">
                   <Badge
