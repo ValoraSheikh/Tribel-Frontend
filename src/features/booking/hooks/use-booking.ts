@@ -10,6 +10,7 @@ export const USE_USER_BOOKING_KEY = ["user", "booking"] as const;
 export const USE_ADMIN_BOOKINGS_KEY = ["admin", "bookings"] as const;
 export const USE_ADMIN_BOOKING_KEY = ["admin", "booking"] as const;
 export const USE_BOOKINGS_KEY = ["bookings"] as const;
+export const USE_BOOKING_DATA_KEY = ["booking-data"] as const;
 
 export const useUserBookings = (query?: { limit?: number; page?: number }) => {
   return useQuery({
@@ -181,5 +182,13 @@ export const useCancelBooking = (bookingId: string) => {
     onError: (err) => {
       // Something if you want
     },
+  });
+};
+
+export const useBookingData = (propertyId: string) => {
+  return useQuery({
+    queryKey: [...USE_BOOKING_DATA_KEY, propertyId],
+    queryFn: () => bookingApi.getBookingData(propertyId),
+    enabled: !!propertyId,
   });
 };
