@@ -1,4 +1,5 @@
 import { axiosClient } from "@/lib/axios/axios-client";
+import type { RoomTemplateProps } from "@/features/room-template/api/room-template.api";
 import { AxiosInstance } from "axios";
 
 export interface BookingProps {
@@ -18,6 +19,26 @@ export interface BookingProps {
   updatedAt: string;
   cancelledAt: string;
   bedId: string;
+}
+
+export interface BookingDataResponse {
+  property: {
+    id: string;
+    title: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    images: string[];
+    contact_email: string;
+    contact_phone: string;
+    tenant: {
+      id: string;
+      name: string;
+      currency: string;
+    };
+  };
+  roomTemplates: RoomTemplateProps[];
 }
 
 interface Guest {
@@ -153,6 +174,13 @@ export const bookingApi = {
     const { data } = await axiosClient.patch<BookingResponse>(
       `/api/v1/booking/${bookingId}`,
       payload,
+    );
+    return data.data;
+  },
+
+  getBookingData: async (propertyId: string) => {
+    const { data } = await axiosClient.get<{ data: BookingDataResponse }>(
+      `/api/v1/properties/${propertyId}/booking-data`,
     );
     return data.data;
   },
