@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -176,6 +177,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
         startDate: data.dateRange.from,
         endDate: data.dateRange.to,
         paymentMode: data.paymentMode as "ONLINE" | "OFFLINE",
+        status: ""
       };
       createBooking.mutate(
         { payload, idempotencyKey },
@@ -530,7 +532,14 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
               disabled={createBooking.isPending}
               className="bg-rose-600 hover:bg-rose-700 text-white"
             >
-              {createBooking.isPending ? "Confirming..." : "Confirm Booking"}
+              {createBooking.isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="h-4 w-4" />
+                  <span>Confirming...</span>
+                </span>
+              ) : (
+                "Confirm Booking"
+              )}
             </Button>
           </div>
         </form>

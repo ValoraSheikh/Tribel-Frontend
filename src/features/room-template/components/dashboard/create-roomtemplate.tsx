@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import {
   Dialog,
   DialogClose,
@@ -163,7 +164,14 @@ export function CreateRoomTemplate({ propertyId }: Props) {
               </Button>
             </DialogClose>
             <Button type="submit" disabled={createRoomTemplate.isPending || isUploading}>
-              {createRoomTemplate.isPending || isUploading ? "Saving..." : "Create Template"}
+              {createRoomTemplate.isPending || isUploading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="h-4 w-4" />
+                  <span>Saving...</span>
+                </span>
+              ) : (
+                "Create Template"
+              )}
             </Button>
           </DialogFooter>
         </form>
