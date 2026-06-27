@@ -7,10 +7,26 @@ export interface BookingProps {
   propertyId: string;
   roomId: string;
   guestId: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "UPCOMING" | "ONGOING";
+  status:
+    | "UPCOMING"
+    | "ONGOING"
+    | "PENDING"
+    | "CONFIRMED"
+    | "CANCELLED"
+    | "COMPLETED"
+    | "REJECTED";
   totalPrice: number;
   startDate: string;
   property: PropertyProps;
+  paymentMode: "ONLINE" | "OFFLINE";
+  paymentStatus:
+    | "PENDING"
+    | "PAID"
+    | "PENDING_APPROVAL"
+    | "FAILED"
+    | "PARTIALLY_PAID"
+    | "REJECTED"
+    | "REFUNDED";
   room: Room;
   bed: Bed;
   guest: Guest;
