@@ -58,7 +58,9 @@ interface BookingsResponse {
 }
 
 interface BookingResponse {
-  data: BookingProps;
+  data: {
+    booking: BookingProps;
+  };
 }
 
 export interface CreateBookingPayload {
