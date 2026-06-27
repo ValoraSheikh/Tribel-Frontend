@@ -7,14 +7,7 @@ export interface BookingProps {
   propertyId: string;
   roomId: string;
   guestId: string;
-  status:
-    | "UPCOMING"
-    | "ONGOING"
-    | "PENDING"
-    | "CONFIRMED"
-    | "CANCELLED"
-    | "COMPLETED"
-    | "REJECTED";
+  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "REJECTED";
   totalPrice: number;
   startDate: string;
   property: PropertyProps;
