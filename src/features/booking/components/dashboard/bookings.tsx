@@ -58,6 +58,37 @@ const getBookingStatus = (status: string) => {
   }
 };
 
+const getPaymentStatusStyle = (status: string) => {
+  switch (status) {
+    case "PAID":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "PENDING":
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    case "PENDING_APPROVAL":
+      return "bg-blue-50 text-blue-700 border-blue-200";
+    case "FAILED":
+    case "REJECTED":
+      return "bg-rose-50 text-rose-700 border-rose-200";
+    case "PARTIALLY_PAID":
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    case "REFUNDED":
+      return "bg-slate-50 text-slate-700 border-slate-200";
+    default:
+      return "bg-muted text-muted-foreground border-border";
+  }
+};
+
+const getPaymentModeStyle = (mode: string) => {
+  switch (mode) {
+    case "ONLINE":
+      return "bg-indigo-50 text-indigo-700 border-indigo-200";
+    case "OFFLINE":
+      return "bg-gray-50 text-gray-700 border-gray-200";
+    default:
+      return "bg-muted text-muted-foreground border-border";
+  }
+};
+
 export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
   const [limit, setLimit] = useQueryState(
     "limit",
@@ -147,16 +178,18 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                   <TableHead>Dates</TableHead>
                   <TableHead>Accommodation</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead>Payment Status</TableHead>
+                  <TableHead>Payment Mode</TableHead>
                   <TableHead>Total Price</TableHead>
                   <TableHead>Booked On</TableHead>
-                  <TableHead className="w-[50px]"></TableHead>{" "}
+                  <TableHead className="w-[50px]"></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {bookings.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={6}
+                      colSpan={8}
                       className="h-24 text-center text-muted-foreground"
                     >
                       No bookings found.
@@ -214,6 +247,24 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                           variant="outline"
                         >
                           {booking.status}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${getPaymentStatusStyle(booking.paymentStatus)}`}
+                          variant="outline"
+                        >
+                          {booking.paymentStatus?.replace(/_/g, " ")}
+                        </Badge>
+                      </TableCell>
+
+                      <TableCell>
+                        <Badge
+                          className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${getPaymentModeStyle(booking.paymentMode)}`}
+                          variant="outline"
+                        >
+                          {booking.paymentMode}
                         </Badge>
                       </TableCell>
 
