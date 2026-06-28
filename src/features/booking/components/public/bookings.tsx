@@ -42,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CancelBookingModal } from "./cancel-booking";
+import { toUrl } from "@/utils/image";
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-IN", {
@@ -170,6 +171,37 @@ export const Bookings = () => {
   );
 };
 
+const getPaymentStatusStyle = (status: string) => {
+  switch (status) {
+    case "PAID":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "PENDING":
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    case "PENDING_APPROVAL":
+      return "bg-blue-50 text-blue-700 border-blue-200";
+    case "FAILED":
+    case "REJECTED":
+      return "bg-rose-50 text-rose-700 border-rose-200";
+    case "PARTIALLY_PAID":
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    case "REFUNDED":
+      return "bg-slate-50 text-slate-700 border-slate-200";
+    default:
+      return "bg-muted text-muted-foreground border-border";
+  }
+};
+
+const getPaymentModeStyle = (mode: string) => {
+  switch (mode) {
+    case "ONLINE":
+      return "bg-indigo-50 text-indigo-700 border-indigo-200";
+    case "OFFLINE":
+      return "bg-gray-50 text-gray-700 border-gray-200";
+    default:
+      return "bg-muted text-muted-foreground border-border";
+  }
+};
+
 const BookingCard = ({ booking }: { booking: BookingProps }) => {
   const status = booking.status;
 
@@ -199,9 +231,10 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
         <div className="relative w-full md:w-64 lg:w-72 shrink-0 aspect-video md:aspect-auto">
           {booking.property.images?.length > 0 ? (
             <Image
-              src={booking.property.images[0]}
+              src={toUrl(booking.property.images[0])!}
               alt={booking.property.title}
               fill
+              unoptimized
               className="object-cover"
             />
           ) : (
@@ -267,13 +300,30 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
         </div>
 
         <div className="p-4 md:p-6 bg-muted/20 border-t md:border-t-0 md:border-l flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 md:w-48 shrink-0">
-          <div className="text-left md:text-right">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold md:mb-1">
-              Paid Amount
-            </p>
-            <p className="text-lg md:text-xl font-bold text-primary">
-              {formatPrice(booking.totalPrice)}
-            </p>
+          <div className="text-left md:text-right space-y-2 md:space-y-3">
+            <div>
+              <p className="text-[10px] text-muted-foreground uppercase font-bold md:mb-1">
+                Paid Amount
+              </p>
+              <p className="text-lg md:text-xl font-bold text-primary">
+                {formatPrice(booking.totalPrice)}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-1.5 justify-start md:justify-end">
+              <Badge
+                className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${getPaymentStatusStyle(booking.paymentStatus)}`}
+                variant="outline"
+              >
+                {booking.paymentStatus?.replace(/_/g, " ")}
+              </Badge>
+              <Badge
+                className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${getPaymentModeStyle(booking.paymentMode)}`}
+                variant="outline"
+              >
+                {booking.paymentMode}
+              </Badge>
+            </div>
           </div>
 
           <div className="flex items-center justify-end w-full">

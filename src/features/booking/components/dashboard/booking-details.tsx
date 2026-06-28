@@ -22,6 +22,7 @@ import {
   Building,
 } from "lucide-react";
 import Image from "next/image";
+import { toUrl } from "@/utils/image";
 
 export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
   const formatDate = (dateString: string) => {
@@ -37,8 +38,8 @@ export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
     }).format(amount);
   };
 
-  const coverImage = booking.property?.images?.[0] || null;
-
+  const coverImage = toUrl(booking.property?.images?.[0]) || null;
+  
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -53,6 +54,7 @@ export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
               height={500}
               width={500}
               src={coverImage}
+              unoptimized
               alt={booking.property?.title}
               className="w-full h-full object-cover"
             />
@@ -150,13 +152,55 @@ export const BookingDetails = ({ booking }: { booking: BookingProps }) => {
               <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
                 <CreditCard className="h-4 w-4 text-primary" /> Payment
               </h3>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  Total Amount
-                </span>
-                <span className="text-lg font-bold text-green-600">
-                  {formatCurrency(booking.totalPrice)}
-                </span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Total Amount
+                  </span>
+                  <span className="text-lg font-bold text-green-600">
+                    {formatCurrency(booking.totalPrice)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Payment Status
+                  </span>
+                  <Badge
+                    className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${(() => {
+                      switch (booking.paymentStatus) {
+                        case "PAID":
+                          return "bg-emerald-50 text-emerald-700 border-emerald-200";
+                        case "PENDING":
+                          return "bg-amber-50 text-amber-700 border-amber-200";
+                        case "PENDING_APPROVAL":
+                          return "bg-blue-50 text-blue-700 border-blue-200";
+                        case "FAILED":
+                        case "REJECTED":
+                          return "bg-rose-50 text-rose-700 border-rose-200";
+                        case "PARTIALLY_PAID":
+                          return "bg-purple-50 text-purple-700 border-purple-200";
+                        case "REFUNDED":
+                          return "bg-slate-50 text-slate-700 border-slate-200";
+                        default:
+                          return "bg-muted text-muted-foreground border-border";
+                      }
+                    })()}`}
+                    variant="outline"
+                  >
+                    {booking.paymentStatus?.replace(/_/g, " ")}
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Payment Mode
+                  </span>
+                  <Badge
+                    className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${booking.paymentMode === "ONLINE" ? "bg-indigo-50 text-indigo-700 border-indigo-200" : "bg-gray-50 text-gray-700 border-gray-200"}`}
+                    variant="outline"
+                  >
+                    {booking.paymentMode}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>

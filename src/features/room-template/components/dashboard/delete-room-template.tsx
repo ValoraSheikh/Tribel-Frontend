@@ -11,6 +11,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Spinner } from "@/components/ui/spinner";
 import { toast } from "sonner";
 import { Trash2Icon } from "lucide-react";
 import { useDeleteRoomTemplate } from "../../hooks/use-room-template";
@@ -81,9 +82,14 @@ export function DeleteRoomTemplateModal({
               onClick={() => handleDelete()}
               className="min-w-[100px]"
             >
-              {deleteRoomTemplate.isPending
-                ? "Deleting..."
-                : "Delete Room Template"}
+              {deleteRoomTemplate.isPending ? (
+                <span className="flex items-center justify-center gap-2">
+                  <Spinner className="h-4 w-4" />
+                  <span>Deleteing...</span>
+                </span>
+              ) : (
+                "Delete Room Template"
+              )}
             </Button>
           </>
         </AlertDialogFooter>

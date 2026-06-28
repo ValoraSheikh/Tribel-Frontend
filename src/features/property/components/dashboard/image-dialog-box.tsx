@@ -34,7 +34,7 @@ export default function ImageGalleryDialog({
       {/* FIX 1: Added `sm:max-w-full sm:rounded-none w-full` to explicitly override
         ShadCN's default desktop constraints.
       */}
-      <DialogContent className="max-w-full sm:max-w-full w-full h-[100dvh] m-0 p-0 border-none rounded-none sm:rounded-none bg-background overflow-y-auto flex flex-col gap-0 shadow-none duration-300">
+      <DialogContent className="max-w-full sm:max-w-full w-full h-dvh m-0 p-0 border-none rounded-none sm:rounded-none bg-background overflow-y-auto flex flex-col gap-0 shadow-none duration-300">
         {/* Sticky Header */}
         <div className="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-background/90 backdrop-blur-md border-b">
           <DialogClose asChild>
