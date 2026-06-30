@@ -28,6 +28,10 @@ export interface BookingProps {
   updatedAt: string;
   cancelledAt: string;
   bedId: string;
+  invoiceId?: string | null;
+  invoice?: {
+    status: "PENDING" | "GENERATED" | "FAILED";
+  } | null;
 }
 
 export interface BookingDataResponse {
