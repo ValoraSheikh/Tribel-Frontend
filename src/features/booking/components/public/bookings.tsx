@@ -7,6 +7,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CopyIcon,
+  Download,
   EyeIcon,
   HistoryIcon,
   MapPin,
@@ -43,6 +44,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { CancelBookingModal } from "./cancel-booking";
 import { toUrl } from "@/utils/image";
+import { invoiceApi } from "@/features/invoice/api/invoice.api";
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-IN", {
@@ -204,6 +206,17 @@ const getPaymentModeStyle = (mode: string) => {
 
 const BookingCard = ({ booking }: { booking: BookingProps }) => {
   const status = booking.status;
+
+  const handleDownloadInvoice = async (bookingId: string) => {
+    try {
+      const result = await invoiceApi.getInvoice(bookingId);
+      if (result.downloadUrl) {
+        window.open(result.downloadUrl, "_blank");
+      }
+    } catch {
+      // silently fail
+    }
+  };
 
   const statusKey = (status || "").toLowerCase();
   const statusClasses = (() => {
@@ -368,6 +381,15 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                 <DropdownMenuItem className="flex items-center">
                   <PencilIcon className="mr-2 h-4 w-4" />
                   Edit Booking
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleDownloadInvoice(booking.id)}
+                  disabled={!booking.invoiceId}
+                  className="flex items-center"
+                >
+                  <Download className="mr-2 h-4 w-4" />
+                  Download Invoice
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
