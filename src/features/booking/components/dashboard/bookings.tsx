@@ -31,6 +31,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Copy,
+  Download,
   Eye,
   MoreHorizontalIcon,
   Pencil,
@@ -41,6 +42,8 @@ import { BookingProps } from "../../api/booking.api";
 import { useAdminBookings } from "../../hooks/use-booking";
 import { BookingDetails } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
+import { InvoiceStatusBadge } from "@/features/invoice/components/InvoiceStatusBadge";
+import { invoiceApi } from "@/features/invoice/api/invoice.api";
 
 const getBookingStatus = (status: string) => {
   switch (status) {
@@ -113,6 +116,17 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
     return format(new Date(dateString), "MMM dd, yyyy");
   };
 
+  const handleDownloadInvoice = async (bookingId: string) => {
+    try {
+      const result = await invoiceApi.getAdminInvoice(bookingId);
+      if (result.downloadUrl) {
+        window.open(result.downloadUrl, "_blank");
+      }
+    } catch {
+      // silently fail
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="p-8 text-center animate-pulse">
@@ -180,6 +194,7 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                   <TableHead>Status</TableHead>
                   <TableHead>Payment Status</TableHead>
                   <TableHead>Payment Mode</TableHead>
+                  <TableHead>Invoice</TableHead>
                   <TableHead>Total Price</TableHead>
                   <TableHead>Booked On</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
@@ -189,7 +204,7 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                 {bookings.length === 0 ? (
                   <TableRow>
                     <TableCell
-                      colSpan={8}
+                      colSpan={9}
                       className="h-24 text-center text-muted-foreground"
                     >
                       No bookings found.
@@ -269,6 +284,10 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                       </TableCell>
 
                       <TableCell>
+                        <InvoiceStatusBadge status={booking.invoice?.status} />
+                      </TableCell>
+
+                      <TableCell>
                         <span className="font-semibold text-green-600">
                           {formatCurrency(booking.totalPrice)}
                         </span>
@@ -308,6 +327,15 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                             <DropdownMenuItem>
                               <Pencil className="mr-2 h-4 w-4" />
                               Edit Booking
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                handleDownloadInvoice(booking.id)
+                              }
+                              disabled={!booking.invoiceId}
+                            >
+                              <Download className="mr-2 h-4 w-4" />
+                              Download Invoice
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <div
