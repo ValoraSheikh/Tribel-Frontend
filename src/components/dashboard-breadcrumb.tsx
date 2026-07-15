@@ -23,13 +23,10 @@ type Crumb = {
 export const DashboardBreadcrumb = () => {
   const pathname = usePathname();
 
-  if (!pathname) return null;
+  const segments = pathname ? pathname.split("/").filter(Boolean) : [];
+  const isCorrectRoute = segments[0] === "properties" && segments.length >= 2;
 
-  const segments = pathname.split("/").filter(Boolean);
-
-  if (segments[0] !== "properties" || segments.length < 2) return null;
-
-  const propertyId = segments[1];
+  const propertyId = isCorrectRoute ? segments[1] : "";
   const action = segments[2];
   const roomTemplateId =
     action === "roomtemplate" ? segments[3] : undefined;
