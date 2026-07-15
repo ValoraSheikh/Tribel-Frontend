@@ -39,11 +39,13 @@ export const useCreateRoomTemplate = (propertyId: string) => {
 export const useGetRoomTemplateDetails = (
   propertyId: string,
   roomTemplateId: string,
+  options?: { enabled?: boolean },
 ) => {
   return useQuery({
     queryKey: [...USE_ROOM_TEMPLATE_QUERY_KEY, propertyId, roomTemplateId],
     queryFn: () =>
       roomTemplateApi.getRoomTemplateDetails(propertyId, roomTemplateId),
+    ...options,
   });
 };
 
