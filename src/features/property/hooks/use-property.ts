@@ -12,10 +12,14 @@ import {
 export const USE_PROPERTY_QUERY_KEY = ["property"] as const;
 export const USE_PROPERTIES_QUERY_KEY = ["properties"] as const;
 
-export const usePropertyDetails = (propertyId: string) => {
+export const usePropertyDetails = (
+  propertyId: string,
+  options?: { enabled?: boolean },
+) => {
   return useQuery({
     queryKey: [...USE_PROPERTY_QUERY_KEY, propertyId],
     queryFn: () => propertyApi.getPropertyDetails(propertyId),
+    ...options,
   });
 };
 
