@@ -72,7 +72,7 @@ export function PropertyCard1({ property }: { property: PropertyProps }) {
             <Image
               height={500}
               width={500}
-              src={toUrl(property.images[0]) || "/api/placeholder/400/400"}
+              src={toUrl(property.images[0]) || "/placeholder.svg"}
               alt={property.title}
               unoptimized
               className="h-full w-full object-cover transition-transform duration-300"
