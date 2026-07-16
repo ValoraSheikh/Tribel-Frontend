@@ -45,6 +45,7 @@ import {
 import { CancelBookingModal } from "./cancel-booking";
 import { toUrl } from "@/utils/image";
 import { invoiceApi } from "@/features/invoice/api/invoice.api";
+import { toast } from "sonner";
 
 const formatPrice = (price: number) => {
   return new Intl.NumberFormat("en-IN", {
@@ -214,7 +215,7 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
         window.open(result.downloadUrl, "_blank");
       }
     } catch {
-      // silently fail
+      toast.error("Failed to download invoice");
     }
   };
 

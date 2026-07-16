@@ -10,7 +10,7 @@ const Profile = () => {
   const { data: user, isLoading, error, isError } = useProfile();
 
   if (isLoading) {
-    <h1>Loading...</h1>;
+    return <h1>Loading...</h1>;
   }
 
   if (isError) {
