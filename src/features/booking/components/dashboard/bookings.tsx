@@ -42,9 +42,9 @@ import { BookingProps } from "../../api/booking.api";
 import { useAdminBookings } from "../../hooks/use-booking";
 import { BookingDetails } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
-import { toast } from "sonner";
 import { invoiceApi } from "@/features/invoice/api/invoice.api";
 import { InvoiceStatusBadge } from "@/features/invoice/components/InvoiceStatusBadge";
+import { toast } from "sonner";
 
 const getBookingStatus = (status: string) => {
   switch (status) {
@@ -124,7 +124,7 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
         window.open(result.downloadUrl, "_blank");
       }
     } catch {
-      // silently fail
+      toast.error("Failed to download invoice");
     }
   };
 

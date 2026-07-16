@@ -23,24 +23,24 @@ type Crumb = {
 export const DashboardBreadcrumb = () => {
   const pathname = usePathname();
 
-  if (!pathname) return null;
+  const segments = pathname ? pathname.split("/").filter(Boolean) : [];
+  const isPropertyRoute = segments[0] === "properties" && segments.length >= 2;
 
-  const segments = pathname.split("/").filter(Boolean);
-
-  if (segments[0] !== "properties" || segments.length < 2) return null;
-
-  const propertyId = segments[1];
-  const action = segments[2];
+  const propertyId = isPropertyRoute ? segments[1] : "";
+  const action = isPropertyRoute ? segments[2] : undefined;
   const roomTemplateId =
     action === "roomtemplate" ? segments[3] : undefined;
 
   const { data: property, isLoading: propertyLoading } =
-    usePropertyDetails(propertyId);
+    usePropertyDetails(propertyId, { enabled: isPropertyRoute });
 
   const { data: roomTemplate, isLoading: rtLoading } =
     useGetRoomTemplateDetails(propertyId, roomTemplateId ?? "", {
-      enabled: !!roomTemplateId,
+      enabled: isPropertyRoute && !!roomTemplateId,
     });
+
+  if (!isPropertyRoute) return null;
+  if (!pathname) return null;
 
   const propertyLabel = propertyLoading ? (
     <Skeleton className="h-4 w-28" />

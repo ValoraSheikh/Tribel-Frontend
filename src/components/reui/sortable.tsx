@@ -1,5 +1,6 @@
 "use client"
 
+/* eslint-disable react-hooks/set-state-in-effect, @typescript-eslint/no-explicit-any */
 import * as React from "react"
 import {
   Children,
