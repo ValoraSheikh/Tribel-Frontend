@@ -1,10 +1,10 @@
 import Footer from "@/components/footer/footer";
 import { Navbar } from "@/components/navbar/navbar";
-import { requireSession } from "@/lib/auth/auth-utils";
+import { requireAuth } from "@/lib/auth/auth-utils";
 import { requireTenant } from "@/lib/auth/require-tenant";
 
 const Layout = async({ children }: { children: React.ReactNode }) => {
-  const session = await requireSession();
+  const session = await requireAuth();
   const tenant = await requireTenant();
   return (
     <>

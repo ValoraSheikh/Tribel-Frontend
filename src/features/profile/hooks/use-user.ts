@@ -93,7 +93,7 @@ export const useDeleteUser = () => {
       queryClient.clear();
     },
     onError: (err) => {
-      // Something if you want
+      toast.error(err?.message || "Failed to delete user");
     },
   });
 };

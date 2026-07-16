@@ -3,8 +3,6 @@ import { test, expect } from "@playwright/test";
 const PROPERTY_PATH =
   "http://localhost:3001/property/32825c3b-47ec-493c-947e-64046ad9c815";
 
-const BOOKING_PAGE_BASE = "http://localhost:3001/bookings/new";
-
 test.describe("Create Booking Flow", () => {
   test("should successfully create a booking with valid dates and room", async ({
     page,

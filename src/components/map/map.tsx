@@ -3,8 +3,6 @@
 import {
   APIProvider,
   Map,
-  AdvancedMarker,
-  Pin,
   Circle,
   Marker,
 } from "@vis.gl/react-google-maps";

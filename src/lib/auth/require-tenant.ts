@@ -8,9 +8,7 @@ export const requireTenant = async () => {
   await requireAuth();
 
   const user = await axiosClient.get("/api/v1/user/profile", {
-    headers: {
-      cookie,
-    },
+    headers: { cookie },
   });
   if (!user.data || !user.data.data.tenant) {
     return null;

@@ -4,6 +4,7 @@ import {
   BookingProps,
   CreateBookingPayload,
 } from "../api/booking.api";
+import { toast } from "sonner";
 
 export const USE_USER_BOOKINGS_KEY = ["user", "bookings"] as const;
 export const USE_USER_BOOKING_KEY = ["user", "booking"] as const;
@@ -74,7 +75,7 @@ export const useCancelAdminBooking = (
     },
 
     onError: (err) => {
-      // Something if you want
+      toast.error(err?.message || "Failed to cancel booking");
     },
   });
 };
@@ -100,7 +101,7 @@ export const useCreateBooking = () => {
       });
     },
     onError: (err) => {
-      // Something if you want
+      toast.error(err?.message || "Failed to create booking");
     },
   });
 };
@@ -179,8 +180,8 @@ export const useCancelBooking = (bookingId: string) => {
       });
     },
 
-    onError: (err) => {
-      // Something if you want
+    onError: () => {
+      toast.error("Failed to cancel booking");
     },
   });
 };

@@ -7,7 +7,6 @@ const Layout = async({ children }: { children: React.ReactNode }) => {
   const session = await requireAuth()
   const tenant = await requireTenant()
 
-  console.log("session", session, "tenant", tenant)
   return (
     <>
       <Navbar session={session} tenant={tenant}/>
