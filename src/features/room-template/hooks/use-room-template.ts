@@ -5,6 +5,7 @@ import {
   RoomTemplateProps,
   UpdateRoomTemplate,
 } from "../api/room-template.api";
+import { toast } from "sonner";
 
 export const USE_ROOM_TEMPLATE_QUERY_KEY = ["roomtemplate"] as const;
 export const USE_ROOM_TEMPLATES_QUERY_KEY = ["roomtemplates"] as const;
@@ -31,7 +32,7 @@ export const useCreateRoomTemplate = (propertyId: string) => {
     },
 
     onError: (err) => {
-      // Something if you want
+      toast.error(err?.message || "Failed to create room template");
     },
   });
 };
@@ -149,7 +150,7 @@ export const useDeleteRoomTemplate = (
       });
     },
     onError: (err) => {
-      // Something if you want
+      toast.error(err?.message || "Failed to delete room template");
     },
   });
 };

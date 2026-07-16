@@ -105,7 +105,7 @@ export const useCreateTenant = () => {
       queryClient.invalidateQueries({ queryKey: USE_TENANT_QUERY_KEY });
     },
     onError: (err) => {
-      // Something if you want
+      toast.error(err?.message || "Failed to create tenant");
     },
   });
 };
