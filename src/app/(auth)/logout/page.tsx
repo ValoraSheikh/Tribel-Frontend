@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 
 const LogoutButton = () => {
   const handleLogout = () => {
-    window.location.href = "http://localhost:3000/logout";
+    const apiBase = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+    window.location.href = `${apiBase}/logout`;
   };
 
   return <Button variant="link" onClick={handleLogout}>Logout</Button>;
