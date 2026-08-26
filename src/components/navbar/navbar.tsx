@@ -25,6 +25,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import AvatarImg from "@/features/profile/components/avatar";
+import { toUrl } from "@/utils/image";
 
 interface MenuItem {
   title: string;
@@ -40,11 +41,10 @@ interface Navbar1Props {
     userId: string;
   };
   session: {
-    given_name: string;
-    family_name: string;
-    name: string;
-    picture: string;
-    sub: string;
+    firstName: string;
+    lastName: string;
+    avatar: string;
+    auth0Id: string;
   };
   logo?: {
     url: string;
@@ -118,6 +118,7 @@ const Navbar = async ({
     signup: { title: "Become a host", url: "/createTenant" },
   },
 }: Navbar1Props) => {
+
   return (
     <section className="py-4">
       <div className="container">
@@ -154,11 +155,11 @@ const Navbar = async ({
             )}
             {session ? (
               <>
-                <AvatarImg avatar={session.picture} />
+                <AvatarImg avatar={toUrl(session.avatar!)} />
               </>
             ) : (
               <Button asChild variant="outline">
-                <Link href={auth.login.url}>{auth.login.title}</Link>
+                <Link href={auth.login.url}>{auth.login.title} In here</Link>
               </Button>
             )}
           </div>
@@ -218,7 +219,7 @@ const Navbar = async ({
                     )}
                     {session ? (
                       <>
-                        <AvatarImg avatar={session.picture} />
+                        <AvatarImg avatar={toUrl(session.avatar!)} />
                       </>
                     ) : (
                       <Button asChild variant="outline">
