@@ -12,6 +12,7 @@ export const USE_ADMIN_BOOKINGS_KEY = ["admin", "bookings"] as const;
 export const USE_ADMIN_BOOKING_KEY = ["admin", "booking"] as const;
 export const USE_BOOKINGS_KEY = ["bookings"] as const;
 export const USE_BOOKING_DATA_KEY = ["booking-data"] as const;
+export const USE_OCCUPANCY_KEY = ["occupancy"] as const;
 
 export const useUserBookings = (query?: { limit?: number; page?: number }) => {
   return useQuery({
@@ -191,5 +192,49 @@ export const useBookingData = (propertyId: string) => {
     queryKey: [...USE_BOOKING_DATA_KEY, propertyId],
     queryFn: () => bookingApi.getBookingData(propertyId),
     enabled: !!propertyId,
+  });
+};
+
+export const useOccupancy = (
+  propertyId: string,
+  startDate: string,
+  endDate: string,
+) => {
+  return useQuery({
+    queryKey: [...USE_OCCUPANCY_KEY, propertyId, startDate, endDate],
+    queryFn: () => bookingApi.getOccupancy(propertyId, { startDate, endDate }),
+    enabled: !!propertyId && !!startDate && !!endDate,
+  });
+};
+
+export const useUpdateBookingStatus = (propertyId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      bookingId,
+      action,
+    }: {
+      bookingId: string;
+      action: "APPROVE" | "REJECT";
+    }) => bookingApi.updateBookingStatus(propertyId, bookingId, action),
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.action === "APPROVE"
+          ? "Booking approved"
+          : "Booking rejected",
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to update booking status");
+    },
   });
 };
