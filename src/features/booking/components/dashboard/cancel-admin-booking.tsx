@@ -18,9 +18,11 @@ import { useState } from "react";
 export function CancelAdminBookingModal({
   propertyId,
   bookingId,
+  onCancelled,
 }: {
   propertyId: string;
   bookingId: string;
+  onCancelled?: () => void;
 }) {
   const [open, setOpen] = useState<boolean>(false)
   const cancelAdminBooking = useCancelAdminBooking(propertyId, bookingId);
@@ -30,6 +32,7 @@ export function CancelAdminBookingModal({
       onSuccess: () => {
         toast.success("Booking cancelled successfully ");
         setOpen(false)
+        onCancelled?.();
       },
       onError: (error) => {
         toast.error("Failed to cancel booking", {
