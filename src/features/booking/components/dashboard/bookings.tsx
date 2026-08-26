@@ -40,27 +40,12 @@ import {
 import { parseAsInteger, useQueryState } from "nuqs";
 import { BookingProps } from "../../api/booking.api";
 import { useAdminBookings } from "../../hooks/use-booking";
+import { BOOKING_STATUS_STYLES } from "../../lib/status";
 import { BookingDetails } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
 import { invoiceApi } from "@/features/invoice/api/invoice.api";
 import { InvoiceStatusBadge } from "@/features/invoice/components/InvoiceStatusBadge";
 import { toast } from "sonner";
-
-const getBookingStatus = (status: string) => {
-  switch (status) {
-    case "upcoming":
-      return "bg-blue-50 text-blue-700 border-blue-200";
-    case "completed":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
-    case "cancelled":
-    case "canceled":
-      return "bg-rose-50 text-rose-700 border-rose-200";
-    case "ongoing":
-      return "bg-amber-50 text-amber-700 border-amber-200";
-    default:
-      return "bg-muted text-muted-foreground border-border";
-  }
-};
 
 const getPaymentStatusStyle = (status: string) => {
   switch (status) {
@@ -93,7 +78,13 @@ const getPaymentModeStyle = (mode: string) => {
   }
 };
 
-export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
+export const BookingDashboard = ({
+  propertyId,
+  showHeader = true,
+}: {
+  propertyId: string;
+  showHeader?: boolean;
+}) => {
   const [limit, setLimit] = useQueryState(
     "limit",
     parseAsInteger.withDefault(10),
@@ -154,12 +145,18 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
   return (
     <div className="space-y-6 p-4 md:p-8">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">All Bookings</h1>
-          <p className="text-sm text-muted-foreground">
-            Manage your property bookings and guest details.
-          </p>
-        </div>
+        {showHeader ? (
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">
+              All Bookings
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Manage your property bookings and guest details.
+            </p>
+          </div>
+        ) : (
+          <div />
+        )}
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">Rows per page</span>
@@ -189,7 +186,9 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[200px]">Guest</TableHead>
+                  <TableHead className="sticky left-0 z-[1] w-[200px] bg-background">
+                    Guest
+                  </TableHead>
                   <TableHead>Dates</TableHead>
                   <TableHead>Accommodation</TableHead>
                   <TableHead>Status</TableHead>
@@ -214,7 +213,7 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
                 ) : (
                   bookings.map((booking: BookingProps) => (
                     <TableRow key={booking.id}>
-                      <TableCell className="font-medium">
+                      <TableCell className="sticky left-0 z-[1] bg-background font-medium">
                         <div className="flex flex-col">
                           <span>
                             {booking.guest?.firstName} {booking.guest?.lastName}
@@ -259,10 +258,10 @@ export const BookingDashboard = ({ propertyId }: { propertyId: string }) => {
 
                       <TableCell>
                         <Badge
-                          className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none capitalize ${getBookingStatus(booking.status)}`}
+                          className={`shadow-md backdrop-blur-md bg-background/80 text-foreground border-none ${BOOKING_STATUS_STYLES[booking.status].badge}`}
                           variant="outline"
                         >
-                          {booking.status}
+                          {BOOKING_STATUS_STYLES[booking.status].label}
                         </Badge>
                       </TableCell>
 
