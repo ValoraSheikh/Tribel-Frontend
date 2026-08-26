@@ -2,7 +2,7 @@ import axios from "axios";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "";
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const requireAuth = async () => {
   const cookie = (await headers()).get("cookie");
@@ -21,12 +21,13 @@ export const requireAuth = async () => {
 export const requireSession = async () => {
   const cookie = (await headers()).get("cookie");
   try {
-    const res = await axios.get(`${API_BASE}/profile`, {
+    const res = await axios.get(`${API_BASE}/api/v1/user/profile`, {
       headers: { cookie },
       validateStatus: (status) => status < 500,
     });
-    if (!res.data.isAuthenticated || !res.data.user) return null;
-    return res.data.user;
+    if (!res.data || !res.data.data) return null;
+    console.log("session", res.data.data);
+    return res.data.data;
   } catch {
     return null;
   }
