@@ -1,5 +1,6 @@
 import { serverBookingApi } from "@/features/booking/api/booking.api";
 import { USE_USER_BOOKINGS_KEY } from "@/features/booking/hooks/use-booking";
+import { requireAuth } from "@/lib/auth/auth-utils";
 import { createServerAxios } from "@/lib/axios/axios-server";
 import {
   dehydrate,
@@ -11,6 +12,8 @@ import { Suspense } from "react";
 import { Bookings } from "@/features/booking/components/public/bookings";
 
 const Page = async () => {
+  await requireAuth();
+
   const queryClient = new QueryClient();
   const serverAxios = await createServerAxios();
 

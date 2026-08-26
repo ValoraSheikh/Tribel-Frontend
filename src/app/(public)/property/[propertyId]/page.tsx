@@ -1,6 +1,7 @@
 import { serverPropertyApi } from "@/features/property/api/property.api";
 import { PropertyDetails } from "@/features/property/components/public/property-details";
 import { USE_PROPERTY_QUERY_KEY } from "@/features/property/hooks/use-property";
+import { getSession } from "@/lib/auth/auth-utils";
 import { createServerAxios } from "@/lib/axios/axios-server";
 import {
   dehydrate,
@@ -16,6 +17,8 @@ type PropertyParams = {
 const Page = async ({ params }: PropertyParams) => {
   const { propertyId } = await params;
 
+  const session = await getSession();
+
   const queryClient = new QueryClient();
   const serverAxios = await createServerAxios();
 
@@ -28,7 +31,10 @@ const Page = async ({ params }: PropertyParams) => {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<PropertyProfileSkeleton />}>
-        <PropertyDetails propertyId={propertyId} />
+        <PropertyDetails
+          propertyId={propertyId}
+          isAuthenticated={Boolean(session)}
+        />
       </Suspense>
     </HydrationBoundary>
   );
