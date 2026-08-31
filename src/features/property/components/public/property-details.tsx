@@ -106,6 +106,7 @@ export function PropertyDetails({
             <Image
               height={500}
               width={500}
+              priority
               src={toUrl(property.images[0]) || "/placeholder.svg"}
               unoptimized={true}
               alt="Main property"
@@ -302,7 +303,7 @@ export function PropertyDetails({
                 <Separator />
 
                 <Button
-                  className="w-full h-12 text-md font-semibold bg-linear-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-md text-white"
+                  className="w-full h-12 text-md font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
                   onClick={() => {
                     if (isAuthenticated) {
                       router.push(`/bookings/new?propertyId=${property.id}`);
@@ -355,6 +356,7 @@ export function PropertyDetails({
         open={loginDialogOpen}
         onOpenChange={setLoginDialogOpen}
         returnTo={`/property/${property.id}`}
+        propertyName={property.title}
       />
     </div>
   );

@@ -2,18 +2,19 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { BookingLoginDialog } from "../booking-login-dialog";
 
 describe("BookingLoginDialog", () => {
-  test("shows the title, description, and actions", () => {
+  test("shows the logo, heading, description, and actions", () => {
     render(
       <BookingLoginDialog
         open
         onOpenChange={() => {}}
         returnTo="/property/abc"
+        propertyName="Salt House Jaipur"
       />,
     );
 
-    expect(screen.getByText("Log in to request this bunk")).toBeInTheDocument();
+    expect(screen.getByText("Log in or sign up")).toBeInTheDocument();
     expect(
-      screen.getByText("Your dates and room choice come next."),
+      screen.getByText("Continue to request your stay at Salt House Jaipur."),
     ).toBeInTheDocument();
     expect(screen.getByText("Log in to continue")).toBeInTheDocument();
     expect(screen.getByText("Keep browsing")).toBeInTheDocument();
