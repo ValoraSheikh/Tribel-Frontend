@@ -161,6 +161,7 @@ export const TimelineView = ({
             variant="outline"
             size="icon"
             aria-label="Previous"
+            className="max-sm:size-11"
             onClick={() => navigate(-1)}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -169,11 +170,17 @@ export const TimelineView = ({
             variant="outline"
             size="icon"
             aria-label="Next"
+            className="max-sm:size-11"
             onClick={() => navigate(1)}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setAnchor(format(new Date(), "yyyy-MM-dd"))}>
+          <Button
+            variant="outline"
+            size="sm"
+            className="max-sm:h-11 max-sm:px-4"
+            onClick={() => setAnchor(format(new Date(), "yyyy-MM-dd"))}
+          >
             Today
           </Button>
           <span className="ml-1 text-sm font-semibold">{headerLabel}</span>

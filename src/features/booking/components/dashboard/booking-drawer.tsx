@@ -146,11 +146,11 @@ export const BookingDrawer = ({
               <BookingDetailsBody booking={toBookingProps(displayBooking)} />
             </div>
 
-            <div className="border-t bg-background p-4 space-y-2">
+            <div className="border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
               {displayBooking.status === "PENDING" && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 max-sm:flex-col">
                   <Button
-                    className="flex-1"
+                    className="max-sm:h-11 flex-1"
                     disabled={updateStatus.isPending}
                     onClick={() => handleStatusAction("APPROVE")}
                   >
@@ -158,7 +158,7 @@ export const BookingDrawer = ({
                     Approve
                   </Button>
                   <Button
-                    className="flex-1"
+                    className="max-sm:h-11 flex-1"
                     variant="destructive"
                     disabled={updateStatus.isPending}
                     onClick={() => handleStatusAction("REJECT")}
@@ -169,9 +169,9 @@ export const BookingDrawer = ({
                 </div>
               )}
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 max-sm:flex-col">
                 <Button
-                  className="flex-1"
+                  className="max-sm:h-11 flex-1"
                   variant="outline"
                   disabled={!displayBooking.invoiceId}
                   onClick={() => handleDownloadInvoice(displayBooking.id)}
@@ -179,7 +179,11 @@ export const BookingDrawer = ({
                   <Download className="mr-1 h-4 w-4" />
                   Invoice
                 </Button>
-                <Button className="flex-1" variant="outline" asChild>
+                <Button
+                  className="max-sm:h-11 flex-1"
+                  variant="outline"
+                  asChild
+                >
                   <Link
                     href={`/properties/${propertyId}/bookings/${displayBooking.id}`}
                   >
@@ -192,7 +196,10 @@ export const BookingDrawer = ({
               {displayBooking.status !== "CANCELLED" &&
                 displayBooking.status !== "REJECTED" &&
                 displayBooking.status !== "COMPLETED" && (
-                  <Button className="w-full" variant="ghost">
+                  <Button
+                    className="max-sm:h-11 w-full"
+                    variant="ghost"
+                  >
                     <CancelAdminBookingModal
                       propertyId={propertyId}
                       bookingId={displayBooking.id}

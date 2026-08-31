@@ -142,7 +142,10 @@ export const TheaterView = ({ propertyId, onOpenBooking }: TheaterViewProps) => 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" className="w-full sm:w-auto">
+            <Button
+              variant="outline"
+              className="w-full max-sm:h-11 sm:w-auto"
+            >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {format(selectedDay, "EEE, MMM d, yyyy")}
             </Button>

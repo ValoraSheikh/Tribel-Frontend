@@ -167,7 +167,11 @@ export const BookingDashboard = ({
               setPage(1);
             }}
           >
-            <SelectTrigger className="w-[70px]">
+            <SelectTrigger
+              size="sm"
+              aria-label="Rows per page"
+              className="text-base sm:text-sm max-sm:h-11 max-sm:min-w-[64px]"
+            >
               <SelectValue placeholder={limit} />
             </SelectTrigger>
             <SelectContent>
@@ -183,7 +187,7 @@ export const BookingDashboard = ({
       <Card className="py-0">
         <CardContent className="p-0">
           <div className="relative w-full overflow-auto">
-            <Table>
+            <Table className="min-w-[900px]">
               <TableHeader>
                 <TableRow>
                   <TableHead className="sticky left-0 z-[1] w-[200px] bg-background">
@@ -300,7 +304,12 @@ export const BookingDashboard = ({
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" className="h-8 w-8 p-0">
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label={`Actions for booking ${booking.guest?.firstName ?? ""}`}
+                              className="size-8 max-sm:size-11"
+                            >
                               <span className="sr-only">Open menu</span>
                               <MoreHorizontalIcon className="h-4 w-4" />
                             </Button>
@@ -366,7 +375,7 @@ export const BookingDashboard = ({
         </CardContent>
       </Card>
 
-      <div className="flex items-center justify-between px-2">
+      <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
           Page {page} of {totalPages || 1} ({totalBookings} entries)
         </div>
@@ -375,20 +384,22 @@ export const BookingDashboard = ({
           <Button
             variant="outline"
             size="sm"
+            className="max-sm:h-11 max-sm:flex-1 max-sm:px-4"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
+            className="max-sm:h-11 max-sm:flex-1 max-sm:px-4"
             onClick={() => setPage((p) => p + 1)}
             disabled={page >= totalPages}
           >
             Next
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>
