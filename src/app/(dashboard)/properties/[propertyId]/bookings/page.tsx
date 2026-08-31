@@ -12,7 +12,7 @@ import {
 import { endOfMonth, format, startOfMonth } from "date-fns";
 import { Suspense } from "react";
 import BookingsSkeleton from "./loading";
-import { BookingsTabs } from "@/features/booking/components/dashboard/bookings-tabs";
+import { BookingsOverview } from "@/features/booking/components/dashboard/bookings-overview";
 
 type props = {
   params: { propertyId: string };
@@ -46,7 +46,7 @@ const Page = async ({ params }: props) => {
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
       <Suspense fallback={<BookingsSkeleton />}>
-        <BookingsTabs propertyId={propertyId} />
+        <BookingsOverview propertyId={propertyId} />
       </Suspense>
     </HydrationBoundary>
   );
