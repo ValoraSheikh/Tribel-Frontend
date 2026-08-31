@@ -106,7 +106,7 @@ export function PropertyDetails({
             <Image
               height={500}
               width={500}
-              src={toUrl(property.images[0])!}
+              src={toUrl(property.images[0]) || "/placeholder.svg"}
               unoptimized={true}
               alt="Main property"
               className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
@@ -125,7 +125,7 @@ export function PropertyDetails({
                 <Image
                   height={500}
                   width={500}
-                  src={toUrl(img)!}
+                  src={toUrl(img) || "/placeholder.svg"}
                   unoptimized={true}
                   alt={`Property detail ${idx}`}
                   className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"

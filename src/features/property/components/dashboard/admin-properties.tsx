@@ -195,7 +195,7 @@ const PropertyCard = ({ property }: { property: PropertyProps }) => {
           height={500}
           width={500}
           priority
-          src={toUrl(coverImage)!}
+          src={toUrl(coverImage) || "/placeholder.svg"}
           alt={property.title}
           unoptimized={true}
           className="h-full w-full object-cover transition-transform duration-300"

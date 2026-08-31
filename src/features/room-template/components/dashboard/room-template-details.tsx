@@ -59,7 +59,7 @@ export function RoomTemplateDetails({
         <div className="relative w-full md:w-1/3 aspect-video rounded-xl overflow-hidden border">
           {room.image ? (
             <Image
-              src={toUrl(room.image)!}
+              src={toUrl(room.image) || "/placeholder.svg"}
               unoptimized={true}
               alt={room.title}
               fill
