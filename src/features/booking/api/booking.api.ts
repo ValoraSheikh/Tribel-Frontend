@@ -7,7 +7,13 @@ export interface BookingProps {
   propertyId: string;
   roomId: string;
   guestId: string;
-  status: "PENDING" | "CONFIRMED" | "CANCELLED" | "REJECTED";
+  status:
+    | "PENDING"
+    | "CONFIRMED"
+    | "ONGOING"
+    | "COMPLETED"
+    | "CANCELLED"
+    | "REJECTED";
   totalPrice: number;
   startDate: string;
   property: PropertyProps;
@@ -34,6 +40,63 @@ export interface BookingProps {
   } | null;
 }
 
+export interface OccupancyBooking {
+  id: string;
+  status: BookingProps["status"];
+  totalPrice: number;
+  startDate: string;
+  endDate: string;
+  paymentMode: "ONLINE" | "OFFLINE";
+  paymentStatus: BookingProps["paymentStatus"];
+  invoiceId?: string | null;
+  invoice?: {
+    status: "PENDING" | "GENERATED" | "FAILED";
+  } | null;
+  guest: {
+    id: string;
+    firstName: string;
+    lastName: string | null;
+    email: string;
+    phoneNo: string | null;
+    avatar: string | null;
+  };
+  bed: {
+    id: string;
+    bedNo: number;
+    roomId: string;
+  };
+  room: {
+    id: string;
+    title: string;
+    roomTemplateId: string;
+  };
+  property: {
+    id: string;
+    title: string;
+    address: string;
+    city: string;
+    state: string;
+    images: string[];
+  };
+}
+
+export interface OccupancyBed {
+  id: string;
+  bedNo: number;
+  room: {
+    id: string;
+    title: string;
+    roomTemplateId: string;
+  };
+}
+
+export interface OccupancyResponse {
+  bookings: OccupancyBooking[];
+  beds: OccupancyBed[];
+  startDate: string;
+  endDate: string;
+}
+
 export interface BookingDataResponse {
   property: {
     id: string;
@@ -56,9 +119,9 @@ export interface BookingDataResponse {
 
 interface Guest {
   firstName: string;
-  lastName: string;
+  lastName: string | null;
   email: string;
-  phoneNo: number;
+  phoneNo: string | null;
 }
 
 interface PropertyProps {
@@ -197,6 +260,33 @@ export const bookingApi = {
     );
     return data.data;
   },
+
+  getOccupancy: async (
+    propertyId: string,
+    query: { startDate: string; endDate: string },
+  ) => {
+    const { data } = await axiosClient.get<{ data: OccupancyResponse }>(
+      `/api/v1/booking/occupancy/${propertyId}`,
+      {
+        params: query,
+      },
+    );
+    return data.data;
+  },
+
+  updateBookingStatus: async (
+    propertyId: string,
+    bookingId: string,
+    action: "APPROVE" | "REJECT",
+  ) => {
+    const { data } = await axiosClient.patch<{
+      data: { bookingId: string; status: string };
+    }>(`/api/v1/booking/admin/${propertyId}/status`, {
+      bookingId,
+      action,
+    });
+    return data.data;
+  },
 };
 
 export const serverBookingApi = {
@@ -219,6 +309,20 @@ export const serverBookingApi = {
   getAllBookings: async (axiosInstance: AxiosInstance) => {
     const { data } = await axiosInstance.get<BookingsResponse>(
       `/api/v1/booking/admin/all`,
+    );
+    return data.data;
+  },
+
+  getOccupancy: async (
+    axiosInstance: AxiosInstance,
+    propertyId: string,
+    query: { startDate: string; endDate: string },
+  ) => {
+    const { data } = await axiosInstance.get<{ data: OccupancyResponse }>(
+      `/api/v1/booking/occupancy/${propertyId}`,
+      {
+        params: query,
+      },
     );
     return data.data;
   },

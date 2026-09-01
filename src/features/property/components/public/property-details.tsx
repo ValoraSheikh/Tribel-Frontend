@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   MapPin,
   Star,
@@ -25,9 +26,11 @@ import { toUrl } from "@/utils/image";
 import { useRouter } from "next/navigation";
 import PropertyMap from "@/components/map/map";
 import ImageGalleryDialog from "../dashboard/image-dialog-box";
+import { BookingLoginDialog } from "./booking-login-dialog";
 
 interface PropertyIdProps {
   propertyId: string;
+  isAuthenticated?: boolean;
 }
 
 const getAmenityIcon = (iconName: string) => {
@@ -36,8 +39,12 @@ const getAmenityIcon = (iconName: string) => {
   return <IconToRender className="h-5 w-5" />;
 };
 
-export function PropertyDetails({ propertyId }: PropertyIdProps) {
+export function PropertyDetails({
+  propertyId,
+  isAuthenticated = false,
+}: PropertyIdProps) {
   const router = useRouter();
+  const [loginDialogOpen, setLoginDialogOpen] = useState(false);
   const { data: property, isLoading, isError, error } = usePropertyDetails(propertyId);
 
   if (isLoading) {
@@ -99,7 +106,8 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
             <Image
               height={500}
               width={500}
-              src={toUrl(property.images[0])!}
+              priority
+              src={toUrl(property.images[0]) || "/placeholder.svg"}
               unoptimized={true}
               alt="Main property"
               className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
@@ -118,7 +126,7 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
                 <Image
                   height={500}
                   width={500}
-                  src={toUrl(img)!}
+                  src={toUrl(img) || "/placeholder.svg"}
                   unoptimized={true}
                   alt={`Property detail ${idx}`}
                   className="object-cover w-full h-full transition-transform duration-500 cursor-pointer"
@@ -295,8 +303,14 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
                 <Separator />
 
                 <Button
-                  className="w-full h-12 text-md font-semibold bg-linear-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 shadow-md text-white"
-                  onClick={() => router.push(`/bookings/new?propertyId=${property.id}`)}
+                  className="w-full h-12 text-md font-semibold bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
+                  onClick={() => {
+                    if (isAuthenticated) {
+                      router.push(`/bookings/new?propertyId=${property.id}`);
+                    } else {
+                      setLoginDialogOpen(true);
+                    }
+                  }}
                 >
                   Request Booking
                 </Button>
@@ -337,6 +351,13 @@ export function PropertyDetails({ propertyId }: PropertyIdProps) {
           <PropertyMap lat={property.latitude} lng={property.longitude} />
         </div>
       </div>
+
+      <BookingLoginDialog
+        open={loginDialogOpen}
+        onOpenChange={setLoginDialogOpen}
+        returnTo={`/property/${property.id}`}
+        propertyName={property.title}
+      />
     </div>
   );
 }

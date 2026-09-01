@@ -18,7 +18,7 @@ export function PropertyCard({ property }: { property: NewPropertyProps }) {
             <Image
               height={500}
               width={500}
-              src={toUrl(property.images[0])!}
+              src={toUrl(property.images[0]) || "/placeholder.svg"}
               unoptimized={true}
               alt={property.title}
               className="h-full w-full object-cover transition-transform duration-300"

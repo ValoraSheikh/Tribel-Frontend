@@ -150,7 +150,10 @@ export function EditRoomTemplate({ propertyId, roomTemplateId, room }: Props) {
         </Button>
       </DialogTrigger>
 
-      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-3xl max-h-[85vh] overflow-y-auto"
+        onPointerDownOutside={(event) => event.preventDefault()}
+        onEscapeKeyDown={(event) => event.preventDefault()}
+      >
         <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-6">
           <DialogHeader>
             <DialogTitle className="text-xl">Edit Room Template</DialogTitle>

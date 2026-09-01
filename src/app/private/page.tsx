@@ -5,7 +5,7 @@ const ComponentName = async () => {
 
   return (
     <div>
-      <h1>Welcome, {session?.nickname}</h1>
+      <h1>Welcome, {session?.firstName}</h1>
     </div>
   );
 };

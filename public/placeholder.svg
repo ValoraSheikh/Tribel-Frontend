@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#f1f0ef"/>
+  <!-- ground -->
+  <path d="M70 218 H330" stroke="#14424C" stroke-width="6" stroke-linecap="round"/>
+  <!-- main gable block -->
+  <path d="M110 218 V120 L175 74 L240 120 V218" stroke="#3A724F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- overhanging roof -->
+  <path d="M98 132 L175 74 L252 132" stroke="#14424C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- chimney -->
+  <path d="M140 100 V78 H156 V88" stroke="#14424C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- gable circle vent -->
+  <circle cx="175" cy="102" r="8" stroke="#C85D1B" stroke-width="5"/>
+  <!-- bunk windows -->
+  <rect x="130" y="136" width="26" height="22" stroke="#3A724F" stroke-width="5"/>
+  <rect x="194" y="136" width="26" height="22" stroke="#3A724F" stroke-width="5"/>
+  <rect x="130" y="174" width="26" height="22" stroke="#3A724F" stroke-width="5"/>
+  <!-- door -->
+  <rect x="194" y="174" width="26" height="44" stroke="#C85D1B" stroke-width="6"/>
+  <!-- side wing -->
+  <path d="M240 150 H296 V218" stroke="#3A724F" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M232 150 H304" stroke="#14424C" stroke-width="6" stroke-linecap="round"/>
+  <rect x="256" y="168" width="22" height="20" stroke="#3A724F" stroke-width="5"/>
+</svg>

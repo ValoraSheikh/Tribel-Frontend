@@ -1,28 +1,11 @@
-"use client";
-
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
-import { BookingFlow } from "@/features/booking/components/public/booking-flow";
 import { Loader2 } from "lucide-react";
+import { requireAuth } from "@/lib/auth/auth-utils";
+import { NewBookingContent } from "@/features/booking/components/public/new-booking-content";
 
-function NewBookingContent() {
-  const searchParams = useSearchParams();
-  const propertyId = searchParams.get("propertyId");
+export default async function NewBookingPage() {
+  await requireAuth();
 
-  if (!propertyId) {
-    return (
-      <div className="flex h-[50vh] flex-col items-center justify-center gap-4">
-        <p className="text-lg text-destructive">
-          No property selected. Please select a property to book.
-        </p>
-      </div>
-    );
-  }
-
-  return <BookingFlow propertyId={propertyId} />;
-}
-
-export default function NewBookingPage() {
   return (
     <Suspense
       fallback={

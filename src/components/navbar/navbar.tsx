@@ -1,11 +1,5 @@
-import { Menu } from "lucide-react";
+"use client";
 
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import {
   NavigationMenu,
@@ -15,16 +9,13 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import Image from "next/image";
 import Link from "next/link";
-import AvatarImg from "@/features/profile/components/avatar";
+import { LoginLink } from "@/components/auth/login-link";
+import { NavbarAvatarMenu } from "@/components/navbar/navbar-avatar-menu";
+import { MobileNavSheet } from "@/components/navbar/mobile-nav-sheet";
+import { buildLoginHref } from "@/lib/auth/return-to";
+import { useSessionQuery } from "@/lib/auth/use-session";
 
 interface MenuItem {
   title: string;
@@ -34,202 +25,105 @@ interface MenuItem {
   items?: MenuItem[];
 }
 
-interface Navbar1Props {
-  tenant: {
-    id: string;
-    userId: string;
-  };
-  session: {
-    given_name: string;
-    family_name: string;
-    name: string;
-    picture: string;
-    sub: string;
-  };
-  logo?: {
-    url: string;
-    src: string;
-    alt: string;
-    title: string;
-  };
-  menu?: MenuItem[];
-  auth?: {
-    login: {
-      title: string;
-      url: string;
-    };
-    signup: {
-      title: string;
-      url: string;
-    };
-  };
-}
+const NAV_LOGO = {
+  url: "/discover",
+  src: "/logoname.svg",
+  alt: "Tribel",
+};
 
-const Navbar = async ({
-  session,
-  tenant,
-  logo = {
-    url: "/discover",
-    src: "./logoname.svg",
-    alt: "logo",
-    title: "Tribel",
+const NAV_MENU: MenuItem[] = [
+  { title: "Search Property", url: "/search" },
+  {
+    title: "Your Bookings",
+    url: "/yourBookings",
   },
-  menu = [
-    { title: "Search Property", url: "/search" },
-    // {
-    //   title: "Products",
-    //   url: "#",
-    //   items: [
-    //     {
-    //       title: "Blog",
-    //       description: "The latest industry news, updates, and info",
-    //       icon: <Book className="size-5 shrink-0" />,
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Company",
-    //       description: "Our mission is to innovate and empower the world",
-    //       icon: <Trees className="size-5 shrink-0" />,
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Careers",
-    //       description: "Browse job listing and discover our workspace",
-    //       icon: <Sunset className="size-5 shrink-0" />,
-    //       url: "#",
-    //     },
-    //     {
-    //       title: "Support",
-    //       description:
-    //         "Get in touch with our support team or visit our community forums",
-    //       icon: <Zap className="size-5 shrink-0" />,
-    //       url: "#",
-    //     },
-    //   ],
-    // },
+];
 
-    {
-      title: "Your Bookings",
-      url: "/yourBookings",
-    },
-  ],
-  auth = {
-    login: { title: "Login", url: "/login" },
-    signup: { title: "Become a host", url: "/createTenant" },
-  },
-}: Navbar1Props) => {
+const Navbar = () => {
+  const { data: session, isLoading: sessionLoading } = useSessionQuery();
+  const tenant = session?.tenant ?? null;
+
   return (
-    <section className="py-4">
-      <div className="container">
-        {/* Desktop Menu */}
-        <nav className="hidden items-center justify-between lg:flex">
-          <div className="flex items-center gap-6">
-            {/* Logo */}
-            <Link href={logo.url} className="flex items-center gap-2">
+    <section className="bg-background">
+      <div className="container px-4 sm:px-6 lg:px-8">
+        {/* Desktop Menu — three-zone: logo | links | actions */}
+        <nav className="hidden h-16 grid-cols-[1fr_auto_1fr] items-center lg:grid">
+          <div className="justify-self-start">
+            <Link href={NAV_LOGO.url} className="flex items-center gap-2">
               <Image
-                height={500}
-                width={500}
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
+                width={116}
+                height={32}
+                src={NAV_LOGO.src}
+                className="dark:invert"
+                alt={NAV_LOGO.alt}
+                priority
               />
             </Link>
-            <div className="flex items-center">
-              <NavigationMenu>
-                <NavigationMenuList>
-                  {menu.map((item) => renderMenuItem(item))}
-                </NavigationMenuList>
-              </NavigationMenu>
-            </div>
           </div>
-          <div className="flex gap-2">
-            {tenant ? (
-              <Button asChild variant="outline">
-                <Link href="/main">Go to Dashboard</Link>
-              </Button>
-            ) : (
-              <Button variant="link" asChild>
-                <Link href={auth.signup.url}>{auth.signup.title}</Link>
-              </Button>
-            )}
-            {session ? (
+          <div className="justify-self-center">
+            <NavigationMenu>
+              <NavigationMenuList>
+                {NAV_MENU.map((item) => renderMenuItem(item))}
+              </NavigationMenuList>
+            </NavigationMenu>
+          </div>
+          <div className="flex items-center justify-end gap-2 justify-self-end">
+            {sessionLoading ? (
+              // Invisible fixed-size slots: no skeleton, no wrong-state flash
+              <div
+                className="invisible flex h-9 items-center gap-2"
+                aria-hidden="true"
+              >
+                <span className="text-sm font-medium">Log in</span>
+                <span className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-semibold text-primary-foreground">
+                  Become a host
+                </span>
+              </div>
+            ) : session ? (
               <>
-                <AvatarImg avatar={session.picture} />
+                {tenant && (
+                  <Button asChild variant="outline" className="min-h-9">
+                    <Link href="/main">Go to Dashboard</Link>
+                  </Button>
+                )}
+                <NavbarAvatarMenu session={session} tenant={tenant} />
               </>
             ) : (
-              <Button asChild variant="outline">
-                <Link href={auth.login.url}>{auth.login.title}</Link>
-              </Button>
+              <>
+                <LoginLink className="inline-flex h-10 items-center rounded-md px-3 text-sm font-medium text-foreground/80 transition-colors hover:text-foreground">
+                  Log in
+                </LoginLink>
+                <Button asChild className="min-h-9">
+                  <Link href={buildLoginHref("/createTenant")}>
+                    Become a host
+                  </Link>
+                </Button>
+              </>
             )}
           </div>
         </nav>
 
         {/* Mobile Menu */}
-        <div className="block lg:hidden">
-          <div className="flex items-center justify-between">
-            {/* Logo */}
-            <Link href={logo.url} className="flex items-center gap-2">
-              <Image
-                height={500}
-                width={500}
-                src={logo.src}
-                className="max-h-8 dark:invert"
-                alt={logo.alt}
-              />
-            </Link>
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon">
-                  <Menu className="size-4" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent className="overflow-y-auto">
-                <SheetHeader>
-                  <SheetTitle>
-                    <Link href={logo.url} className="flex items-center gap-2">
-                      <Image
-                        height={500}
-                        width={500}
-                        src={logo.src}
-                        className="max-h-8 dark:invert"
-                        alt={logo.alt}
-                      />
-                    </Link>
-                  </SheetTitle>
-                </SheetHeader>
-                <div className="flex flex-col gap-6 p-4">
-                  <Accordion
-                    type="single"
-                    collapsible
-                    className="flex w-full flex-col gap-4"
-                  >
-                    {menu.map((item) => renderMobileMenuItem(item))}
-                  </Accordion>
-
-                  <div className="flex flex-col gap-3">
-                    {tenant ? (
-                      <Button asChild variant="outline">
-                        <Link href="/main">Go to Dashboard</Link>
-                      </Button>
-                    ) : (
-                      <Button variant="link" asChild>
-                        <Link href={auth.signup.url}>{auth.signup.title}</Link>
-                      </Button>
-                    )}
-                    {session ? (
-                      <>
-                        <AvatarImg avatar={session.picture} />
-                      </>
-                    ) : (
-                      <Button asChild variant="outline">
-                        <Link href={auth.login.url}>{auth.login.title}</Link>
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </SheetContent>
-            </Sheet>
-          </div>
+        <div className="relative flex h-16 items-center justify-end lg:hidden">
+          {/* Logo — centered in the bar */}
+          <Link
+            href={NAV_LOGO.url}
+            className="absolute left-1/2 top-1/2 flex -translate-x-1/2 -translate-y-1/2 items-center gap-2"
+          >
+            <Image
+              width={116}
+              height={32}
+              src={NAV_LOGO.src}
+              className="dark:invert"
+              alt={NAV_LOGO.alt}
+            />
+          </Link>
+          <MobileNavSheet
+            session={session}
+            tenant={tenant}
+            sessionLoading={sessionLoading}
+            logo={NAV_LOGO}
+          />
         </div>
       </div>
     </section>
@@ -263,29 +157,6 @@ const renderMenuItem = (item: MenuItem) => {
         </Link>
       </NavigationMenuLink>
     </NavigationMenuItem>
-  );
-};
-
-const renderMobileMenuItem = (item: MenuItem) => {
-  if (item.items) {
-    return (
-      <AccordionItem key={item.title} value={item.title} className="border-b-0">
-        <AccordionTrigger className="text-md py-0 font-semibold hover:no-underline">
-          {item.title}
-        </AccordionTrigger>
-        <AccordionContent className="mt-2">
-          {item.items.map((subItem) => (
-            <SubMenuLink key={subItem.title} item={subItem} />
-          ))}
-        </AccordionContent>
-      </AccordionItem>
-    );
-  }
-
-  return (
-    <Link key={item.title} href={item.url} className="text-md font-semibold">
-      {item.title}
-    </Link>
   );
 };
 

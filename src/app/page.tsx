@@ -40,7 +40,10 @@ export default function Page() {
         <Link href="/private">
           <Button variant="secondary">Private</Button>
         </Link>
-        
+
+        <Link href="/discover">
+          <Button variant="link">Discover</Button>
+        </Link>
         
         <Link href="/profile">
           <Button variant="link">Profile</Button>

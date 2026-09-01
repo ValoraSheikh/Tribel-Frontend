@@ -5,6 +5,8 @@ import {
   Map,
   Circle,
   Marker,
+  AdvancedMarker,
+  Pin,
 } from "@vis.gl/react-google-maps";
 
 type PropertyMapProps = {
@@ -21,6 +23,7 @@ export default function PropertyMap({
   height = "300px",
 }: PropertyMapProps) {
   const position = { lat, lng };
+  const mapId = process.env.NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID;
 
   return (
     <div
@@ -36,15 +39,15 @@ export default function PropertyMap({
           defaultZoom={zoom}
           gestureHandling="greedy"
           disableDefaultUI={false}
+          mapId={mapId}
         >
-          {/*<AdvancedMarker position={position}>
-            <Pin
-              background="#111827"
-              glyphColor="#ffffff"
-              borderColor="#ffffff"
-            />
-          </AdvancedMarker>*/}
-          <Marker position={position} title="" />
+          {mapId ? (
+            <AdvancedMarker position={position}>
+              <Pin background="#111827" glyphColor="#ffffff" borderColor="#ffffff" />
+            </AdvancedMarker>
+          ) : (
+            <Marker position={position} title="" />
+          )}
           <Circle
             center={{ lat: lat, lng: lng }}
             radius={100}

@@ -245,7 +245,7 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
         <div className="relative w-full md:w-64 lg:w-72 shrink-0 aspect-video md:aspect-auto">
           {booking.property.images?.length > 0 ? (
             <Image
-              src={toUrl(booking.property.images[0])!}
+              src={toUrl(booking.property.images[0]) || "/placeholder.svg"}
               alt={booking.property.title}
               fill
               unoptimized

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoomTable } from "./room-table";
+import { TemplateOccupancyStrip } from "./template-occupancy-strip";
 import Image from "next/image";
 import { StarIcon } from "lucide-react";
 import roomFeatures from "@/constants/rooms-icon";
@@ -58,7 +59,7 @@ export function RoomTemplateDetails({
         <div className="relative w-full md:w-1/3 aspect-video rounded-xl overflow-hidden border">
           {room.image ? (
             <Image
-              src={toUrl(room.image)!}
+              src={toUrl(room.image) || "/placeholder.svg"}
               unoptimized={true}
               alt={room.title}
               fill
@@ -124,6 +125,12 @@ export function RoomTemplateDetails({
           })}
         </CardContent>
       </Card>
+
+      {/* Occupancy Strip */}
+      <TemplateOccupancyStrip
+        propertyId={propertyId}
+        roomTemplateId={roomTemplateId}
+      />
 
       {/* Dynamic Table Section */}
       <div className="space-y-4">

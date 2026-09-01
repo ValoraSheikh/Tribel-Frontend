@@ -17,6 +17,24 @@ export const requireTenant = async () => {
   return user.data.data.tenant;
 };
 
+export const getTenant = async () => {
+  const cookie = (await headers()).get("cookie");
+  if (!cookie) return null;
+
+  try {
+    const user = await axiosClient.get("/api/v1/user/profile", {
+      headers: { cookie },
+    });
+    if (!user.data || !user.data.data.tenant) {
+      return null;
+    }
+
+    return user.data.data.tenant;
+  } catch {
+    return null;
+  }
+};
+
 export const createdTenant = async () => {
   const cookie = (await headers()).get("cookie");
   await requireAuth();
