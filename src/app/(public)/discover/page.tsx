@@ -1,6 +1,7 @@
 import { serverPropertyApi } from "@/features/property/api/property.api";
 import { Hero } from "@/features/property/components/public/hero";
 import { USE_PROPERTIES_QUERY_KEY } from "@/features/property/hooks/use-property";
+import { NewProperties } from "@/features/property/components/public/new-properties";
 import { createServerAxios } from "@/lib/axios/axios-server";
 import {
   dehydrate,
@@ -8,10 +9,20 @@ import {
   QueryClient,
 } from "@tanstack/react-query";
 import { Suspense } from "react";
-import NewPropertiesSkeleton from "./loading";
-import { NewProperties } from "@/features/property/components/public/new-properties";
+import { NewPropertiesSkeleton } from "./loading";
 
-const Page = async () => {
+const Page = () => {
+  return (
+    <>
+      <Hero />
+      <Suspense fallback={<NewPropertiesSkeleton />}>
+        <NewPropertiesSection />
+      </Suspense>
+    </>
+  );
+};
+
+async function NewPropertiesSection() {
   const queryClient = new QueryClient();
   const serverAxios = await createServerAxios();
 
@@ -21,15 +32,10 @@ const Page = async () => {
   });
 
   return (
-    <>
-      <Hero />
-      <HydrationBoundary state={dehydrate(queryClient)}>
-        <Suspense fallback={<NewPropertiesSkeleton />}>
-          <NewProperties />
-        </Suspense>
-      </HydrationBoundary>
-    </>
+    <HydrationBoundary state={dehydrate(queryClient)}>
+      <NewProperties />
+    </HydrationBoundary>
   );
-};
+}
 
 export default Page;

@@ -3,6 +3,7 @@
 import { Fragment } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ChevronLeft } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbList,
@@ -88,24 +89,58 @@ export const DashboardBreadcrumb = () => {
     crumbs.push({ label: rtLabel });
   }
 
+  // Mobile: parent-only back-link — the last navigable level above the
+  // current page (per the standard mobile breadcrumb pattern).
+  const parentCrumb = [...crumbs].reverse().find(
+    (c): c is Crumb & { href: string } => Boolean(c.href),
+  );
+
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {crumbs.map((crumb, i) => (
-          <Fragment key={i}>
+    <>
+      {/* Full breadcrumb — sm and up */}
+      <Breadcrumb className="hidden sm:block">
+        <BreadcrumbList className="flex-nowrap">
+          {crumbs.map((crumb, i) => (
+            <Fragment key={i}>
+              <BreadcrumbItem>
+                {crumb.href ? (
+                  <BreadcrumbLink asChild>
+                    <Link href={crumb.href} className="whitespace-nowrap">
+                      {crumb.label}
+                    </Link>
+                  </BreadcrumbLink>
+                ) : (
+                  <BreadcrumbPage className="whitespace-nowrap">
+                    {crumb.label}
+                  </BreadcrumbPage>
+                )}
+              </BreadcrumbItem>
+              {i < crumbs.length - 1 && <BreadcrumbSeparator />}
+            </Fragment>
+          ))}
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      {/* Parent back-link — mobile */}
+      <Breadcrumb className="sm:hidden">
+        <BreadcrumbList className="flex-nowrap">
+          {parentCrumb && (
             <BreadcrumbItem>
-              {crumb.href ? (
-                <BreadcrumbLink asChild>
-                  <Link href={crumb.href}>{crumb.label}</Link>
-                </BreadcrumbLink>
-              ) : (
-                <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-              )}
+              <BreadcrumbLink asChild>
+                <Link
+                  href={parentCrumb.href}
+                  className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ChevronLeft className="size-4" />
+                  <span className="max-w-[220px] truncate">
+                    {parentCrumb.label}
+                  </span>
+                </Link>
+              </BreadcrumbLink>
             </BreadcrumbItem>
-            {i < crumbs.length - 1 && <BreadcrumbSeparator />}
-          </Fragment>
-        ))}
-      </BreadcrumbList>
-    </Breadcrumb>
+          )}
+        </BreadcrumbList>
+      </Breadcrumb>
+    </>
   );
 };
