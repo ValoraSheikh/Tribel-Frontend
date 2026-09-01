@@ -4,14 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -27,25 +19,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { format } from "date-fns";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Download,
-  Eye,
-  MoreHorizontalIcon,
-  Pencil,
-  Trash,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { parseAsInteger, useQueryState } from "nuqs";
 import { BookingProps } from "../../api/booking.api";
 import { useAdminBookings } from "../../hooks/use-booking";
 import { BOOKING_STATUS_STYLES } from "../../lib/status";
-import { BookingDetails } from "./booking-details";
-import { CancelAdminBookingModal } from "./cancel-admin-booking";
-import { invoiceApi } from "@/features/invoice/api/invoice.api";
+import { BookingRowActions } from "./booking-row-actions";
 import { InvoiceStatusBadge } from "@/features/invoice/components/InvoiceStatusBadge";
-import { toast } from "sonner";
 
 const getPaymentStatusStyle = (status: string) => {
   switch (status) {
@@ -106,17 +86,6 @@ export const BookingDashboard = ({
   const formatDate = (dateString: string) => {
     if (!dateString) return "N/A";
     return format(new Date(dateString), "MMM dd, yyyy");
-  };
-
-  const handleDownloadInvoice = async (bookingId: string) => {
-    try {
-      const result = await invoiceApi.getAdminInvoice(bookingId);
-      if (result.downloadUrl) {
-        window.open(result.downloadUrl, "_blank");
-      }
-    } catch {
-      toast.error("Failed to download invoice");
-    }
   };
 
   if (isLoading) {
@@ -184,6 +153,64 @@ export const BookingDashboard = ({
         </div>
       </div>
 
+      {/* Mobile: stacked booking cards */}
+      <div className="md:hidden">
+        {bookings.length === 0 ? (
+          <Card className="py-0">
+            <CardContent className="p-6 text-center text-muted-foreground">
+              No bookings found.
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {bookings.map((booking: BookingProps) => (
+              <Card key={booking.id} className="py-0">
+                <CardContent className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium">
+                        {booking.guest?.firstName} {booking.guest?.lastName}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {booking.room?.title}
+                        {booking.bed?.bedNo ? ` · Bed ${booking.bed.bedNo}` : ""}
+                      </p>
+                    </div>
+                    <Badge
+                      className={`shrink-0 border-none bg-background/80 ${BOOKING_STATUS_STYLES[booking.status].badge}`}
+                      variant="outline"
+                    >
+                      {BOOKING_STATUS_STYLES[booking.status].label}
+                    </Badge>
+                  </div>
+
+                  <div className="flex flex-col text-sm">
+                    <span className="whitespace-nowrap">
+                      In: {formatDate(booking.startDate)}
+                    </span>
+                    <span className="whitespace-nowrap text-muted-foreground">
+                      Out: {formatDate(booking.endDate)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="font-semibold text-green-600">
+                      {formatCurrency(booking.totalPrice)}
+                    </span>
+                    <BookingRowActions
+                      booking={booking}
+                      propertyId={propertyId}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: data table */}
+      <div className="hidden md:block">
       <Card className="py-0">
         <CardContent className="p-0">
           <div className="relative w-full overflow-auto">
@@ -302,69 +329,10 @@ export const BookingDashboard = ({
                       </TableCell>
 
                       <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon-sm"
-                              aria-label={`Actions for booking ${booking.guest?.firstName ?? ""}`}
-                              className="size-8 max-sm:size-11"
-                            >
-                              <span className="sr-only">Open menu</span>
-                              <MoreHorizontalIcon className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                navigator.clipboard.writeText(booking.id)
-                              }
-                            >
-                              <Copy className="mr-2 h-4 w-4" />
-                              Copy ID
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onSelect={(e) => e.preventDefault()}
-                            >
-                              <div className="flex items-center w-full">
-                                <Eye className="mr-2 h-4 w-4" />
-                                <BookingDetails booking={booking} />
-                              </div>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Pencil className="mr-2 h-4 w-4" />
-                              Edit Booking
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() =>
-                                handleDownloadInvoice(booking.id)
-                              }
-                              disabled={!booking.invoiceId}
-                            >
-                              <Download className="mr-2 h-4 w-4" />
-                              Download Invoice
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <div
-                              role="button"
-                              tabIndex={0}
-                              className="
-                                     flex items-center w-full rounded-sm px-2 py-1.5
-                                     text-sm text-destructive cursor-pointer
-                                     hover:bg-destructive/10
-                                     focus:bg-destructive/10 focus:outline-none
-                                   "
-                            >
-                              <Trash className="mr-2 h-4 w-4" />
-                              <CancelAdminBookingModal
-                                propertyId={propertyId}
-                                bookingId={booking.id}
-                              />
-                            </div>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <BookingRowActions
+                          booking={booking}
+                          propertyId={propertyId}
+                        />
                       </TableCell>
                     </TableRow>
                   ))
@@ -374,6 +342,7 @@ export const BookingDashboard = ({
           </div>
         </CardContent>
       </Card>
+      </div>
 
       <div className="flex flex-col gap-3 px-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
