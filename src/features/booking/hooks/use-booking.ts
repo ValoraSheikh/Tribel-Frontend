@@ -73,6 +73,10 @@ export const useCancelAdminBooking = (
       queryClient.invalidateQueries({
         queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
     },
 
     onError: (err) => {
@@ -179,10 +183,16 @@ export const useCancelBooking = (bookingId: string) => {
       queryClient.invalidateQueries({
         queryKey: USE_USER_BOOKINGS_KEY,
       });
+      queryClient.invalidateQueries({
+        queryKey: USE_ADMIN_BOOKINGS_KEY,
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_OCCUPANCY_KEY,
+      });
     },
 
-    onError: () => {
-      toast.error("Failed to cancel booking");
+    onError: (err) => {
+      toast.error(err?.message || "Failed to create booking");
     },
   });
 };
