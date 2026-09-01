@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   addMonths,
   addWeeks,
@@ -20,6 +20,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { OccupancyBooking } from "../../api/booking.api";
+import type { RoomTemplateProps } from "../../../room-template/api/room-template.api";
 import { useOccupancy } from "../../hooks/use-booking";
 import {
   BOOKING_STATUS_STYLES,
@@ -29,11 +30,15 @@ import {
 
 interface TimelineViewProps {
   propertyId: string;
+  templates?: RoomTemplateProps[];
+  templateId?: string | null;
   onOpenBooking: (booking: OccupancyBooking) => void;
 }
 
 export const TimelineView = ({
   propertyId,
+  templates,
+  templateId,
   onOpenBooking,
 }: TimelineViewProps) => {
   const [anchor, setAnchor] = useQueryState(
@@ -77,7 +82,12 @@ export const TimelineView = ({
     const beds = data?.beds ?? [];
     const grouped = new Map<
       string,
-      { roomId: string; roomTitle: string; beds: typeof beds }
+      {
+        roomId: string;
+        roomTitle: string;
+        roomTemplateId: string;
+        beds: typeof beds;
+      }
     >();
     for (const bed of beds) {
       const existing = grouped.get(bed.room.id);
@@ -87,12 +97,33 @@ export const TimelineView = ({
         grouped.set(bed.room.id, {
           roomId: bed.room.id,
           roomTitle: bed.room.title,
+          roomTemplateId: bed.room.roomTemplateId,
           beds: [bed],
         });
       }
     }
     return Array.from(grouped.values());
   }, [data?.beds]);
+
+  // Group rooms under their room template, honoring the ?template= filter.
+  const templateGroups = useMemo(() => {
+    const filtered = templateId
+      ? rooms.filter((room) => room.roomTemplateId === templateId)
+      : rooms;
+
+    const byTemplate = new Map<string, typeof rooms>();
+    for (const room of filtered) {
+      const list = byTemplate.get(room.roomTemplateId) ?? [];
+      list.push(room);
+      byTemplate.set(room.roomTemplateId, list);
+    }
+
+    return Array.from(byTemplate.entries()).map(([id, rooms]) => ({
+      templateId: id,
+      templateTitle: templates?.find((t) => t.id === id)?.title ?? "Rooms",
+      rooms,
+    }));
+  }, [rooms, templateId, templates]);
 
   const visibleBookings = useMemo(
     () =>
@@ -245,9 +276,11 @@ export const TimelineView = ({
         ))}
       </div>
 
-      {rooms.length === 0 ? (
+      {templateGroups.length === 0 ? (
         <div className="flex h-[30vh] items-center justify-center text-sm text-muted-foreground">
-          No beds configured for this property yet.
+          {templateId
+            ? "No beds for this room type yet."
+            : "No beds configured for this property yet."}
         </div>
       ) : (
         <div
@@ -291,17 +324,26 @@ export const TimelineView = ({
               </div>
             </div>
 
-            {rooms.map((room) => (
-              <div key={room.roomId}>
-                <div className="flex border-b bg-muted/20">
-                  <div
-                    className="sticky left-0 z-10 shrink-0 truncate border-r bg-muted/70 px-3 py-1.5 text-xs font-semibold backdrop-blur"
-                    style={{ width: labelWidth }}
-                  >
-                    {room.roomTitle}
+            {templateGroups.map((group) => (
+              <Fragment key={group.templateId}>
+                {/* Template section header */}
+                <div className="flex border-b bg-primary/5">
+                  <div className="sticky left-0 z-10 flex h-9 w-full items-center bg-primary/5 px-3 text-xs font-semibold uppercase tracking-wide text-primary">
+                    {group.templateTitle}
                   </div>
-                  <div className="flex-1" />
                 </div>
+
+                {group.rooms.map((room) => (
+                  <div key={room.roomId}>
+                    <div className="flex border-b bg-muted/20">
+                      <div
+                        className="sticky left-0 z-10 shrink-0 truncate border-r bg-muted/70 px-3 py-1.5 text-xs font-semibold backdrop-blur"
+                        style={{ width: labelWidth }}
+                      >
+                        {room.roomTitle}
+                      </div>
+                      <div className="flex-1" />
+                    </div>
 
                 {room.beds.map((bed) => {
                   const bedBookings = visibleBookings.filter(
@@ -370,7 +412,9 @@ export const TimelineView = ({
                     </div>
                   );
                 })}
-              </div>
+                  </div>
+                ))}
+              </Fragment>
             ))}
           </div>
         </div>
