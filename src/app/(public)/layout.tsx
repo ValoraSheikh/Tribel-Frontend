@@ -1,13 +1,15 @@
 import Footer from "@/components/footer/footer";
 import { Navbar } from "@/components/navbar/navbar";
-import { getSession } from "@/lib/auth/auth-utils";
 
-const Layout = async ({ children }: { children: React.ReactNode }) => {
-  const session = await getSession();
-  const tenant = session?.tenant ?? null;
+// Public routes read cookies server-side in their pages (server axios,
+// requireAuth) — render per request. The navbar itself is client-side
+// and renders instantly, so no skeleton fallback is needed.
+export const dynamic = "force-dynamic";
+
+const Layout = ({ children }: { children: React.ReactNode }) => {
   return (
     <>
-      <Navbar session={session} tenant={tenant} />
+      <Navbar />
       {children}
       <Footer />
     </>
