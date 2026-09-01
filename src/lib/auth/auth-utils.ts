@@ -38,6 +38,7 @@ export const getSession = cache(async (): Promise<SessionUser | null> => {
     const res = await axios.get(`${API_BASE}/api/v1/user/profile`, {
       headers: { cookie },
       validateStatus: (status) => status < 500,
+      timeout: 3000,
     });
     if (!res.data?.data) return null;
     return res.data.data as SessionUser;
