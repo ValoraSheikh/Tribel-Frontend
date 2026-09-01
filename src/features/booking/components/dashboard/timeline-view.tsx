@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   addMonths,
   addWeeks,
@@ -18,6 +18,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseAsString, parseAsStringLiteral, useQueryState } from "nuqs";
+import { useMediaQuery } from "@/hooks/use-media-query";
 import { OccupancyBooking } from "../../api/booking.api";
 import { useOccupancy } from "../../hooks/use-booking";
 import {
@@ -25,8 +26,6 @@ import {
   OCCUPANCY_STATUSES,
   isOccupancyStatus,
 } from "../../lib/status";
-
-const LABEL_WIDTH = 160;
 
 interface TimelineViewProps {
   propertyId: string;
@@ -48,13 +47,17 @@ export const TimelineView = ({
 
   const anchorDate = useMemo(() => parseISO(anchor), [anchor]);
 
+  // Mobile: force Week span (a month of columns can't fit a phone).
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const effectiveSpan: "week" | "month" = isMobile ? "week" : span;
+
   const { windowStart, windowEnd, days } = useMemo(() => {
     const start =
-      span === "month"
+      effectiveSpan === "month"
         ? startOfMonth(anchorDate)
         : startOfWeek(anchorDate, { weekStartsOn: 1 });
     const end =
-      span === "month"
+      effectiveSpan === "month"
         ? endOfMonth(anchorDate)
         : endOfWeek(anchorDate, { weekStartsOn: 1 });
     return {
@@ -62,7 +65,7 @@ export const TimelineView = ({
       windowEnd: end,
       days: eachDayOfInterval({ start, end }),
     };
-  }, [anchorDate, span]);
+  }, [anchorDate, effectiveSpan]);
 
   const { data, isLoading, isError, error } = useOccupancy(
     propertyId,
@@ -100,7 +103,35 @@ export const TimelineView = ({
   );
 
   const totalDays = days.length;
-  const colMinWidth = span === "month" ? 44 : 96;
+
+  // Responsive sizing: the label column shrinks on mobile; day columns stretch
+  // to fill the container when they fit, otherwise fall back to a scroll floor.
+  const labelWidth = isMobile ? 88 : 160;
+  const colMinWidth = isMobile ? 32 : effectiveSpan === "month" ? 44 : 96;
+
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const [containerWidth, setContainerWidth] = useState(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) setContainerWidth(entry.contentRect.width);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const innerMinWidth = labelWidth + totalDays * colMinWidth;
+  const fits = containerWidth === 0 || containerWidth >= innerMinWidth;
+  const perDay = fits
+    ? containerWidth > 0
+      ? (containerWidth - labelWidth) / totalDays
+      : colMinWidth
+    : colMinWidth;
+  const gridTemplateColumns = `repeat(${totalDays}, ${
+    fits ? "minmax(0, 1fr)" : `${colMinWidth}px`
+  })`;
 
   const navigate = (direction: 1 | -1) => {
     const next =
@@ -125,11 +156,12 @@ export const TimelineView = ({
     return {
       left: `${(startIdx / totalDays) * 100}%`,
       width: `${((endIdxExclusive - startIdx) / totalDays) * 100}%`,
+      days: endIdxExclusive - startIdx,
     };
   };
 
   const headerLabel =
-    span === "month"
+    effectiveSpan === "month"
       ? format(windowStart, "MMMM yyyy")
       : `${format(windowStart, "MMM d")} – ${format(windowEnd, "MMM d, yyyy")}`;
 
@@ -186,12 +218,17 @@ export const TimelineView = ({
           <span className="ml-1 text-sm font-semibold">{headerLabel}</span>
         </div>
 
-        <Tabs value={span} onValueChange={(v) => setSpan(v as "week" | "month")}>
-          <TabsList>
-            <TabsTrigger value="week">Week</TabsTrigger>
-            <TabsTrigger value="month">Month</TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <div className="hidden sm:block">
+          <Tabs
+            value={span}
+            onValueChange={(v) => setSpan(v as "week" | "month")}
+          >
+            <TabsList>
+              <TabsTrigger value="week">Week</TabsTrigger>
+              <TabsTrigger value="month">Month</TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1">
@@ -213,22 +250,21 @@ export const TimelineView = ({
           No beds configured for this property yet.
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border">
-          <div
-            style={{ minWidth: LABEL_WIDTH + totalDays * colMinWidth }}
-          >
-            <div className="flex border-b bg-muted/40">
+        <div
+          ref={scrollRef}
+          className="max-h-[60vh] overflow-auto rounded-lg border"
+        >
+          <div style={fits ? undefined : { minWidth: innerMinWidth }}>
+            <div className="sticky top-0 z-20 flex border-b bg-muted">
               <div
-                className="sticky left-0 z-10 shrink-0 border-r bg-muted/90 px-3 py-2 text-xs font-medium text-muted-foreground backdrop-blur"
-                style={{ width: LABEL_WIDTH }}
+                className="sticky left-0 z-10 shrink-0 border-r bg-muted px-3 py-2 text-xs font-medium text-muted-foreground"
+                style={{ width: labelWidth }}
               >
                 Room / Bed
               </div>
               <div
                 className="grid flex-1"
-                style={{
-                  gridTemplateColumns: `repeat(${totalDays}, minmax(${colMinWidth}px, 1fr))`,
-                }}
+                style={{ gridTemplateColumns: gridTemplateColumns }}
               >
                 {days.map((day) => (
                   <div
@@ -239,8 +275,13 @@ export const TimelineView = ({
                         : "text-muted-foreground"
                     }`}
                   >
-                    <div>{format(day, span === "month" ? "d" : "EEE d")}</div>
-                    {span === "month" && (
+                    <div>
+                      {format(
+                        day,
+                        effectiveSpan === "month" || isMobile ? "d" : "EEE d",
+                      )}
+                    </div>
+                    {(effectiveSpan === "month" || isMobile) && (
                       <div className="text-[10px] uppercase">
                         {format(day, "EEE")}
                       </div>
@@ -254,8 +295,8 @@ export const TimelineView = ({
               <div key={room.roomId}>
                 <div className="flex border-b bg-muted/20">
                   <div
-                    className="sticky left-0 z-10 shrink-0 border-r bg-muted/70 px-3 py-1.5 text-xs font-semibold backdrop-blur"
-                    style={{ width: LABEL_WIDTH }}
+                    className="sticky left-0 z-10 shrink-0 truncate border-r bg-muted/70 px-3 py-1.5 text-xs font-semibold backdrop-blur"
+                    style={{ width: labelWidth }}
                   >
                     {room.roomTitle}
                   </div>
@@ -272,16 +313,14 @@ export const TimelineView = ({
                     <div key={bed.id} className="flex border-b last:border-b-0">
                       <div
                         className="sticky left-0 z-10 flex h-12 shrink-0 items-center border-r bg-background px-3 text-sm"
-                        style={{ width: LABEL_WIDTH }}
+                        style={{ width: labelWidth }}
                       >
                         Bed {bed.bedNo}
                       </div>
                       <div className="relative h-12 flex-1">
                         <div
                           className="absolute inset-0 grid"
-                          style={{
-                            gridTemplateColumns: `repeat(${totalDays}, minmax(${colMinWidth}px, 1fr))`,
-                          }}
+                          style={{ gridTemplateColumns: gridTemplateColumns }}
                         >
                           {days.map((day) => (
                             <div
@@ -306,6 +345,7 @@ export const TimelineView = ({
                           const segment = barSegments(booking);
                           if (!segment) return null;
                           const style = BOOKING_STATUS_STYLES[booking.status];
+                          const showName = segment.days * perDay >= 48;
                           return (
                             <button
                               key={booking.id}
@@ -315,10 +355,14 @@ export const TimelineView = ({
                               className={`absolute bottom-1.5 top-1.5 z-[6] overflow-hidden truncate rounded-md px-2 text-left text-xs font-medium transition-opacity hover:opacity-85 ${style.bar}`}
                               style={segment}
                             >
-                              {booking.guest.firstName}
-                              {booking.guest.lastName
-                                ? ` ${booking.guest.lastName}`
-                                : ""}
+                              {showName && (
+                                <>
+                                  {booking.guest.firstName}
+                                  {booking.guest.lastName
+                                    ? ` ${booking.guest.lastName}`
+                                    : ""}
+                                </>
+                              )}
                             </button>
                           );
                         })}
