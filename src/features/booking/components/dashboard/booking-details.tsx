@@ -9,6 +9,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { BookingProps } from "../../api/booking.api";
 import { BOOKING_STATUS_STYLES } from "../../lib/status";
 import { format } from "date-fns";
@@ -110,19 +111,36 @@ export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
             <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-primary" /> Guest Information
             </h3>
-            <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-muted ml-1">
-              <div>
-                <p className="text-sm font-medium">
-                  {booking.guest?.firstName} {booking.guest?.lastName}
-                </p>
+            <div className="grid grid-cols-1 gap-3 pl-3 border-l-2 border-muted ml-1">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-12 border bg-muted">
+                  <AvatarImage
+                    src={toUrl(booking.guest?.avatar ?? "")}
+                    alt={`${booking.guest?.firstName ?? ""} ${booking.guest?.lastName ?? ""}`}
+                  />
+                  <AvatarFallback className="text-sm font-medium">
+                    {booking.guest?.firstName?.[0]}
+                    {booking.guest?.lastName?.[0] ?? ""}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {booking.guest?.firstName} {booking.guest?.lastName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Guest</p>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <div className="ml-1 flex flex-col gap-1 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Mail className="h-3 w-3" /> {booking.guest?.email}
+                  <Mail className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{booking.guest?.email}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-3 w-3" /> {booking.guest?.phoneNo}
-                </div>
+                {booking.guest?.phoneNo && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-3 w-3 shrink-0" />
+                    <span>{booking.guest.phoneNo}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
