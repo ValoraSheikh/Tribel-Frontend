@@ -122,6 +122,7 @@ interface Guest {
   lastName: string | null;
   email: string;
   phoneNo: string | null;
+  avatar: string | null;
 }
 
 interface PropertyProps {
@@ -285,6 +286,35 @@ export const bookingApi = {
       bookingId,
       action,
     });
+    return data.data;
+  },
+
+  markBookingPaid: async (
+    propertyId: string,
+    bookingId: string,
+    payload: { provider?: string; reference?: string } = {},
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/payment/paid`,
+      { bookingId, ...payload },
+    );
+    return data.data;
+  },
+
+  recordBookingRefund: async (
+    propertyId: string,
+    bookingId: string,
+    payload: {
+      amount?: number;
+      method?: string;
+      reference?: string;
+      razorpayRefundId?: string;
+    } = {},
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/payment/refund`,
+      { bookingId, ...payload },
+    );
     return data.data;
   },
 };

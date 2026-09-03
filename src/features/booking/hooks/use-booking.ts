@@ -85,6 +85,65 @@ export const useCancelAdminBooking = (
   });
 };
 
+export const useMarkBookingPaid = (propertyId: string, bookingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "paid"],
+    mutationFn: (payload: { provider?: string; reference?: string }) =>
+      bookingApi.markBookingPaid(propertyId, bookingId, payload),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to mark payment as paid");
+    },
+  });
+};
+
+export const useRecordBookingRefund = (
+  propertyId: string,
+  bookingId: string,
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "refund"],
+    mutationFn: (payload: {
+      amount?: number;
+      method?: string;
+      reference?: string;
+      razorpayRefundId?: string;
+    }) => bookingApi.recordBookingRefund(propertyId, bookingId, payload),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to record refund");
+    },
+  });
+};
+
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();
 
