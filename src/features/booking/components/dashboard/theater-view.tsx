@@ -220,7 +220,7 @@ export const TheaterView = ({
         <div className="space-y-6 rounded-lg border p-4">
           {templateGroups.map((group) => (
             <div key={group.templateId} className="space-y-3">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              <h3 className="flex items-center gap-2 border-l-4 border-l-primary bg-primary/10 px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
                 {group.templateTitle}
               </h3>
               {group.rooms.map((room) => (

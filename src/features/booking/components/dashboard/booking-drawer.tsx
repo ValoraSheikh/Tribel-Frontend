@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore, useState } from "react";
-import Link from "next/link";
 import {
   Sheet,
   SheetContent,
@@ -10,10 +9,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Check, X, Download, ArrowUpRight } from "lucide-react";
+import { Check, X, Download } from "lucide-react";
 import { BookingProps, OccupancyBooking } from "../../api/booking.api";
 import { BookingDetailsBody } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
+import {
+  MarkBookingPaidModal,
+  RecordBookingRefundModal,
+} from "./payment-actions";
 import { useUpdateBookingStatus } from "../../hooks/use-booking";
 import type { BookingStatus } from "../../lib/status";
 import { invoiceApi } from "@/features/invoice/api/invoice.api";
@@ -50,6 +53,7 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
       lastName: booking.guest.lastName,
       email: booking.guest.email,
       phoneNo: booking.guest.phoneNo,
+      avatar: booking.guest.avatar,
     },
     property: {
       id: booking.property.id,
@@ -179,19 +183,31 @@ export const BookingDrawer = ({
                   <Download className="mr-1 h-4 w-4" />
                   Invoice
                 </Button>
-                <Button
-                  className="max-sm:h-11 flex-1"
-                  variant="outline"
-                  asChild
-                >
-                  <Link
-                    href={`/properties/${propertyId}/bookings/${displayBooking.id}`}
-                  >
-                    <ArrowUpRight className="mr-1 h-4 w-4" />
-                    Details
-                  </Link>
-                </Button>
               </div>
+
+              {displayBooking.paymentMode === "OFFLINE" &&
+                displayBooking.paymentStatus === "PENDING" && (
+                  <MarkBookingPaidModal
+                    propertyId={propertyId}
+                    bookingId={displayBooking.id}
+                    guestName={`${displayBooking.guest?.firstName ?? "Guest"} ${
+                      displayBooking.guest?.lastName ?? ""
+                    }`.trim()}
+                  />
+                )}
+
+              {(displayBooking.paymentStatus === "PAID" ||
+                displayBooking.paymentStatus === "PARTIALLY_PAID") && (
+                <RecordBookingRefundModal
+                  propertyId={propertyId}
+                  bookingId={displayBooking.id}
+                  guestName={`${displayBooking.guest?.firstName ?? "Guest"} ${
+                    displayBooking.guest?.lastName ?? ""
+                  }`.trim()}
+                  total={Number(displayBooking.totalPrice)}
+                  paymentMode={displayBooking.paymentMode}
+                />
+              )}
 
               {displayBooking.status !== "CANCELLED" &&
                 displayBooking.status !== "REJECTED" &&

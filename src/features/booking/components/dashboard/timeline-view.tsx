@@ -135,26 +135,36 @@ export const TimelineView = ({
 
   const totalDays = days.length;
 
-  // Responsive sizing: the label column shrinks on mobile; day columns stretch
-  // to fill the container when they fit, otherwise fall back to a scroll floor.
+  // Responsive sizing: the label column shrinks on mobile; day columns shrink
+  // to fit the container (color bands + tooltips at small sizes) and only
+  // scroll horizontally below a bare 20px/day minimum.
   const labelWidth = isMobile ? 88 : 160;
-  const colMinWidth = isMobile ? 32 : effectiveSpan === "month" ? 44 : 96;
+  const colMinWidth = isMobile ? 32 : effectiveSpan === "month" ? 20 : 96;
 
-  const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Measure a stable wrapper (not the scroll container itself — its box shifts
+  // by the scrollbar width and would feed a resize loop back into `fits`).
+  const measureRef = useRef<HTMLDivElement | null>(null);
+  const containerWidthRef = useRef(0);
   const [containerWidth, setContainerWidth] = useState(0);
 
   useEffect(() => {
-    const el = scrollRef.current;
+    const el = measureRef.current;
     if (!el) return;
     const observer = new ResizeObserver((entries) => {
-      for (const entry of entries) setContainerWidth(entry.contentRect.width);
+      for (const entry of entries) {
+        const width = Math.round(entry.contentRect.width);
+        if (width !== containerWidthRef.current) {
+          containerWidthRef.current = width;
+          setContainerWidth(width);
+        }
+      }
     });
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
   const innerMinWidth = labelWidth + totalDays * colMinWidth;
-  const fits = containerWidth === 0 || containerWidth >= innerMinWidth;
+  const fits = containerWidth === 0 || containerWidth >= innerMinWidth + 8;
   const perDay = fits
     ? containerWidth > 0
       ? (containerWidth - labelWidth) / totalDays
@@ -283,11 +293,11 @@ export const TimelineView = ({
             : "No beds configured for this property yet."}
         </div>
       ) : (
-        <div
-          ref={scrollRef}
-          className="max-h-[60vh] overflow-auto rounded-lg border"
-        >
-          <div style={fits ? undefined : { minWidth: innerMinWidth }}>
+        <div ref={measureRef}>
+          {/* overflow-y-scroll keeps the scrollbar width constant so the
+              measured container never feeds back into the layout */}
+          <div className="max-h-[60vh] overflow-y-scroll overflow-x-auto rounded-lg border">
+            <div style={fits ? undefined : { minWidth: innerMinWidth }}>
             <div className="sticky top-0 z-20 flex border-b bg-muted">
               <div
                 className="sticky left-0 z-10 shrink-0 border-r bg-muted px-3 py-2 text-xs font-medium text-muted-foreground"
@@ -327,8 +337,8 @@ export const TimelineView = ({
             {templateGroups.map((group) => (
               <Fragment key={group.templateId}>
                 {/* Template section header */}
-                <div className="flex border-b bg-primary/5">
-                  <div className="sticky left-0 z-10 flex h-9 w-full items-center bg-primary/5 px-3 text-xs font-semibold uppercase tracking-wide text-primary">
+                <div className="flex border-b border-l-4 border-l-primary bg-primary/10">
+                  <div className="sticky left-0 z-10 flex h-9 w-full items-center bg-primary/10 px-3 text-xs font-bold uppercase tracking-wider text-primary">
                     {group.templateTitle}
                   </div>
                 </div>
@@ -337,7 +347,7 @@ export const TimelineView = ({
                   <div key={room.roomId}>
                     <div className="flex border-b bg-muted/20">
                       <div
-                        className="sticky left-0 z-10 shrink-0 truncate border-r bg-muted/70 px-3 py-1.5 text-xs font-semibold backdrop-blur"
+                        className="sticky left-0 z-10 shrink-0 truncate border-r bg-muted px-3 py-1.5 text-xs font-semibold"
                         style={{ width: labelWidth }}
                       >
                         {room.roomTitle}
@@ -418,6 +428,7 @@ export const TimelineView = ({
             ))}
           </div>
         </div>
+      </div>
       )}
     </div>
   );
