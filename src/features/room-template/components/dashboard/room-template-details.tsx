@@ -137,7 +137,7 @@ export function RoomTemplateDetails({
         <h2 className="text-xl font-semibold tracking-tight">
           Room Inventory Management
         </h2>
-        <RoomTable rooms={room.rooms} />
+        <RoomTable rooms={room.rooms} propertyId={propertyId} />
       </div>
     </div>
   );

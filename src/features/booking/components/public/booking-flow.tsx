@@ -31,6 +31,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { useCreateBooking } from "../../hooks/use-booking";
 import { useBookingData } from "../../hooks/use-booking";
+import { computeBookingPrice } from "@/lib/pricing";
 import { v4 as uuidv4 } from "uuid";
 import { useRouter } from "next/navigation";
 import { useRazorpay } from "@/features/payment/hooks/use-razorpay";
@@ -267,6 +268,22 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
     control: form.control,
     name: "dateRange",
   });
+
+  const priceBreakdown = (() => {
+    const selectedRoom = bookingData?.roomTemplates.find(
+      (room) => room.id === selectedRoomId,
+    );
+
+    if (!selectedRoom || !selectedDateRange?.from || !selectedDateRange?.to) {
+      return null;
+    }
+
+    return computeBookingPrice(
+      selectedRoom.pricePerBed,
+      selectedDateRange.from,
+      selectedDateRange.to,
+    );
+  })();
 
   if (isLoading) {
     return (
@@ -517,6 +534,33 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
               </span>
             )}
           </div>
+
+          {/* Price breakdown */}
+          {priceBreakdown && (
+            <div className="space-y-2 rounded-xl border bg-muted/30 p-4">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  {priceBreakdown.rateType === "NIGHTLY"
+                    ? `₹${priceBreakdown.nightlyRate.toLocaleString("en-IN")} × ${priceBreakdown.nights} night${priceBreakdown.nights > 1 ? "s" : ""}`
+                    : `₹${priceBreakdown.monthlyRate.toLocaleString("en-IN")}/month × ${priceBreakdown.months} started month${priceBreakdown.months > 1 ? "s" : ""}`}
+                </span>
+                <span>
+                  ₹{priceBreakdown.total.toLocaleString("en-IN")}
+                </span>
+              </div>
+              <div className="flex items-center justify-between border-t pt-2 font-semibold">
+                <span>Total</span>
+                <span>
+                  ₹{priceBreakdown.total.toLocaleString("en-IN")}
+                </span>
+              </div>
+              {priceBreakdown.rateType === "NIGHTLY" && (
+                <p className="text-xs text-muted-foreground">
+                  Stays of 30+ nights are charged at the monthly bed rate.
+                </p>
+              )}
+            </div>
+          )}
 
           {/* Actions */}
           <div className="flex gap-4 justify-end pt-4 border-t">
