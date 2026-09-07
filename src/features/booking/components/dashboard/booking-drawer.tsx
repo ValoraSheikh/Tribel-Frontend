@@ -9,10 +9,11 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Check, X, Download } from "lucide-react";
+import { BedDouble, Check, X, Download } from "lucide-react";
 import { BookingProps, OccupancyBooking } from "../../api/booking.api";
 import { BookingDetailsBody } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
+import { AssignBedDialog } from "./assign-bed-dialog";
 import {
   MarkBookingPaidModal,
   RecordBookingRefundModal,
@@ -38,7 +39,8 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
   return {
     id: booking.id,
     propertyId: booking.property.id,
-    roomId: booking.room.id,
+    roomTemplateId: booking.room?.roomTemplateId ?? "",
+    roomId: booking.room?.id ?? null,
     guestId: booking.guest.id,
     status: booking.status,
     totalPrice: booking.totalPrice,
@@ -46,8 +48,8 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
     endDate: booking.endDate,
     paymentMode: booking.paymentMode,
     paymentStatus: booking.paymentStatus,
-    room: { title: booking.room.title },
-    bed: { bedNo: booking.bed.bedNo },
+    room: booking.room ? { title: booking.room.title } : null,
+    bed: booking.bed ? { bedNo: booking.bed.bedNo } : null,
     guest: {
       firstName: booking.guest.firstName,
       lastName: booking.guest.lastName,
@@ -69,12 +71,23 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
     },
     createdAt: "",
     updatedAt: "",
-    cancelledAt: "",
-    bedId: booking.bed.id,
+    cancelledAt: null,
+    bedId: booking.bed?.id ?? null,
     invoiceId: booking.invoiceId,
     invoice: booking.invoice,
   };
 };
+
+/** IST-day check: the booking's check-in date has arrived or passed. */
+function hasCheckinArrived(startDate: string): boolean {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Kolkata",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(new Date(startDate)) <= formatter.format(new Date());
+}
 
 interface BookingDrawerProps {
   propertyId: string;
@@ -95,6 +108,12 @@ export const BookingDrawer = ({
     bookingId: string;
     status: BookingStatus;
   } | null>(null);
+  const [assignOpen, setAssignOpen] = useState(false);
+
+  const handleSheetOpenChange = (next: boolean) => {
+    if (!next) setAssignOpen(false);
+    onOpenChange(next);
+  };
 
   const displayBooking =
     booking && statusOverride?.bookingId === booking.id
@@ -128,7 +147,7 @@ export const BookingDrawer = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent
         side={isDesktop ? "right" : "bottom"}
         className={`w-full overflow-y-auto p-0 gap-0 sm:max-w-md ${
@@ -147,6 +166,15 @@ export const BookingDrawer = ({
         {displayBooking && (
           <div className="flex h-full flex-col">
             <div className="flex-1 overflow-y-auto">
+              {(displayBooking.status === "PENDING" ||
+                displayBooking.status === "CONFIRMED") &&
+                hasCheckinArrived(displayBooking.startDate) && (
+                  <div className="mx-4 mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                    {displayBooking.bed
+                      ? "This booking's stay has started but is still awaiting your approval."
+                      : "This booking's stay has started with no bed assigned. Assign a bed below, then approve."}
+                  </div>
+                )}
               <BookingDetailsBody booking={toBookingProps(displayBooking)} />
             </div>
 
@@ -172,6 +200,33 @@ export const BookingDrawer = ({
                   </Button>
                 </div>
               )}
+
+              {!displayBooking.bed &&
+                (displayBooking.status === "CONFIRMED" ||
+                  displayBooking.status === "PENDING") && (
+                  <>
+                    <Button
+                      variant="outline"
+                      className="w-full max-sm:h-11"
+                      onClick={() => setAssignOpen(true)}
+                    >
+                      <BedDouble className="mr-1 h-4 w-4" />
+                      Assign bed
+                    </Button>
+                    <AssignBedDialog
+                      propertyId={propertyId}
+                      bookingId={displayBooking.id}
+                      roomTemplateId={displayBooking.room?.roomTemplateId ?? ""}
+                      startDate={displayBooking.startDate}
+                      endDate={displayBooking.endDate}
+                      guestName={`${displayBooking.guest?.firstName ?? "Guest"} ${
+                        displayBooking.guest?.lastName ?? ""
+                      }`.trim()}
+                      open={assignOpen}
+                      onOpenChange={setAssignOpen}
+                    />
+                  </>
+                )}
 
               <div className="flex gap-2 max-sm:flex-col">
                 <Button
