@@ -386,7 +386,7 @@ export const TimelineView = ({
 
                         {todayIdx >= 0 && (
                           <div
-                            className="absolute bottom-0 top-0 z-[5] w-px bg-primary/60"
+                            className="absolute bottom-0 top-0 z-5 w-px bg-primary/60"
                             style={{
                               left: `${((todayIdx + 0.5) / totalDays) * 100}%`,
                             }}
@@ -404,7 +404,7 @@ export const TimelineView = ({
                               type="button"
                               onClick={() => onOpenBooking(booking)}
                               title={`${booking.guest.firstName} ${booking.guest.lastName ?? ""} · ${format(parseISO(booking.startDate), "MMM d")} – ${format(parseISO(booking.endDate), "MMM d")}`}
-                              className={`absolute bottom-1.5 top-1.5 z-[6] overflow-hidden truncate rounded-md px-2 text-left text-xs font-medium transition-opacity hover:opacity-85 ${style.bar}`}
+                              className={`absolute bottom-1.5 top-1.5 z-6 overflow-hidden truncate rounded-md px-2 text-left text-xs font-medium transition-opacity hover:opacity-85 ${style.bar}`}
                               style={segment}
                             >
                               {showName && (
