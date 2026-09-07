@@ -24,7 +24,7 @@ export const BOOKING_STATUS_STYLES: Record<BookingStatus, StatusStyle> = {
     legend: "bg-amber-200 border-2 border-dashed border-amber-500",
   },
   CONFIRMED: {
-    label: "Confirmed",
+    label: "Incoming",
     badge: "bg-blue-50 text-blue-700 border-blue-200",
     bar: "bg-blue-500 text-white border border-blue-600",
     legend: "bg-blue-500",

@@ -48,7 +48,7 @@ export function RoomTable({
   const activeBookingByBedId = useMemo(() => {
     const map = new Map<string, OccupancyBooking>();
     for (const booking of occupancy?.bookings ?? []) {
-      if (isOccupancyStatus(booking.status)) {
+      if (isOccupancyStatus(booking.status) && booking.bed) {
         map.set(booking.bed.id, booking);
       }
     }

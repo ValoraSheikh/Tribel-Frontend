@@ -286,7 +286,12 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
               </p>
               <div className="flex items-center gap-2 text-sm font-medium">
                 <BedIcon className="w-4 h-4 text-primary shrink-0" />
-                <span className="line-clamp-1">{booking.room.title}</span>
+                <span className="line-clamp-1">
+                  {booking.room?.title ??
+                    (booking.bed?.bedNo
+                      ? `Bed ${booking.bed.bedNo}`
+                      : "Awaiting assignment")}
+                </span>
               </div>
             </div>
 

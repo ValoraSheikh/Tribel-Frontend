@@ -357,7 +357,7 @@ export const TimelineView = ({
 
                 {room.beds.map((bed) => {
                   const bedBookings = visibleBookings.filter(
-                    (booking) => booking.bed.id === bed.id,
+                    (booking) => booking.bed?.id === bed.id,
                   );
                   const todayIdx = days.findIndex((day) => isToday(day));
 

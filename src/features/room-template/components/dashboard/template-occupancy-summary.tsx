@@ -38,11 +38,13 @@ export function TemplateOccupancySummary({
   );
   const activeBookings = (data?.bookings ?? []).filter(
     (booking) =>
-      booking.room.roomTemplateId === roomTemplateId &&
+      booking.room?.roomTemplateId === roomTemplateId &&
       isOccupancyStatus(booking.status),
   );
 
-  const occupiedBedIds = new Set(activeBookings.map((b) => b.bed.id));
+  const occupiedBedIds = new Set(
+    activeBookings.map((b) => b.bed?.id).filter((id): id is string => Boolean(id)),
+  );
   const occupiedCount = beds.filter((bed) => occupiedBedIds.has(bed.id)).length;
 
   const weekStart = startOfWeek(now, { weekStartsOn: 1 });

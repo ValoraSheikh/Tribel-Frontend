@@ -117,6 +117,7 @@ export const TheaterView = ({
     const map = new Map<string, OccupancyBooking[]>();
     for (const booking of data?.bookings ?? []) {
       if (!isOccupancyStatus(booking.status)) continue;
+      if (!booking.bed) continue;
       const list = map.get(booking.bed.id) ?? [];
       list.push(booking);
       map.set(booking.bed.id, list);
