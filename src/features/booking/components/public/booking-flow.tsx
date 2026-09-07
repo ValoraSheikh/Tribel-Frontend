@@ -9,6 +9,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RoomCard1 } from "@/features/room-template/components/dashboard/room-templates";
@@ -64,6 +65,10 @@ const paymentOptions = [
 const formSchema = z.object({
   propertyId: z.string().min(1, "Property ID is required"),
   roomTemplateId: z.string().min(1, "Please select a room"),
+  phoneNo: z
+    .string()
+    .min(6, "Please enter a valid phone number")
+    .max(20, "Please enter a valid phone number"),
   paymentMode: z.enum(["ONLINE", "OFFLINE"], {
     message: "Please select a payment mode",
   }),
@@ -122,6 +127,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
           startDate: data.dateRange.from,
           endDate: data.dateRange.to,
           paymentMode: "ONLINE",
+          phoneNo: data.phoneNo,
         },
         idempotencyKey,
       });
@@ -178,6 +184,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
         startDate: data.dateRange.from,
         endDate: data.dateRange.to,
         paymentMode: data.paymentMode as "ONLINE" | "OFFLINE",
+        phoneNo: data.phoneNo,
         status: ""
       };
       createBooking.mutate(
@@ -399,6 +406,26 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
               <span className="text-sm font-medium text-destructive">
                 {form.formState.errors.dateRange.message ||
                   form.formState.errors.dateRange.root?.message}
+              </span>
+            )}
+          </div>
+
+          {/* Guest phone number */}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="booking-phone" className="text-sm font-medium leading-none">
+              Phone number
+            </Label>
+            <Input
+              id="booking-phone"
+              type="tel"
+              inputMode="tel"
+              placeholder="Your contact number"
+              className="text-base sm:text-sm"
+              {...form.register("phoneNo")}
+            />
+            {form.formState.errors.phoneNo && (
+              <span className="text-sm font-medium text-destructive">
+                {form.formState.errors.phoneNo.message}
               </span>
             )}
           </div>
