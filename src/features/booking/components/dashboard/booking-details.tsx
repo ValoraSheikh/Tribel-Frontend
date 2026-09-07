@@ -153,14 +153,23 @@ export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
             </h3>
             <div className="flex items-center justify-between bg-secondary/30 p-3 rounded-md">
               <div>
-                <p className="text-sm font-medium">{booking.room?.title}</p>
+                <p className="text-sm font-medium">
+                  {booking.room?.title ?? "Awaiting bed assignment"}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {booking.property?.address}
                 </p>
               </div>
-              {booking.bed?.bedNo && (
+              {booking.bed?.bedNo ? (
                 <Badge variant="outline" className="bg-background">
                   Bed {booking.bed.bedNo}
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="bg-background border-dashed text-muted-foreground"
+                >
+                  Unassigned
                 </Badge>
               )}
             </div>
