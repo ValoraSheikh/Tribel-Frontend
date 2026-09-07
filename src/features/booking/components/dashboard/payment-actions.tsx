@@ -28,7 +28,7 @@ import {
 } from "../../hooks/use-booking";
 
 const OFFLINE_PROVIDERS = ["CASH", "UPI", "BANK_TRANSFER"] as const;
-const REFUND_METHODS = ["RAZORPAY", "CASH", "UPI", "BANK_TRANSFER"] as const;
+const OFFLINE_REFUND_METHODS = ["CASH", "UPI", "BANK_TRANSFER"] as const;
 
 export function MarkBookingPaidModal({
   propertyId,
@@ -126,21 +126,33 @@ export function RecordBookingRefundModal({
   guestName,
   total,
   paymentMode,
+  defaultAmount,
+  triggerLabel = "Record refund",
 }: {
   propertyId: string;
   bookingId: string;
   guestName: string;
   total: number;
-  paymentMode: string;  
+  paymentMode: string;
+  defaultAmount?: number;
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
-  const [amount, setAmount] = useState<string>(String(total));
-  const [method, setMethod] = useState<string>(
-    paymentMode === "ONLINE" ? "RAZORPAY" : "CASH",
-  );
-  const [razorpayRefundId, setRazorpayRefundId] = useState("");
+  const [amount, setAmount] = useState<string>(String(defaultAmount ?? total));
+  const [method, setMethod] = useState<string>("CASH");
   const [reference, setReference] = useState("");
   const recordRefund = useRecordBookingRefund(propertyId, bookingId);
+
+  const isOnline = paymentMode === "ONLINE";
+
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (next) {
+      setAmount(String(defaultAmount ?? total));
+      setMethod("CASH");
+      setReference("");
+    }
+  }
 
   function handleSubmit() {
     const parsedAmount = Number(amount);
@@ -152,41 +164,37 @@ export function RecordBookingRefundModal({
     recordRefund.mutate(
       {
         amount: parsedAmount,
-        method,
-        razorpayRefundId: razorpayRefundId || undefined,
         reference: reference || undefined,
       },
       {
         onSuccess: () => {
-          toast.success("Refund recorded");
+          toast.success(
+            isOnline
+              ? "Refund initiated via Razorpay — status updates once processed"
+              : "Refund recorded",
+          );
           setOpen(false);
-          setRazorpayRefundId("");
           setReference("");
-          setAmount(String(total));
         },
       },
     );
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full max-sm:h-11">
           <Undo2 className="mr-1 h-4 w-4" />
-          Record refund
+          {triggerLabel}
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle>Record refund</DialogTitle>
+          <DialogTitle>{isOnline ? "Refund guest" : "Record refund"}</DialogTitle>
           <DialogDescription>
-            Record the refund issued to {guestName}. Booking total is{" "}
-            {total.toLocaleString("en-IN", {
-              style: "currency",
-              currency: "INR",
-              maximumFractionDigits: 0,
-            })}
-            .
+            {isOnline
+              ? `Refunds for online payments are processed through Razorpay to ${guestName} and typically settle in 5–7 working days. Booking total is ${total.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}.`
+              : `Record the refund issued to ${guestName}. Booking total is ${total.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -207,41 +215,31 @@ export function RecordBookingRefundModal({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>Refund method</Label>
-            <Select value={method} onValueChange={setMethod}>
-              <SelectTrigger className="w-full">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {REFUND_METHODS.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {m.replace("_", " ")}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {method === "RAZORPAY" && (
+          {!isOnline && (
             <div className="space-y-2">
-              <Label htmlFor="razorpay-refund-id">
-                Razorpay refund ID (optional)
-              </Label>
-              <Input
-                id="razorpay-refund-id"
-                placeholder="rfnd_..."
-                value={razorpayRefundId}
-                onChange={(e) => setRazorpayRefundId(e.target.value)}
-              />
+              <Label>Refund method</Label>
+              <Select value={method} onValueChange={setMethod}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {OFFLINE_REFUND_METHODS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m.replace("_", " ")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="refund-reference">Reference (optional)</Label>
+            <Label htmlFor="refund-reference">
+              Reference {isOnline ? "(optional reason)" : "(optional)"}
+            </Label>
             <Input
               id="refund-reference"
-              placeholder="Note, UTR, receipt..."
+              placeholder={isOnline ? "Reason for refund..." : "Note, UTR, receipt..."}
               value={reference}
               onChange={(e) => setReference(e.target.value)}
             />
@@ -259,7 +257,13 @@ export function RecordBookingRefundModal({
             {recordRefund.isPending && (
               <Loader2 className="mr-1 h-4 w-4 animate-spin" />
             )}
-            {recordRefund.isPending ? "Recording..." : "Record refund"}
+            {recordRefund.isPending
+              ? isOnline
+                ? "Initiating..."
+                : "Recording..."
+              : isOnline
+                ? "Initiate refund"
+                : "Record refund"}
           </Button>
         </DialogFooter>
       </DialogContent>
