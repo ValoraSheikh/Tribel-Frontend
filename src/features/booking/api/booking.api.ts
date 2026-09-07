@@ -5,7 +5,8 @@ import { AxiosInstance } from "axios";
 export interface BookingProps {
   id: string;
   propertyId: string;
-  roomId: string;
+  roomTemplateId: string;
+  roomId: string | null;
   guestId: string;
   status:
     | "PENDING"
@@ -26,14 +27,15 @@ export interface BookingProps {
     | "PARTIALLY_PAID"
     | "REJECTED"
     | "REFUNDED";
-  room: Room;
-  bed: Bed;
+  payments?: { refundStatus: "PENDING" | "PROCESSED" | "FAILED" | null }[];
+  room: Room | null;
+  bed: Bed | null;
   guest: Guest;
   endDate: string;
   createdAt: string;
   updatedAt: string;
-  cancelledAt: string;
-  bedId: string;
+  cancelledAt: string | null;
+  bedId: string | null;
   invoiceId?: string | null;
   invoice?: {
     status: "PENDING" | "GENERATED" | "FAILED";
@@ -60,16 +62,16 @@ export interface OccupancyBooking {
     phoneNo: string | null;
     avatar: string | null;
   };
-  bed: {
+  bed?: {
     id: string;
     bedNo: number;
     roomId: string;
-  };
-  room: {
+  } | null;
+  room?: {
     id: string;
     title: string;
     roomTemplateId: string;
-  };
+  } | null;
   property: {
     id: string;
     title: string;
@@ -167,6 +169,7 @@ export interface CreateBookingPayload {
   startDate: Date;
   endDate: Date;
   paymentMode: "ONLINE" | "OFFLINE";
+  phoneNo?: string;
 }
 
 export const bookingApi = {
@@ -306,13 +309,46 @@ export const bookingApi = {
     bookingId: string,
     payload: {
       amount?: number;
-      method?: string;
       reference?: string;
-      razorpayRefundId?: string;
     } = {},
   ) => {
     const { data } = await axiosClient.patch(
       `/api/v1/booking/admin/${propertyId}/payment/refund`,
+      { bookingId, ...payload },
+    );
+    return data.data;
+  },
+
+  assignBookingBed: async (
+    propertyId: string,
+    bookingId: string,
+    bedId: string,
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/booking/assign-bed`,
+      { bookingId, bedId },
+    );
+    return data.data;
+  },
+
+  updateGuestBookingDates: async (
+    bookingId: string,
+    payload: { startDate: string; endDate: string },
+  ) => {
+    const { data } = await axiosClient.patch(`/api/v1/booking/dates`, {
+      bookingId,
+      ...payload,
+    });
+    return data.data;
+  },
+
+  updateAdminBookingDates: async (
+    propertyId: string,
+    bookingId: string,
+    payload: { startDate: string; endDate: string },
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/booking/dates`,
       { bookingId, ...payload },
     );
     return data.data;
