@@ -121,9 +121,7 @@ export const useRecordBookingRefund = (
     mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "refund"],
     mutationFn: (payload: {
       amount?: number;
-      method?: string;
       reference?: string;
-      razorpayRefundId?: string;
     }) => bookingApi.recordBookingRefund(propertyId, bookingId, payload),
     onSettled: () => {
       queryClient.invalidateQueries({
@@ -140,6 +138,79 @@ export const useRecordBookingRefund = (
     },
     onError: (err) => {
       toast.error(err?.message || "Failed to record refund");
+    },
+  });
+};
+
+export const useAssignBookingBed = (propertyId: string, bookingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "assign-bed"],
+    mutationFn: (bedId: string) =>
+      bookingApi.assignBookingBed(propertyId, bookingId, bedId),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to assign bed");
+    },
+  });
+};
+
+export const useUpdateBookingDates = (options: {
+  propertyId?: string;
+  bookingId: string;
+  actor: "GUEST" | "ADMIN";
+}) => {
+  const queryClient = useQueryClient();
+  const { propertyId, bookingId, actor } = options;
+
+  return useMutation({
+    mutationKey: ["booking-dates", actor, propertyId ?? "", bookingId],
+    mutationFn: (payload: { startDate: string; endDate: string }) =>
+      actor === "GUEST"
+        ? bookingApi.updateGuestBookingDates(bookingId, payload)
+        : bookingApi.updateAdminBookingDates(
+            propertyId!,
+            bookingId,
+            payload,
+          ),
+    onSettled: () => {
+      if (propertyId) {
+        queryClient.invalidateQueries({
+          queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_USER_BOOKING_KEY, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: USE_USER_BOOKINGS_KEY,
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to update booking dates");
     },
   });
 };
