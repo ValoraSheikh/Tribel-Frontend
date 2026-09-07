@@ -272,14 +272,35 @@ export const BookingDashboard = ({
                       <TableCell>
                         <div className="flex flex-col gap-1">
                           <span className="font-medium">
-                            {booking.room?.title}
+                            {booking.room?.title ?? (
+                              <span className="text-muted-foreground">
+                                Awaiting bed assignment
+                              </span>
+                            )}
                           </span>
                           <div className="flex gap-2">
-                            {booking.bed?.bedNo && (
+                            {booking.bed?.bedNo ? (
                               <Badge variant="secondary" className="text-xs">
                                 Bed {booking.bed.bedNo}
                               </Badge>
+                            ) : (
+                              (booking.status === "PENDING" ||
+                                booking.status === "CONFIRMED") && (
+                                <Badge
+                                  variant="outline"
+                                  className="border-dashed text-xs text-muted-foreground"
+                                >
+                                  Unassigned
+                                </Badge>
+                              )
                             )}
+                            {(booking.status === "PENDING" ||
+                              booking.status === "CONFIRMED") &&
+                              new Date(booking.startDate) <= new Date() && (
+                                <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
+                                  Needs attention
+                                </Badge>
+                              )}
                           </div>
                           <span className="text-xs text-muted-foreground truncate max-w-[150px]">
                             {booking.property?.title}
