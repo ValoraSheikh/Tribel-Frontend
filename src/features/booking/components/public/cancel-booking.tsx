@@ -15,56 +15,68 @@ import { toast } from "sonner";
 import { useCancelBooking } from "../../hooks/use-booking";
 import { useState } from "react";
 
-export function CancelBookingModal({ bookingId }: { bookingId: string }) {
-  const [open, setOpen] = useState<boolean>(false);
+export function CancelBookingModal({
+  bookingId,
+  onCancelled,
+  open: controlledOpen,
+  onOpenChange,
+}: {
+  bookingId: string;
+  onCancelled?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}) {
+  const [internalOpen, setInternalOpen] = useState<boolean>(false);
+  const isControlled = controlledOpen !== undefined;
+  const dialogOpen = isControlled ? controlledOpen : internalOpen;
+  const setOpen = (next: boolean) => {
+    onOpenChange?.(next);
+    if (!isControlled) setInternalOpen(next);
+  };
   const cancelBooking = useCancelBooking(bookingId);
 
   function handleCancel() {
     cancelBooking.mutate(undefined, {
       onSuccess: () => {
-        toast.success("Booking cancelled successfully ");
+        toast.success("Booking cancelled successfully");
         setOpen(false);
+        onCancelled?.();
       },
       onError: (error) => {
         toast.error("Failed to cancel booking", {
           description: error.message || "Something went wrong.",
           position: "bottom-right",
-          classNames: {
-            content: "flex flex-col gap-2",
-          },
-          style: {
-            "--border-radius": "calc(var(--radius)  + 4px)",
-          } as React.CSSProperties,
         });
       },
     });
   }
-  
+
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <span className="cursor-pointer">Cancel Booking</span>
-      </AlertDialogTrigger>
-      <AlertDialogContent>
+    <AlertDialog open={dialogOpen} onOpenChange={setOpen}>
+      {!isControlled && (
+        <AlertDialogTrigger asChild>
+          <span className="cursor-pointer">Cancel Booking</span>
+        </AlertDialogTrigger>
+      )}
+      <AlertDialogContent className="sm:max-w-sm">
         <AlertDialogHeader>
-          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+          <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
           <AlertDialogDescription>
-            This action cannot be undone. This will cancel booking.
+            Your stay dates will be released back to the property. This action
+            cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <>
-            <Button
-              type="button"
-              variant="destructive"
-              disabled={cancelBooking.isPending}
-              onClick={() => handleCancel()}
-              className="min-w-[100px]"
-            >
-              {cancelBooking.isPending ? "Cancelling..." : "Cancel Booking"}
-            </Button>
-          </>
+          <AlertDialogCancel>Keep booking</AlertDialogCancel>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={cancelBooking.isPending}
+            onClick={() => handleCancel()}
+            className="min-w-[120px]"
+          >
+            {cancelBooking.isPending ? "Cancelling..." : "Cancel booking"}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
