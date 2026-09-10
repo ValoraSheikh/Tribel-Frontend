@@ -67,8 +67,7 @@ const formSchema = z.object({
   roomTemplateId: z.string().min(1, "Please select a room"),
   phoneNo: z
     .string()
-    .min(6, "Please enter a valid phone number")
-    .max(20, "Please enter a valid phone number"),
+    .regex(/^[6-9]\d{9}$/, "Enter a valid 10-digit mobile number"),
   paymentMode: z.enum(["ONLINE", "OFFLINE"], {
     message: "Please select a payment mode",
   }),
@@ -108,6 +107,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
+    mode: "onTouched",
     defaultValues: {
       propertyId: propertyId,
       roomTemplateId: "",
@@ -415,14 +415,25 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
             <Label htmlFor="booking-phone" className="text-sm font-medium leading-none">
               Phone number
             </Label>
-            <Input
-              id="booking-phone"
-              type="tel"
-              inputMode="tel"
-              placeholder="Your contact number"
-              className="text-base sm:text-sm"
-              {...form.register("phoneNo")}
-            />
+            <div className="flex">
+              <span
+                aria-hidden="true"
+                className={`inline-flex items-center rounded-l-md border border-r-0 border-input bg-muted px-3 text-sm text-muted-foreground ${
+                  form.formState.errors.phoneNo ? "border-destructive" : ""
+                }`}
+              >
+                +91
+              </span>
+              <Input
+                id="booking-phone"
+                type="tel"
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="98765 43210"
+                className="text-base sm:text-sm rounded-l-none"
+                {...form.register("phoneNo")}
+              />
+            </div>
             {form.formState.errors.phoneNo && (
               <span className="text-sm font-medium text-destructive">
                 {form.formState.errors.phoneNo.message}
@@ -459,23 +470,23 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
                     key={option.value}
                     htmlFor={`payment-${option.value.toLowerCase()}`}
                     className={cn(
-                      "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-background p-4 shadow-xs transition-all hover:border-rose-300 hover:bg-rose-50/40 sm:min-h-32",
+                      "relative flex cursor-pointer items-start gap-3 rounded-2xl border bg-background p-4 shadow-xs transition-all hover:border-primary/40 hover:bg-primary/5 sm:min-h-32",
                       isSelected
-                        ? "border-rose-500 bg-rose-50 ring-2 ring-rose-500/20"
+                        ? "border-primary bg-primary/5 ring-2 ring-primary/20"
                         : "border-border",
                     )}
                   >
                     <RadioGroupItem
                       id={`payment-${option.value.toLowerCase()}`}
                       value={option.value}
-                      className="mt-1 border-rose-500 text-rose-600"
+                      className="mt-1 border-primary text-primary"
                     />
                     <div className="flex min-w-0 flex-1 gap-3">
                       <div
                         className={cn(
                           "hidden size-10 shrink-0 items-center justify-center rounded-full sm:flex",
                           isSelected
-                            ? "bg-rose-500 text-white"
+                            ? "bg-primary text-primary-foreground"
                             : "bg-muted text-muted-foreground",
                         )}
                       >
@@ -515,7 +526,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
 
             {bookingData && bookingData.roomTemplates.length > 0 && (
               <ScrollArea className="h-[300px] sm:h-[400px] pr-4 border rounded-md p-2 bg-muted/10">
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-3">
                   {bookingData.roomTemplates.map((room: RoomTemplateProps) => {
                     const isSelected = selectedRoomId === room.id;
                     return (
@@ -528,19 +539,18 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
                           })
                         }
                         className={cn(
-                          "relative cursor-pointer rounded-xl border-2 transition-all duration-200",
+                          "relative cursor-pointer rounded-2xl border-2 transition-all duration-200",
                           isSelected
-                            ? "border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/50"
+                            ? "border-primary ring-2 ring-primary/20 bg-primary/5"
                             : "border-transparent hover:border-muted-foreground/20",
                         )}
                       >
-                        {isSelected && (
-                          <div className="absolute top-3 right-3 z-20 bg-rose-500 text-white rounded-full p-1 shadow-sm">
-                            <CheckCircle2 className="w-4 h-4" />
-                          </div>
-                        )}
                         <div className="pointer-events-none">
-                          <RoomCard1 room={room} />
+                          <RoomCard1
+                            room={room}
+                            selected={isSelected}
+                            variant="embedded"
+                          />
                         </div>
                       </div>
                     );
@@ -600,8 +610,8 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
             </Button>
             <Button
               type="submit"
-              disabled={createBooking.isPending}
-              className="bg-rose-600 hover:bg-rose-700 text-white"
+              disabled={createBooking.isPending || !form.formState.isValid}
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {createBooking.isPending ? (
                 <span className="flex items-center justify-center gap-2">
@@ -620,7 +630,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
           {/* Creating order */}
           {paymentState === "creating-order" && (
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="h-10 w-10 animate-spin text-rose-500" />
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="text-lg font-medium">Creating payment order...</p>
             </div>
           )}
@@ -628,7 +638,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
           {/* Checkout open */}
           {paymentState === "checkout-open" && (
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="h-10 w-10 animate-spin text-rose-500" />
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="text-lg font-medium">
                 Complete payment in the popup...
               </p>
@@ -641,7 +651,7 @@ export function BookingFlow({ propertyId }: { propertyId: string }) {
           {/* Verifying */}
           {paymentState === "verifying" && (
             <div className="flex flex-col items-center gap-3">
-              <Loader2 className="h-10 w-10 animate-spin text-rose-500" />
+              <Loader2 className="h-10 w-10 animate-spin text-primary" />
               <p className="text-lg font-medium">Verifying payment...</p>
             </div>
           )}
