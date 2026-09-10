@@ -322,7 +322,40 @@ export const useCancelBooking = (bookingId: string) => {
     },
 
     onError: (err) => {
-      toast.error(err?.message || "Failed to create booking");
+      toast.error(err?.message || "Failed to cancel booking");
+    },
+  });
+};
+
+export const useUpdateGuestBookingDates = (bookingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_USER_BOOKING_KEY, bookingId, "dates"],
+    mutationFn: (payload: { startDate: Date; endDate: Date }) =>
+      bookingApi.updateGuestBookingDates(bookingId, {
+        startDate: payload.startDate.toISOString(),
+        endDate: payload.endDate.toISOString(),
+      }),
+    onSuccess: () => {
+      toast.success("Booking dates updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_USER_BOOKING_KEY, bookingId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_USER_BOOKINGS_KEY,
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_ADMIN_BOOKINGS_KEY,
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_OCCUPANCY_KEY,
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to update booking dates");
     },
   });
 };
