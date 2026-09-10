@@ -295,7 +295,8 @@ export const BookingDashboard = ({
                               )
                             )}
                             {(booking.status === "PENDING" ||
-                              booking.status === "CONFIRMED") &&
+                              (booking.status === "CONFIRMED" &&
+                                !booking.bedId)) &&
                               new Date(booking.startDate) <= new Date() && (
                                 <Badge className="bg-amber-100 text-amber-800 border-amber-200 text-xs">
                                   Needs attention
