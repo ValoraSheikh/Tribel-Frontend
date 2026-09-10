@@ -34,15 +34,26 @@ export function MarkBookingPaidModal({
   propertyId,
   bookingId,
   guestName,
+  open: controlledOpen,
+  onOpenChange: onControlledOpenChange,
 }: {
   propertyId: string;
   bookingId: string;
   guestName: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
   const [provider, setProvider] = useState<string>("CASH");
   const [reference, setReference] = useState("");
   const markPaid = useMarkBookingPaid(propertyId, bookingId);
+
+  function handleOpenChange(next: boolean) {
+    onControlledOpenChange?.(next);
+    if (!isControlled) setInternalOpen(next);
+  }
 
   function handleSubmit() {
     markPaid.mutate(
@@ -50,7 +61,7 @@ export function MarkBookingPaidModal({
       {
         onSuccess: () => {
           toast.success("Payment marked as paid");
-          setOpen(false);
+          handleOpenChange(false);
           setReference("");
         },
       },
@@ -58,13 +69,15 @@ export function MarkBookingPaidModal({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full max-sm:h-11">
-          <Banknote className="mr-1 h-4 w-4" />
-          Mark as paid
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full max-sm:h-11">
+            <Banknote className="mr-1 h-4 w-4" />
+            Mark as paid
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>Record offline payment</DialogTitle>
@@ -128,6 +141,8 @@ export function RecordBookingRefundModal({
   paymentMode,
   defaultAmount,
   triggerLabel = "Record refund",
+  open: controlledOpen,
+  onOpenChange: onControlledOpenChange,
 }: {
   propertyId: string;
   bookingId: string;
@@ -136,8 +151,12 @@ export function RecordBookingRefundModal({
   paymentMode: string;
   defaultAmount?: number;
   triggerLabel?: string;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
   const [amount, setAmount] = useState<string>(String(defaultAmount ?? total));
   const [method, setMethod] = useState<string>("CASH");
   const [reference, setReference] = useState("");
@@ -146,7 +165,8 @@ export function RecordBookingRefundModal({
   const isOnline = paymentMode === "ONLINE";
 
   function handleOpenChange(next: boolean) {
-    setOpen(next);
+    onControlledOpenChange?.(next);
+    if (!isControlled) setInternalOpen(next);
     if (next) {
       setAmount(String(defaultAmount ?? total));
       setMethod("CASH");
@@ -173,7 +193,7 @@ export function RecordBookingRefundModal({
               ? "Refund initiated via Razorpay — status updates once processed"
               : "Refund recorded",
           );
-          setOpen(false);
+          handleOpenChange(false);
           setReference("");
         },
       },
@@ -182,12 +202,14 @@ export function RecordBookingRefundModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="w-full max-sm:h-11">
-          <Undo2 className="mr-1 h-4 w-4" />
-          {triggerLabel}
-        </Button>
-      </DialogTrigger>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          <Button variant="outline" className="w-full max-sm:h-11">
+            <Undo2 className="mr-1 h-4 w-4" />
+            {triggerLabel}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{isOnline ? "Refund guest" : "Record refund"}</DialogTitle>
