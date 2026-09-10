@@ -9,7 +9,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { BedDouble, Check, X, Download } from "lucide-react";
+import { Check, Circle } from "lucide-react";
 import { BookingProps, OccupancyBooking } from "../../api/booking.api";
 import { BookingDetailsBody } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
@@ -39,7 +39,7 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
   return {
     id: booking.id,
     propertyId: booking.property.id,
-    roomTemplateId: booking.room?.roomTemplateId ?? "",
+    roomTemplateId: booking.roomTemplateId,
     roomId: booking.room?.id ?? null,
     guestId: booking.guest.id,
     status: booking.status,
@@ -48,9 +48,18 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
     endDate: booking.endDate,
     paymentMode: booking.paymentMode,
     paymentStatus: booking.paymentStatus,
-    room: booking.room ? { title: booking.room.title } : null,
-    bed: booking.bed ? { bedNo: booking.bed.bedNo } : null,
+    room: booking.room
+      ? { id: booking.room.id, title: booking.room.title }
+      : null,
+    bed: booking.bed
+      ? {
+          id: booking.bed.id,
+          bedNo: booking.bed.bedNo,
+          roomId: booking.bed.roomId,
+        }
+      : null,
     guest: {
+      id: booking.guest.id,
       firstName: booking.guest.firstName,
       lastName: booking.guest.lastName,
       email: booking.guest.email,
@@ -109,9 +118,17 @@ export const BookingDrawer = ({
     status: BookingStatus;
   } | null>(null);
   const [assignOpen, setAssignOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [markPaidOpen, setMarkPaidOpen] = useState(false);
+  const [refundOpen, setRefundOpen] = useState(false);
 
   const handleSheetOpenChange = (next: boolean) => {
-    if (!next) setAssignOpen(false);
+    if (!next) {
+      setAssignOpen(false);
+      setCancelOpen(false);
+      setMarkPaidOpen(false);
+      setRefundOpen(false);
+    }
     onOpenChange(next);
   };
 
@@ -135,6 +152,70 @@ export const BookingDrawer = ({
     );
   };
 
+  const guestName =
+    `${displayBooking?.guest?.firstName ?? "Guest"} ${displayBooking?.guest?.lastName ?? ""}`.trim();
+  const status = displayBooking?.status;
+  const isPending = status === "PENDING";
+  const isConfirmed = status === "CONFIRMED";
+  const isOngoing = status === "ONGOING";
+  const isTerminal =
+    status === "CANCELLED" || status === "REJECTED" || status === "COMPLETED";
+  const bedAssigned = Boolean(displayBooking?.bed);
+  const bedLabel = displayBooking?.bed ? `Bed ${displayBooking.bed.bedNo}` : "";
+  const offlineUnpaid =
+    displayBooking?.paymentMode === "OFFLINE" &&
+    displayBooking?.paymentStatus === "PENDING";
+  const refundable =
+    displayBooking?.paymentStatus === "PAID" ||
+    displayBooking?.paymentStatus === "PARTIALLY_PAID";
+  const hasArrived = displayBooking
+    ? hasCheckinArrived(displayBooking.startDate)
+    : false;
+
+  const checklist: { label: string; done: boolean }[] = [];
+  if (isPending) {
+    checklist.push(
+      bedAssigned
+        ? { label: `Bed assigned (${bedLabel})`, done: true }
+        : { label: "Assign a bed", done: false },
+      { label: "Approve booking", done: false },
+    );
+  } else if (isConfirmed) {
+    checklist.push({ label: "Booking approved", done: true });
+    checklist.push(
+      bedAssigned
+        ? { label: `Bed assigned (${bedLabel})`, done: true }
+        : { label: "Assign a bed", done: false },
+    );
+    if (offlineUnpaid) {
+      checklist.push({
+        label: hasArrived ? "Collect payment" : "Collect payment (due by check-in)",
+        done: false,
+      });
+    }
+  } else if (isOngoing) {
+    checklist.push({ label: "Guest checked in", done: true });
+    if (offlineUnpaid) {
+      checklist.push({ label: "Collect payment", done: false });
+    }
+  }
+
+  let primary: { label: string; onClick: () => void; disabled?: boolean } | null =
+    null;
+  if (isPending && !bedAssigned) {
+    primary = { label: "Assign bed & approve", onClick: () => setAssignOpen(true) };
+  } else if (isPending) {
+    primary = {
+      label: "Approve booking",
+      onClick: () => handleStatusAction("APPROVE"),
+      disabled: updateStatus.isPending,
+    };
+  } else if (isConfirmed && !bedAssigned) {
+    primary = { label: "Assign bed", onClick: () => setAssignOpen(true) };
+  } else if (isOngoing && offlineUnpaid) {
+    primary = { label: "Collect payment", onClick: () => setMarkPaidOpen(true) };
+  }
+
   const handleDownloadInvoice = async (bookingId: string) => {
     try {
       const result = await invoiceApi.getAdminInvoice(bookingId);
@@ -150,7 +231,7 @@ export const BookingDrawer = ({
     <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent
         side={isDesktop ? "right" : "bottom"}
-        className={`w-full overflow-y-auto p-0 gap-0 sm:max-w-md ${
+        className={`w-full overflow-y-auto p-0 gap-0 sm:max-w-lg ${
           isDesktop ? "" : "max-h-[85vh] rounded-t-2xl"
         }`}
       >
@@ -178,106 +259,141 @@ export const BookingDrawer = ({
               <BookingDetailsBody booking={toBookingProps(displayBooking)} />
             </div>
 
-            <div className="border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] space-y-2">
-              {displayBooking.status === "PENDING" && (
-                <div className="flex gap-2 max-sm:flex-col">
-                  <Button
-                    className="max-sm:h-11 flex-1"
-                    disabled={updateStatus.isPending}
-                    onClick={() => handleStatusAction("APPROVE")}
-                  >
-                    <Check className="mr-1 h-4 w-4" />
-                    Approve
-                  </Button>
-                  <Button
-                    className="max-sm:h-11 flex-1"
-                    variant="destructive"
-                    disabled={updateStatus.isPending}
-                    onClick={() => handleStatusAction("REJECT")}
-                  >
-                    <X className="mr-1 h-4 w-4" />
-                    Reject
-                  </Button>
+            <div className="space-y-3 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              {!isTerminal && checklist.length > 0 && (
+                <div className="space-y-1.5 rounded-lg bg-muted/40 p-3">
+                  {checklist.map((item) => (
+                    <p
+                      key={item.label}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      {item.done ? (
+                        <Check className="h-3.5 w-3.5 shrink-0 text-emerald-600" />
+                      ) : (
+                        <Circle className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      )}
+                      <span
+                        className={item.done ? "text-muted-foreground" : undefined}
+                      >
+                        {item.label}
+                      </span>
+                    </p>
+                  ))}
+                  {!primary && (
+                    <p className="pt-1 text-sm text-muted-foreground">
+                      {isConfirmed
+                        ? "All set — awaiting check-in."
+                        : "Guest is in-house."}
+                    </p>
+                  )}
                 </div>
               )}
 
-              {!displayBooking.bed &&
-                (displayBooking.status === "CONFIRMED" ||
-                  displayBooking.status === "PENDING") && (
-                  <>
-                    <Button
-                      variant="outline"
-                      className="w-full max-sm:h-11"
-                      onClick={() => setAssignOpen(true)}
-                    >
-                      <BedDouble className="mr-1 h-4 w-4" />
-                      Assign bed
-                    </Button>
-                    <AssignBedDialog
-                      propertyId={propertyId}
-                      bookingId={displayBooking.id}
-                      roomTemplateId={displayBooking.room?.roomTemplateId ?? ""}
-                      startDate={displayBooking.startDate}
-                      endDate={displayBooking.endDate}
-                      guestName={`${displayBooking.guest?.firstName ?? "Guest"} ${
-                        displayBooking.guest?.lastName ?? ""
-                      }`.trim()}
-                      open={assignOpen}
-                      onOpenChange={setAssignOpen}
-                    />
-                  </>
-                )}
-
-              <div className="flex gap-2 max-sm:flex-col">
+              {primary && (
                 <Button
-                  className="max-sm:h-11 flex-1"
-                  variant="outline"
+                  className="max-sm:h-11 w-full"
+                  disabled={primary.disabled}
+                  onClick={primary.onClick}
+                >
+                  {primary.label}
+                </Button>
+              )}
+
+              <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm">
+                {isConfirmed && offlineUnpaid && (
+                  <button
+                    type="button"
+                    className="text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                    onClick={() => setMarkPaidOpen(true)}
+                  >
+                    Mark as paid
+                  </button>
+                )}
+                {refundable && (
+                  <button
+                    type="button"
+                    className="text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                    onClick={() => setRefundOpen(true)}
+                  >
+                    Record refund
+                  </button>
+                )}
+                <button
+                  type="button"
                   disabled={!displayBooking.invoiceId}
+                  className={
+                    displayBooking.invoiceId
+                      ? "text-muted-foreground transition-colors hover:text-foreground hover:underline"
+                      : "cursor-not-allowed text-muted-foreground/50"
+                  }
                   onClick={() => handleDownloadInvoice(displayBooking.id)}
                 >
-                  <Download className="mr-1 h-4 w-4" />
                   Invoice
-                </Button>
+                </button>
+                {isPending && (
+                  <button
+                    type="button"
+                    disabled={updateStatus.isPending}
+                    className="text-destructive transition-colors hover:text-destructive/80 hover:underline disabled:opacity-50"
+                    onClick={() => handleStatusAction("REJECT")}
+                  >
+                    Reject booking
+                  </button>
+                )}
+                {!isTerminal && (
+                  <button
+                    type="button"
+                    className="text-destructive transition-colors hover:text-destructive/80 hover:underline"
+                    onClick={() => setCancelOpen(true)}
+                  >
+                    Cancel booking
+                  </button>
+                )}
               </div>
 
-              {displayBooking.paymentMode === "OFFLINE" &&
-                displayBooking.paymentStatus === "PENDING" && (
+              {displayBooking && (
+                <>
+                  <AssignBedDialog
+                    propertyId={propertyId}
+                    bookingId={displayBooking.id}
+                    roomTemplateId={displayBooking.roomTemplateId}
+                    startDate={displayBooking.startDate}
+                    endDate={displayBooking.endDate}
+                    guestName={guestName}
+                    open={assignOpen}
+                    onOpenChange={setAssignOpen}
+                    onAssigned={() => {
+                      if (isPending) handleStatusAction("APPROVE");
+                    }}
+                  />
                   <MarkBookingPaidModal
                     propertyId={propertyId}
                     bookingId={displayBooking.id}
-                    guestName={`${displayBooking.guest?.firstName ?? "Guest"} ${
-                      displayBooking.guest?.lastName ?? ""
-                    }`.trim()}
+                    guestName={guestName}
+                    open={markPaidOpen}
+                    onOpenChange={setMarkPaidOpen}
                   />
-                )}
-
-              {(displayBooking.paymentStatus === "PAID" ||
-                displayBooking.paymentStatus === "PARTIALLY_PAID") && (
-                <RecordBookingRefundModal
-                  propertyId={propertyId}
-                  bookingId={displayBooking.id}
-                  guestName={`${displayBooking.guest?.firstName ?? "Guest"} ${
-                    displayBooking.guest?.lastName ?? ""
-                  }`.trim()}
-                  total={Number(displayBooking.totalPrice)}
-                  paymentMode={displayBooking.paymentMode}
-                />
+                  <RecordBookingRefundModal
+                    propertyId={propertyId}
+                    bookingId={displayBooking.id}
+                    guestName={guestName}
+                    total={Number(displayBooking.totalPrice)}
+                    paymentMode={displayBooking.paymentMode}
+                    open={refundOpen}
+                    onOpenChange={setRefundOpen}
+                  />
+                  <CancelAdminBookingModal
+                    propertyId={propertyId}
+                    bookingId={displayBooking.id}
+                    open={cancelOpen}
+                    onOpenChange={setCancelOpen}
+                    onCancelled={() => {
+                      setCancelOpen(false);
+                      onOpenChange(false);
+                    }}
+                  />
+                </>
               )}
-
-              {displayBooking.status !== "CANCELLED" &&
-                displayBooking.status !== "REJECTED" &&
-                displayBooking.status !== "COMPLETED" && (
-                  <Button
-                    className="max-sm:h-11 w-full"
-                    variant="ghost"
-                  >
-                    <CancelAdminBookingModal
-                      propertyId={propertyId}
-                      bookingId={displayBooking.id}
-                      onCancelled={() => onOpenChange(false)}
-                    />
-                  </Button>
-                )}
             </div>
           </div>
         )}

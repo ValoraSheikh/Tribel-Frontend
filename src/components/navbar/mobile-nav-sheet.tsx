@@ -104,7 +104,7 @@ export function MobileNavSheet({
               {session ? (
               <>
                 <div className="flex items-center gap-3">
-                  <AvatarImg avatar={toUrl(session.avatar!)} />
+                  <AvatarImg avatar={toUrl(session.avatar!)} onClick={close} />
                   <div className="flex flex-col">
                     <span className="text-sm font-medium">
                       {session.firstName} {session.lastName}
