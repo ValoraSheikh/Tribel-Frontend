@@ -50,6 +50,7 @@ export interface OccupancyBooking {
   endDate: string;
   paymentMode: "ONLINE" | "OFFLINE";
   paymentStatus: BookingProps["paymentStatus"];
+  roomTemplateId: string;
   invoiceId?: string | null;
   invoice?: {
     status: "PENDING" | "GENERATED" | "FAILED";
@@ -120,6 +121,7 @@ export interface BookingDataResponse {
 }
 
 interface Guest {
+  id: string;
   firstName: string;
   lastName: string | null;
   email: string;
@@ -141,11 +143,14 @@ interface PropertyProps {
 }
 
 interface Room {
+  id: string;
   title: string;
 }
 
 interface Bed {
+  id: string;
   bedNo: number;
+  roomId: string;
 }
 
 interface BookingsResponse {
@@ -275,6 +280,8 @@ export const bookingApi = {
         params: query,
       },
     );
+
+    console.log("data is in API frontend", data.data);
     return data.data;
   },
 
@@ -393,3 +400,52 @@ export const serverBookingApi = {
     return data.data;
   },
 };
+
+/**
+ * Maps a paginated booking row (admin list / guest list shape) into the
+ * richer booking shape the details sheet renders.
+ */
+export function toDrawerBooking(booking: BookingProps): OccupancyBooking {
+  return {
+    id: booking.id,
+    status: booking.status,
+    totalPrice: Number(booking.totalPrice),
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    paymentMode: booking.paymentMode,
+    paymentStatus: booking.paymentStatus,
+    roomTemplateId: booking.roomTemplateId,
+    invoiceId: booking.invoiceId ?? null,
+    invoice: booking.invoice ?? null,
+    guest: {
+      id: booking.guest.id,
+      firstName: booking.guest.firstName,
+      lastName: booking.guest.lastName,
+      email: booking.guest.email,
+      phoneNo: booking.guest.phoneNo,
+      avatar: booking.guest.avatar,
+    },
+    bed: booking.bed
+      ? {
+          id: booking.bed.id,
+          bedNo: booking.bed.bedNo,
+          roomId: booking.bed.roomId,
+        }
+      : null,
+    room: booking.room
+      ? {
+          id: booking.room.id,
+          title: booking.room.title,
+          roomTemplateId: booking.roomTemplateId,
+        }
+      : null,
+    property: {
+      id: booking.property.id,
+      title: booking.property.title,
+      address: booking.property.address,
+      city: booking.property.city,
+      state: booking.property.state,
+      images: booking.property.images,
+    },
+  };
+}
