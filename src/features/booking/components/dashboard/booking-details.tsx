@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookingProps } from "../../api/booking.api";
+import { BookingProps, refundSummaryOf } from "../../api/booking.api";
 import { BOOKING_STATUS_STYLES } from "../../lib/status";
 import { format } from "date-fns";
 import {
@@ -41,6 +41,7 @@ const formatCurrency = (amount: number) => {
 
 export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
   const coverImage = toUrl(booking.property?.images?.[0]) || null;
+  const refunds = refundSummaryOf(booking);
 
   return (
     <div>
@@ -219,6 +220,46 @@ export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
                   {booking.paymentStatus?.replace(/_/g, " ")}
                 </Badge>
               </div>
+              {refunds.refundedAmount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Refund</span>
+                  <Badge
+                    className="shadow-md backdrop-blur-md bg-background/80 text-foreground border-none bg-slate-50 text-slate-700 border-slate-200"
+                    variant="outline"
+                  >
+                    {refunds.refundState === "FULL"
+                      ? "Fully refunded"
+                      : "Partially refunded"}{" "}
+                    {`₹${refunds.refundedAmount.toLocaleString("en-IN")}`}
+                  </Badge>
+                </div>
+              )}
+              {refunds.refundPending && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Refund in progress
+                  </span>
+                  <Badge
+                    className="shadow-md backdrop-blur-md bg-background/80 text-foreground border-none bg-amber-50 text-amber-700 border-amber-200"
+                    variant="outline"
+                  >
+                    Awaiting the gateway
+                  </Badge>
+                </div>
+              )}
+              {refunds.refundFailed && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Last refund attempt
+                  </span>
+                  <Badge
+                    className="shadow-md backdrop-blur-md bg-background/80 text-foreground border-none bg-rose-50 text-rose-700 border-rose-200"
+                    variant="outline"
+                  >
+                    Not delivered
+                  </Badge>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   Payment Mode
