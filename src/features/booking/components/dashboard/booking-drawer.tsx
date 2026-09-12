@@ -3,14 +3,19 @@
 import { useSyncExternalStore, useState } from "react";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Check, Circle } from "lucide-react";
-import { BookingProps, OccupancyBooking } from "../../api/booking.api";
+import { Check, Circle, XIcon } from "lucide-react";
+import {
+  BookingProps,
+  OccupancyBooking,
+  refundSummaryOf,
+} from "../../api/booking.api";
 import { BookingDetailsBody } from "./booking-details";
 import { CancelAdminBookingModal } from "./cancel-admin-booking";
 import { AssignBedDialog } from "./assign-bed-dialog";
@@ -44,10 +49,12 @@ const toBookingProps = (booking: OccupancyBooking): BookingProps => {
     guestId: booking.guest.id,
     status: booking.status,
     totalPrice: booking.totalPrice,
+    refunds: booking.refunds,
     startDate: booking.startDate,
     endDate: booking.endDate,
     paymentMode: booking.paymentMode,
     paymentStatus: booking.paymentStatus,
+    refundSummary: booking.refundSummary,
     room: booking.room
       ? { id: booking.room.id, title: booking.room.title }
       : null,
@@ -165,9 +172,13 @@ export const BookingDrawer = ({
   const offlineUnpaid =
     displayBooking?.paymentMode === "OFFLINE" &&
     displayBooking?.paymentStatus === "PENDING";
-  const refundable =
-    displayBooking?.paymentStatus === "PAID" ||
-    displayBooking?.paymentStatus === "PARTIALLY_PAID";
+  const refunds = displayBooking
+    ? refundSummaryOf(displayBooking)
+    : refundSummaryOf({});
+  const canRefund =
+    (displayBooking?.paymentStatus === "PAID" ||
+      displayBooking?.paymentStatus === "PARTIALLY_PAID") &&
+    refunds.refundableAmount > 0;
   const hasArrived = displayBooking
     ? hasCheckinArrived(displayBooking.startDate)
     : false;
@@ -231,8 +242,9 @@ export const BookingDrawer = ({
     <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent
         side={isDesktop ? "right" : "bottom"}
-        className={`w-full overflow-y-auto p-0 gap-0 sm:max-w-lg ${
-          isDesktop ? "" : "max-h-[85vh] rounded-t-2xl"
+        showCloseButton={false}
+        className={`flex w-full flex-col overflow-hidden p-0 gap-0 sm:max-w-lg ${
+          isDesktop ? "h-full" : "h-[85vh] rounded-t-2xl"
         }`}
       >
         <SheetHeader className="sr-only">
@@ -244,22 +256,32 @@ export const BookingDrawer = ({
           </SheetDescription>
         </SheetHeader>
 
+        {/* Floats over the cover image, so it carries its own contrast rather
+            than sitting on top of whatever block happens to be first. */}
+        <SheetClose
+          aria-label="Close"
+          className="absolute top-3 right-3 z-20 grid size-8 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus:ring-2 focus:ring-white/70 focus:outline-hidden"
+        >
+          <XIcon className="size-4" />
+        </SheetClose>
+
         {displayBooking && (
-          <div className="flex h-full flex-col">
-            <div className="flex-1 overflow-y-auto">
-              {(displayBooking.status === "PENDING" ||
-                displayBooking.status === "CONFIRMED") &&
-                hasCheckinArrived(displayBooking.startDate) && (
-                  <div className="mx-4 mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
-                    {displayBooking.bed
-                      ? "This booking's stay has started but is still awaiting your approval."
-                      : "This booking's stay has started with no bed assigned. Assign a bed below, then approve."}
-                  </div>
-                )}
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <BookingDetailsBody booking={toBookingProps(displayBooking)} />
             </div>
 
             <div className="space-y-3 border-t bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+              {!isTerminal &&
+                (displayBooking.status === "PENDING" ||
+                  displayBooking.status === "CONFIRMED") &&
+                hasCheckinArrived(displayBooking.startDate) && (
+                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-200">
+                    {displayBooking.bed
+                      ? "This stay has started but the booking is still awaiting your approval."
+                      : "This stay has started with no bed assigned — assign a bed and approve to confirm it."}
+                  </div>
+                )}
               {!isTerminal && checklist.length > 0 && (
                 <div className="space-y-1.5 rounded-lg bg-muted/40 p-3">
                   {checklist.map((item) => (
@@ -299,6 +321,14 @@ export const BookingDrawer = ({
                 </Button>
               )}
 
+              {displayBooking.status === "CANCELLED" && canRefund && (
+                <p className="text-center text-sm text-amber-700 dark:text-amber-400">
+                  Refund due to the guest: ₹
+                  {refunds.refundableAmount.toLocaleString("en-IN")} — record it
+                  so the ledger closes.
+                </p>
+              )}
+
               <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-sm">
                 {isConfirmed && offlineUnpaid && (
                   <button
@@ -309,13 +339,13 @@ export const BookingDrawer = ({
                     Mark as paid
                   </button>
                 )}
-                {refundable && (
+                {canRefund && (
                   <button
                     type="button"
                     className="text-muted-foreground transition-colors hover:text-foreground hover:underline"
                     onClick={() => setRefundOpen(true)}
                   >
-                    Record refund
+                    {refunds.refundFailed ? "Retry refund" : "Record refund"}
                   </button>
                 )}
                 <button
@@ -377,7 +407,8 @@ export const BookingDrawer = ({
                     propertyId={propertyId}
                     bookingId={displayBooking.id}
                     guestName={guestName}
-                    total={Number(displayBooking.totalPrice)}
+                    captured={refunds.capturedAmount}
+                    refundable={refunds.refundableAmount}
                     paymentMode={displayBooking.paymentMode}
                     open={refundOpen}
                     onOpenChange={setRefundOpen}
@@ -387,9 +418,20 @@ export const BookingDrawer = ({
                     bookingId={displayBooking.id}
                     open={cancelOpen}
                     onOpenChange={setCancelOpen}
-                    onCancelled={() => {
+                    onCancelled={(result) => {
                       setCancelOpen(false);
-                      onOpenChange(false);
+                      setStatusOverride({
+                        bookingId: displayBooking.id,
+                        status: "CANCELLED",
+                      });
+
+                      // A cancelled paid booking leaves money owed to the
+                      // guest — keep the drawer open and settle it right here.
+                      if (result.refundRequired) {
+                        setRefundOpen(true);
+                      } else {
+                        onOpenChange(false);
+                      }
                     }}
                   />
                 </>
