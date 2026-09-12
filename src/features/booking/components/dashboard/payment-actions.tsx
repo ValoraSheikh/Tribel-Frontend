@@ -30,6 +30,13 @@ import {
 const OFFLINE_PROVIDERS = ["CASH", "UPI", "BANK_TRANSFER"] as const;
 const OFFLINE_REFUND_METHODS = ["CASH", "UPI", "BANK_TRANSFER"] as const;
 
+const formatMoney = (amount: number) =>
+  amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
+
 export function MarkBookingPaidModal({
   propertyId,
   bookingId,
@@ -137,7 +144,8 @@ export function RecordBookingRefundModal({
   propertyId,
   bookingId,
   guestName,
-  total,
+  captured,
+  refundable,
   paymentMode,
   defaultAmount,
   triggerLabel = "Record refund",
@@ -147,7 +155,10 @@ export function RecordBookingRefundModal({
   propertyId: string;
   bookingId: string;
   guestName: string;
-  total: number;
+  /** What the guest actually paid — never the booking total. */
+  captured: number;
+  /** What is still refundable, as derived by the server. */
+  refundable: number;
   paymentMode: string;
   defaultAmount?: number;
   triggerLabel?: string;
@@ -157,7 +168,8 @@ export function RecordBookingRefundModal({
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : internalOpen;
-  const [amount, setAmount] = useState<string>(String(defaultAmount ?? total));
+  const fallbackAmount = defaultAmount ?? refundable;
+  const [amount, setAmount] = useState<string>(String(fallbackAmount));
   const [method, setMethod] = useState<string>("CASH");
   const [reference, setReference] = useState("");
   const recordRefund = useRecordBookingRefund(propertyId, bookingId);
@@ -168,7 +180,7 @@ export function RecordBookingRefundModal({
     onControlledOpenChange?.(next);
     if (!isControlled) setInternalOpen(next);
     if (next) {
-      setAmount(String(defaultAmount ?? total));
+      setAmount(String(fallbackAmount));
       setMethod("CASH");
       setReference("");
     }
@@ -178,6 +190,11 @@ export function RecordBookingRefundModal({
     const parsedAmount = Number(amount);
     if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
       toast.error("Enter a valid refund amount");
+      return;
+    }
+
+    if (parsedAmount > refundable) {
+      toast.error(`Only ${formatMoney(refundable)} is still refundable here`);
       return;
     }
 
@@ -215,8 +232,8 @@ export function RecordBookingRefundModal({
           <DialogTitle>{isOnline ? "Refund guest" : "Record refund"}</DialogTitle>
           <DialogDescription>
             {isOnline
-              ? `Refunds for online payments are processed through Razorpay to ${guestName} and typically settle in 5–7 working days. Booking total is ${total.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}.`
-              : `Record the refund issued to ${guestName}. Booking total is ${total.toLocaleString("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 })}.`}
+              ? `Refunds for online payments are processed through Razorpay to ${guestName} and typically settle in 5–7 working days. ${formatMoney(captured)} was collected; ${formatMoney(refundable)} is still refundable.`
+              : `Record the refund issued to ${guestName}. ${formatMoney(captured)} was collected; ${formatMoney(refundable)} is still refundable.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -227,12 +244,14 @@ export function RecordBookingRefundModal({
               id="refund-amount"
               type="number"
               min={1}
+              max={refundable}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
             />
-            {Number(amount) > 0 && Number(amount) < total && (
+            {Number(amount) > 0 && Number(amount) < refundable && (
               <p className="text-xs text-muted-foreground">
-                Partial refund — payment status becomes partially paid.
+                Partial refund — the booking keeps showing what the guest paid,
+                and the rest stays refundable.
               </p>
             )}
           </div>
