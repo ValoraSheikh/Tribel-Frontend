@@ -13,7 +13,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useCancelAdminBooking } from "../../hooks/use-booking";
+import type { CancelAdminBookingResult } from "../../api/booking.api";
 import { useState } from "react";
+
+const formatMoney = (amount: number) =>
+  amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
 
 export function CancelAdminBookingModal({
   propertyId,
@@ -24,7 +32,7 @@ export function CancelAdminBookingModal({
 }: {
   propertyId: string;
   bookingId: string;
-  onCancelled?: () => void;
+  onCancelled?: (result: CancelAdminBookingResult) => void;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }) {
@@ -39,10 +47,18 @@ export function CancelAdminBookingModal({
 
   function handleCancel() {
     cancelAdminBooking.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Booking cancelled successfully");
+      onSuccess: (result) => {
+        if (result.refundRequired) {
+          toast.info("Booking cancelled — refund due", {
+            description: result.suggestedRefund
+              ? `${formatMoney(result.suggestedRefund.refundAmount)} is owed to the guest — use Record refund to settle it.`
+              : "The guest paid for this booking, so a refund is owed — use Record refund to settle it.",
+          });
+        } else {
+          toast.success("Booking cancelled successfully");
+        }
         setOpen(false)
-        onCancelled?.();
+        onCancelled?.(result);
       },
       onError: (error) => {
         toast.error("Failed to cancel booking", {
@@ -71,7 +87,8 @@ export function CancelAdminBookingModal({
           <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
           <AlertDialogDescription>
             The booking will be marked as cancelled and the bed will be freed
-            for other guests. This action cannot be undone.
+            for other guests. If the guest has paid, you will be asked to record
+            their refund next. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
