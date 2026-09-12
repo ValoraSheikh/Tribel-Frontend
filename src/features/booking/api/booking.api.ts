@@ -2,6 +2,68 @@ import { axiosClient } from "@/lib/axios/axios-client";
 import type { RoomTemplateProps } from "@/features/room-template/api/room-template.api";
 import { AxiosInstance } from "axios";
 
+export interface BookingRefund {
+  amount: number | string;
+  status: "PENDING" | "PROCESSED" | "FAILED";
+}
+
+export type BookingRefundState = "NONE" | "PARTIAL" | "FULL";
+
+/**
+ * The server's derived view of a booking's money. It is computed against the
+ * captured payment amount, never the booking total — a partially paid booking
+ * would otherwise look fully refunded. Never recompute this here: the refund
+ * endpoint caps against exactly this basis.
+ */
+export interface RefundSummary {
+  capturedAmount: number;
+  refundedAmount: number;
+  refundableAmount: number;
+  refundState: BookingRefundState;
+  refundPending: boolean;
+  refundFailed: boolean;
+}
+
+const NO_REFUNDS: RefundSummary = {
+  capturedAmount: 0,
+  refundedAmount: 0,
+  refundableAmount: 0,
+  refundState: "NONE",
+  refundPending: false,
+  refundFailed: false,
+};
+
+/**
+ * Reads the server-derived refund summary. A payload cached before the field
+ * existed degrades to "no refunds" instead of guessing a basis.
+ */
+export function refundSummaryOf(booking: {
+  refundSummary?: RefundSummary | null;
+}): RefundSummary {
+  return booking.refundSummary ?? NO_REFUNDS;
+}
+
+export interface SuggestedRefund {
+  nightsUsed: number | null;
+  amountDue: number;
+  refundAmount: number;
+}
+
+export interface CancelAdminBookingResult {
+  bookingId: string;
+  status: string;
+  suggestedRefund: SuggestedRefund | null;
+  refundRequired: boolean;
+  refundSummary: RefundSummary;
+}
+
+export interface CancelBookingResult {
+  id: string;
+  status: string;
+  refundRequired: boolean;
+  refundSummary: RefundSummary;
+}
+
 export interface BookingProps {
   id: string;
   propertyId: string;
@@ -27,7 +89,8 @@ export interface BookingProps {
     | "PARTIALLY_PAID"
     | "REJECTED"
     | "REFUNDED";
-  payments?: { refundStatus: "PENDING" | "PROCESSED" | "FAILED" | null }[];
+  refunds?: BookingRefund[];
+  refundSummary?: RefundSummary;
   room: Room | null;
   bed: Bed | null;
   guest: Guest;
@@ -50,6 +113,8 @@ export interface OccupancyBooking {
   endDate: string;
   paymentMode: "ONLINE" | "OFFLINE";
   paymentStatus: BookingProps["paymentStatus"];
+  refunds?: BookingRefund[];
+  refundSummary?: RefundSummary;
   roomTemplateId: string;
   invoiceId?: string | null;
   invoice?: {
@@ -238,19 +303,21 @@ export const bookingApi = {
     return data.data;
   },
 
-  cancelBooking: async (bookingId: string) => {
-    const { data } = await axiosClient.patch<BookingResponse>(
+  cancelBooking: async (bookingId: string): Promise<CancelBookingResult> => {
+    const { data } = await axiosClient.patch<{ data: CancelBookingResult }>(
       `/api/v1/booking`,
       { bookingId },
     );
     return data.data;
   },
 
-  cancelAdminBooking: async (propertyId: string, bookingId: string) => {
-    const { data } = await axiosClient.patch(
-      `/api/v1/booking/admin/${propertyId}`,
-      { bookingId },
-    );
+  cancelAdminBooking: async (
+    propertyId: string,
+    bookingId: string,
+  ): Promise<CancelAdminBookingResult> => {
+    const { data } = await axiosClient.patch<{
+      data: CancelAdminBookingResult;
+    }>(`/api/v1/booking/admin/${propertyId}`, { bookingId });
 
     return data.data;
   },
@@ -414,6 +481,7 @@ export function toDrawerBooking(booking: BookingProps): OccupancyBooking {
     endDate: booking.endDate,
     paymentMode: booking.paymentMode,
     paymentStatus: booking.paymentStatus,
+    refundSummary: booking.refundSummary,
     roomTemplateId: booking.roomTemplateId,
     invoiceId: booking.invoiceId ?? null,
     invoice: booking.invoice ?? null,
