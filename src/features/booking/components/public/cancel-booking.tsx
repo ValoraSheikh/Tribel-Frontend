@@ -15,6 +15,13 @@ import { toast } from "sonner";
 import { useCancelBooking } from "../../hooks/use-booking";
 import { useState } from "react";
 
+const formatMoney = (amount: number) =>
+  amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
+
 export function CancelBookingModal({
   bookingId,
   onCancelled,
@@ -37,8 +44,14 @@ export function CancelBookingModal({
 
   function handleCancel() {
     cancelBooking.mutate(undefined, {
-      onSuccess: () => {
-        toast.success("Booking cancelled successfully");
+      onSuccess: (result) => {
+        if (result.refundRequired) {
+          toast.info("Booking cancelled", {
+            description: `${formatMoney(result.refundSummary.refundableAmount)} is refundable — the property will process the refund.`,
+          });
+        } else {
+          toast.success("Booking cancelled successfully");
+        }
         setOpen(false);
         onCancelled?.();
       },
@@ -62,8 +75,8 @@ export function CancelBookingModal({
         <AlertDialogHeader>
           <AlertDialogTitle>Cancel this booking?</AlertDialogTitle>
           <AlertDialogDescription>
-            Your stay dates will be released back to the property. This action
-            cannot be undone.
+            Your stay dates will be released back to the property. Any refund is
+            processed by the property. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
