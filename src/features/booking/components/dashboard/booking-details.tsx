@@ -9,7 +9,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { BookingProps } from "../../api/booking.api";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { BookingProps, refundSummaryOf } from "../../api/booking.api";
 import { BOOKING_STATUS_STYLES } from "../../lib/status";
 import { format } from "date-fns";
 import {
@@ -40,6 +41,7 @@ const formatCurrency = (amount: number) => {
 
 export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
   const coverImage = toUrl(booking.property?.images?.[0]) || null;
+  const refunds = refundSummaryOf(booking);
 
   return (
     <div>
@@ -110,19 +112,36 @@ export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
             <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
               <User className="h-4 w-4 text-primary" /> Guest Information
             </h3>
-            <div className="grid grid-cols-1 gap-3 pl-2 border-l-2 border-muted ml-1">
-              <div>
-                <p className="text-sm font-medium">
-                  {booking.guest?.firstName} {booking.guest?.lastName}
-                </p>
+            <div className="grid grid-cols-1 gap-3 pl-3 border-l-2 border-muted ml-1">
+              <div className="flex items-center gap-3">
+                <Avatar className="size-12 border bg-muted">
+                  <AvatarImage
+                    src={toUrl(booking.guest?.avatar ?? "")}
+                    alt={`${booking.guest?.firstName ?? ""} ${booking.guest?.lastName ?? ""}`}
+                  />
+                  <AvatarFallback className="text-sm font-medium">
+                    {booking.guest?.firstName?.[0]}
+                    {booking.guest?.lastName?.[0] ?? ""}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">
+                    {booking.guest?.firstName} {booking.guest?.lastName}
+                  </p>
+                  <p className="text-xs text-muted-foreground">Guest</p>
+                </div>
               </div>
-              <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+              <div className="ml-1 flex flex-col gap-1 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <Mail className="h-3 w-3" /> {booking.guest?.email}
+                  <Mail className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{booking.guest?.email}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Phone className="h-3 w-3" /> {booking.guest?.phoneNo}
-                </div>
+                {booking.guest?.phoneNo && (
+                  <div className="flex items-center gap-2">
+                    <Phone className="h-3 w-3 shrink-0" />
+                    <span>{booking.guest.phoneNo}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -135,14 +154,23 @@ export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
             </h3>
             <div className="flex items-center justify-between bg-secondary/30 p-3 rounded-md">
               <div>
-                <p className="text-sm font-medium">{booking.room?.title}</p>
+                <p className="text-sm font-medium">
+                  {booking.room?.title ?? "Awaiting bed assignment"}
+                </p>
                 <p className="text-xs text-muted-foreground">
                   {booking.property?.address}
                 </p>
               </div>
-              {booking.bed?.bedNo && (
+              {booking.bed?.bedNo ? (
                 <Badge variant="outline" className="bg-background">
                   Bed {booking.bed.bedNo}
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="bg-background border-dashed text-muted-foreground"
+                >
+                  Unassigned
                 </Badge>
               )}
             </div>
@@ -192,6 +220,46 @@ export const BookingDetailsBody = ({ booking }: { booking: BookingProps }) => {
                   {booking.paymentStatus?.replace(/_/g, " ")}
                 </Badge>
               </div>
+              {refunds.refundedAmount > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">Refund</span>
+                  <Badge
+                    className="shadow-md backdrop-blur-md bg-background/80 text-foreground border-none bg-slate-50 text-slate-700 border-slate-200"
+                    variant="outline"
+                  >
+                    {refunds.refundState === "FULL"
+                      ? "Fully refunded"
+                      : "Partially refunded"}{" "}
+                    {`₹${refunds.refundedAmount.toLocaleString("en-IN")}`}
+                  </Badge>
+                </div>
+              )}
+              {refunds.refundPending && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Refund in progress
+                  </span>
+                  <Badge
+                    className="shadow-md backdrop-blur-md bg-background/80 text-foreground border-none bg-amber-50 text-amber-700 border-amber-200"
+                    variant="outline"
+                  >
+                    Awaiting the gateway
+                  </Badge>
+                </div>
+              )}
+              {refunds.refundFailed && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Last refund attempt
+                  </span>
+                  <Badge
+                    className="shadow-md backdrop-blur-md bg-background/80 text-foreground border-none bg-rose-50 text-rose-700 border-rose-200"
+                    variant="outline"
+                  >
+                    Not delivered
+                  </Badge>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted-foreground">
                   Payment Mode

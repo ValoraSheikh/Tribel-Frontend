@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RoomTable } from "./room-table";
-import { TemplateOccupancyStrip } from "./template-occupancy-strip";
+import { TemplateOccupancySummary } from "./template-occupancy-summary";
 import Image from "next/image";
 import { StarIcon } from "lucide-react";
 import roomFeatures from "@/constants/rooms-icon";
@@ -126,8 +126,8 @@ export function RoomTemplateDetails({
         </CardContent>
       </Card>
 
-      {/* Occupancy Strip */}
-      <TemplateOccupancyStrip
+      {/* Occupancy summary */}
+      <TemplateOccupancySummary
         propertyId={propertyId}
         roomTemplateId={roomTemplateId}
       />
@@ -137,7 +137,7 @@ export function RoomTemplateDetails({
         <h2 className="text-xl font-semibold tracking-tight">
           Room Inventory Management
         </h2>
-        <RoomTable rooms={room.rooms} />
+        <RoomTable rooms={room.rooms} propertyId={propertyId} />
       </div>
     </div>
   );

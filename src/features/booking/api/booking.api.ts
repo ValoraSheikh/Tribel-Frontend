@@ -2,10 +2,73 @@ import { axiosClient } from "@/lib/axios/axios-client";
 import type { RoomTemplateProps } from "@/features/room-template/api/room-template.api";
 import { AxiosInstance } from "axios";
 
+export interface BookingRefund {
+  amount: number | string;
+  status: "PENDING" | "PROCESSED" | "FAILED";
+}
+
+export type BookingRefundState = "NONE" | "PARTIAL" | "FULL";
+
+/**
+ * The server's derived view of a booking's money. It is computed against the
+ * captured payment amount, never the booking total — a partially paid booking
+ * would otherwise look fully refunded. Never recompute this here: the refund
+ * endpoint caps against exactly this basis.
+ */
+export interface RefundSummary {
+  capturedAmount: number;
+  refundedAmount: number;
+  refundableAmount: number;
+  refundState: BookingRefundState;
+  refundPending: boolean;
+  refundFailed: boolean;
+}
+
+const NO_REFUNDS: RefundSummary = {
+  capturedAmount: 0,
+  refundedAmount: 0,
+  refundableAmount: 0,
+  refundState: "NONE",
+  refundPending: false,
+  refundFailed: false,
+};
+
+/**
+ * Reads the server-derived refund summary. A payload cached before the field
+ * existed degrades to "no refunds" instead of guessing a basis.
+ */
+export function refundSummaryOf(booking: {
+  refundSummary?: RefundSummary | null;
+}): RefundSummary {
+  return booking.refundSummary ?? NO_REFUNDS;
+}
+
+export interface SuggestedRefund {
+  nightsUsed: number | null;
+  amountDue: number;
+  refundAmount: number;
+}
+
+export interface CancelAdminBookingResult {
+  bookingId: string;
+  status: string;
+  suggestedRefund: SuggestedRefund | null;
+  refundRequired: boolean;
+  refundSummary: RefundSummary;
+}
+
+export interface CancelBookingResult {
+  id: string;
+  status: string;
+  refundRequired: boolean;
+  refundSummary: RefundSummary;
+}
+
 export interface BookingProps {
   id: string;
   propertyId: string;
-  roomId: string;
+  roomTemplateId: string;
+  roomId: string | null;
   guestId: string;
   status:
     | "PENDING"
@@ -26,14 +89,16 @@ export interface BookingProps {
     | "PARTIALLY_PAID"
     | "REJECTED"
     | "REFUNDED";
-  room: Room;
-  bed: Bed;
+  refunds?: BookingRefund[];
+  refundSummary?: RefundSummary;
+  room: Room | null;
+  bed: Bed | null;
   guest: Guest;
   endDate: string;
   createdAt: string;
   updatedAt: string;
-  cancelledAt: string;
-  bedId: string;
+  cancelledAt: string | null;
+  bedId: string | null;
   invoiceId?: string | null;
   invoice?: {
     status: "PENDING" | "GENERATED" | "FAILED";
@@ -48,6 +113,9 @@ export interface OccupancyBooking {
   endDate: string;
   paymentMode: "ONLINE" | "OFFLINE";
   paymentStatus: BookingProps["paymentStatus"];
+  refunds?: BookingRefund[];
+  refundSummary?: RefundSummary;
+  roomTemplateId: string;
   invoiceId?: string | null;
   invoice?: {
     status: "PENDING" | "GENERATED" | "FAILED";
@@ -60,16 +128,16 @@ export interface OccupancyBooking {
     phoneNo: string | null;
     avatar: string | null;
   };
-  bed: {
+  bed?: {
     id: string;
     bedNo: number;
     roomId: string;
-  };
-  room: {
+  } | null;
+  room?: {
     id: string;
     title: string;
     roomTemplateId: string;
-  };
+  } | null;
   property: {
     id: string;
     title: string;
@@ -118,10 +186,12 @@ export interface BookingDataResponse {
 }
 
 interface Guest {
+  id: string;
   firstName: string;
   lastName: string | null;
   email: string;
   phoneNo: string | null;
+  avatar: string | null;
 }
 
 interface PropertyProps {
@@ -138,11 +208,14 @@ interface PropertyProps {
 }
 
 interface Room {
+  id: string;
   title: string;
 }
 
 interface Bed {
+  id: string;
   bedNo: number;
+  roomId: string;
 }
 
 interface BookingsResponse {
@@ -166,6 +239,7 @@ export interface CreateBookingPayload {
   startDate: Date;
   endDate: Date;
   paymentMode: "ONLINE" | "OFFLINE";
+  phoneNo?: string;
 }
 
 export const bookingApi = {
@@ -229,19 +303,21 @@ export const bookingApi = {
     return data.data;
   },
 
-  cancelBooking: async (bookingId: string) => {
-    const { data } = await axiosClient.patch<BookingResponse>(
+  cancelBooking: async (bookingId: string): Promise<CancelBookingResult> => {
+    const { data } = await axiosClient.patch<{ data: CancelBookingResult }>(
       `/api/v1/booking`,
       { bookingId },
     );
     return data.data;
   },
 
-  cancelAdminBooking: async (propertyId: string, bookingId: string) => {
-    const { data } = await axiosClient.patch(
-      `/api/v1/booking/admin/${propertyId}`,
-      { bookingId },
-    );
+  cancelAdminBooking: async (
+    propertyId: string,
+    bookingId: string,
+  ): Promise<CancelAdminBookingResult> => {
+    const { data } = await axiosClient.patch<{
+      data: CancelAdminBookingResult;
+    }>(`/api/v1/booking/admin/${propertyId}`, { bookingId });
 
     return data.data;
   },
@@ -271,6 +347,8 @@ export const bookingApi = {
         params: query,
       },
     );
+
+    console.log("data is in API frontend", data.data);
     return data.data;
   },
 
@@ -285,6 +363,68 @@ export const bookingApi = {
       bookingId,
       action,
     });
+    return data.data;
+  },
+
+  markBookingPaid: async (
+    propertyId: string,
+    bookingId: string,
+    payload: { provider?: string; reference?: string } = {},
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/payment/paid`,
+      { bookingId, ...payload },
+    );
+    return data.data;
+  },
+
+  recordBookingRefund: async (
+    propertyId: string,
+    bookingId: string,
+    payload: {
+      amount?: number;
+      reference?: string;
+    } = {},
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/payment/refund`,
+      { bookingId, ...payload },
+    );
+    return data.data;
+  },
+
+  assignBookingBed: async (
+    propertyId: string,
+    bookingId: string,
+    bedId: string,
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/booking/assign-bed`,
+      { bookingId, bedId },
+    );
+    return data.data;
+  },
+
+  updateGuestBookingDates: async (
+    bookingId: string,
+    payload: { startDate: string; endDate: string },
+  ) => {
+    const { data } = await axiosClient.patch(`/api/v1/booking/dates`, {
+      bookingId,
+      ...payload,
+    });
+    return data.data;
+  },
+
+  updateAdminBookingDates: async (
+    propertyId: string,
+    bookingId: string,
+    payload: { startDate: string; endDate: string },
+  ) => {
+    const { data } = await axiosClient.patch(
+      `/api/v1/booking/admin/${propertyId}/booking/dates`,
+      { bookingId, ...payload },
+    );
     return data.data;
   },
 };
@@ -327,3 +467,53 @@ export const serverBookingApi = {
     return data.data;
   },
 };
+
+/**
+ * Maps a paginated booking row (admin list / guest list shape) into the
+ * richer booking shape the details sheet renders.
+ */
+export function toDrawerBooking(booking: BookingProps): OccupancyBooking {
+  return {
+    id: booking.id,
+    status: booking.status,
+    totalPrice: Number(booking.totalPrice),
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    paymentMode: booking.paymentMode,
+    paymentStatus: booking.paymentStatus,
+    refundSummary: booking.refundSummary,
+    roomTemplateId: booking.roomTemplateId,
+    invoiceId: booking.invoiceId ?? null,
+    invoice: booking.invoice ?? null,
+    guest: {
+      id: booking.guest.id,
+      firstName: booking.guest.firstName,
+      lastName: booking.guest.lastName,
+      email: booking.guest.email,
+      phoneNo: booking.guest.phoneNo,
+      avatar: booking.guest.avatar,
+    },
+    bed: booking.bed
+      ? {
+          id: booking.bed.id,
+          bedNo: booking.bed.bedNo,
+          roomId: booking.bed.roomId,
+        }
+      : null,
+    room: booking.room
+      ? {
+          id: booking.room.id,
+          title: booking.room.title,
+          roomTemplateId: booking.roomTemplateId,
+        }
+      : null,
+    property: {
+      id: booking.property.id,
+      title: booking.property.title,
+      address: booking.property.address,
+      city: booking.property.city,
+      state: booking.property.state,
+      images: booking.property.images,
+    },
+  };
+}

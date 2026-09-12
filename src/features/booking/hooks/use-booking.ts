@@ -73,10 +73,144 @@ export const useCancelAdminBooking = (
       queryClient.invalidateQueries({
         queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
     },
 
     onError: (err) => {
       toast.error(err?.message || "Failed to cancel booking");
+    },
+  });
+};
+
+export const useMarkBookingPaid = (propertyId: string, bookingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "paid"],
+    mutationFn: (payload: { provider?: string; reference?: string }) =>
+      bookingApi.markBookingPaid(propertyId, bookingId, payload),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to mark payment as paid");
+    },
+  });
+};
+
+export const useRecordBookingRefund = (
+  propertyId: string,
+  bookingId: string,
+) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "refund"],
+    mutationFn: (payload: {
+      amount?: number;
+      reference?: string;
+    }) => bookingApi.recordBookingRefund(propertyId, bookingId, payload),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to record refund");
+    },
+  });
+};
+
+export const useAssignBookingBed = (propertyId: string, bookingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId, "assign-bed"],
+    mutationFn: (bedId: string) =>
+      bookingApi.assignBookingBed(propertyId, bookingId, bedId),
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to assign bed");
+    },
+  });
+};
+
+export const useUpdateBookingDates = (options: {
+  propertyId?: string;
+  bookingId: string;
+  actor: "GUEST" | "ADMIN";
+}) => {
+  const queryClient = useQueryClient();
+  const { propertyId, bookingId, actor } = options;
+
+  return useMutation({
+    mutationKey: ["booking-dates", actor, propertyId ?? "", bookingId],
+    mutationFn: (payload: { startDate: string; endDate: string }) =>
+      actor === "GUEST"
+        ? bookingApi.updateGuestBookingDates(bookingId, payload)
+        : bookingApi.updateAdminBookingDates(
+            propertyId!,
+            bookingId,
+            payload,
+          ),
+    onSettled: () => {
+      if (propertyId) {
+        queryClient.invalidateQueries({
+          queryKey: [...USE_ADMIN_BOOKING_KEY, propertyId, bookingId],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [...USE_ADMIN_BOOKINGS_KEY, propertyId],
+        });
+
+        queryClient.invalidateQueries({
+          queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+        });
+      }
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_USER_BOOKING_KEY, bookingId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: USE_USER_BOOKINGS_KEY,
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to update booking dates");
     },
   });
 };
@@ -179,10 +313,49 @@ export const useCancelBooking = (bookingId: string) => {
       queryClient.invalidateQueries({
         queryKey: USE_USER_BOOKINGS_KEY,
       });
+      queryClient.invalidateQueries({
+        queryKey: USE_ADMIN_BOOKINGS_KEY,
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_OCCUPANCY_KEY,
+      });
     },
 
-    onError: () => {
-      toast.error("Failed to cancel booking");
+    onError: (err) => {
+      toast.error(err?.message || "Failed to cancel booking");
+    },
+  });
+};
+
+export const useUpdateGuestBookingDates = (bookingId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: [...USE_USER_BOOKING_KEY, bookingId, "dates"],
+    mutationFn: (payload: { startDate: Date; endDate: Date }) =>
+      bookingApi.updateGuestBookingDates(bookingId, {
+        startDate: payload.startDate.toISOString(),
+        endDate: payload.endDate.toISOString(),
+      }),
+    onSuccess: () => {
+      toast.success("Booking dates updated");
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: [...USE_USER_BOOKING_KEY, bookingId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_USER_BOOKINGS_KEY,
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_ADMIN_BOOKINGS_KEY,
+      });
+      queryClient.invalidateQueries({
+        queryKey: USE_OCCUPANCY_KEY,
+      });
+    },
+    onError: (err) => {
+      toast.error(err?.message || "Failed to update booking dates");
     },
   });
 };

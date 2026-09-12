@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/popover";
 import { parseAsString, useQueryState } from "nuqs";
 import { OccupancyBooking } from "../../api/booking.api";
+import type { RoomTemplateProps } from "../../../room-template/api/room-template.api";
 import { useOccupancy } from "../../hooks/use-booking";
 import { isOccupancyStatus } from "../../lib/status";
 
@@ -39,10 +40,17 @@ const STATE_LABELS: Record<BedDayState, string> = {
 
 interface TheaterViewProps {
   propertyId: string;
+  templates?: RoomTemplateProps[];
+  templateId?: string | null;
   onOpenBooking: (booking: OccupancyBooking) => void;
 }
 
-export const TheaterView = ({ propertyId, onOpenBooking }: TheaterViewProps) => {
+export const TheaterView = ({
+  propertyId,
+  templates,
+  templateId,
+  onOpenBooking,
+}: TheaterViewProps) => {
   const [day, setDay] = useQueryState(
     "day",
     parseAsString.withDefault(format(new Date(), "yyyy-MM-dd")),
@@ -62,7 +70,12 @@ export const TheaterView = ({ propertyId, onOpenBooking }: TheaterViewProps) => 
     const beds = data?.beds ?? [];
     const grouped = new Map<
       string,
-      { roomId: string; roomTitle: string; beds: typeof beds }
+      {
+        roomId: string;
+        roomTitle: string;
+        roomTemplateId: string;
+        beds: typeof beds;
+      }
     >();
     for (const bed of beds) {
       const existing = grouped.get(bed.room.id);
@@ -72,6 +85,7 @@ export const TheaterView = ({ propertyId, onOpenBooking }: TheaterViewProps) => 
         grouped.set(bed.room.id, {
           roomId: bed.room.id,
           roomTitle: bed.room.title,
+          roomTemplateId: bed.room.roomTemplateId,
           beds: [bed],
         });
       }
@@ -79,10 +93,31 @@ export const TheaterView = ({ propertyId, onOpenBooking }: TheaterViewProps) => 
     return Array.from(grouped.values());
   }, [data?.beds]);
 
+  // Group rooms under their room template, honoring the ?template= filter.
+  const templateGroups = useMemo(() => {
+    const filtered = templateId
+      ? rooms.filter((room) => room.roomTemplateId === templateId)
+      : rooms;
+
+    const byTemplate = new Map<string, typeof rooms>();
+    for (const room of filtered) {
+      const list = byTemplate.get(room.roomTemplateId) ?? [];
+      list.push(room);
+      byTemplate.set(room.roomTemplateId, list);
+    }
+
+    return Array.from(byTemplate.entries()).map(([id, rooms]) => ({
+      templateId: id,
+      templateTitle: templates?.find((t) => t.id === id)?.title ?? "Rooms",
+      rooms,
+    }));
+  }, [rooms, templateId, templates]);
+
   const bookingsByBed = useMemo(() => {
     const map = new Map<string, OccupancyBooking[]>();
     for (const booking of data?.bookings ?? []) {
       if (!isOccupancyStatus(booking.status)) continue;
+      if (!booking.bed) continue;
       const list = map.get(booking.bed.id) ?? [];
       list.push(booking);
       map.set(booking.bed.id, list);
@@ -176,46 +211,55 @@ export const TheaterView = ({ propertyId, onOpenBooking }: TheaterViewProps) => 
         </div>
       </div>
 
-      {rooms.length === 0 ? (
+      {templateGroups.length === 0 ? (
         <div className="flex h-[30vh] items-center justify-center text-sm text-muted-foreground">
-          No beds configured for this property yet.
+          {templateId
+            ? "No beds for this room type yet."
+            : "No beds configured for this property yet."}
         </div>
       ) : (
         <div className="space-y-6 rounded-lg border p-4">
-          {rooms.map((room) => (
-            <div key={room.roomId} className="space-y-2">
-              <h3 className="text-sm font-semibold">{room.roomTitle}</h3>
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2">
-                {room.beds.map((bed) => {
-                  const { state, booking } = bedState(bed.id);
-                  const clickable = booking !== null;
-                  return (
-                    <button
-                      key={bed.id}
-                      type="button"
-                      disabled={!clickable}
-                      onClick={() => booking && onOpenBooking(booking)}
-                      title={
-                        booking
-                          ? `${booking.guest.firstName} ${booking.guest.lastName ?? ""} · ${format(parseISO(booking.startDate), "MMM d")} – ${format(parseISO(booking.endDate), "MMM d")}`
-                          : `Bed ${bed.bedNo} · free`
-                      }
-                      className={`flex h-14 flex-col items-center justify-center rounded-lg text-xs font-medium transition-opacity ${STATE_STYLES[state]} ${
-                        clickable
-                          ? "cursor-pointer hover:opacity-85"
-                          : "cursor-default"
-                      }`}
-                    >
-                      <span>B{bed.bedNo}</span>
-                      <span className="max-w-full truncate px-1 text-[10px] opacity-90">
-                        {booking
-                          ? booking.guest.firstName
-                          : STATE_LABELS[state]}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+          {templateGroups.map((group) => (
+            <div key={group.templateId} className="space-y-3">
+              <h3 className="flex items-center gap-2 border-l-4 border-l-primary bg-primary/10 px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-primary">
+                {group.templateTitle}
+              </h3>
+              {group.rooms.map((room) => (
+                <div key={room.roomId} className="space-y-2">
+                  <h4 className="text-sm font-medium">{room.roomTitle}</h4>
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(64px,1fr))] gap-2">
+                    {room.beds.map((bed) => {
+                      const { state, booking } = bedState(bed.id);
+                      const clickable = booking !== null;
+                      return (
+                        <button
+                          key={bed.id}
+                          type="button"
+                          disabled={!clickable}
+                          onClick={() => booking && onOpenBooking(booking)}
+                          title={
+                            booking
+                              ? `${booking.guest.firstName} ${booking.guest.lastName ?? ""} · ${format(parseISO(booking.startDate), "MMM d")} – ${format(parseISO(booking.endDate), "MMM d")}`
+                              : `Bed ${bed.bedNo} · free`
+                          }
+                          className={`flex h-14 flex-col items-center justify-center rounded-lg text-xs font-medium transition-opacity ${STATE_STYLES[state]} ${
+                            clickable
+                              ? "cursor-pointer hover:opacity-85"
+                              : "cursor-default"
+                          }`}
+                        >
+                          <span>B{bed.bedNo}</span>
+                          <span className="max-w-full truncate px-1 text-[10px] opacity-90">
+                            {booking
+                              ? booking.guest.firstName
+                              : STATE_LABELS[state]}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>

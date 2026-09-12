@@ -12,11 +12,11 @@ import {
   HistoryIcon,
   MapPin,
   MoreHorizontalIcon,
-  PencilIcon,
   Trash2Icon,
 } from "lucide-react";
 import Image from "next/image";
 import { parseAsInteger, useQueryState } from "nuqs";
+import { useState } from "react";
 
 import { useUserBookings } from "../../hooks/use-booking";
 
@@ -33,7 +33,6 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BookingProps } from "../../api/booking.api";
-import { BookingDetails } from "../dashboard/booking-details";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,6 +42,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CancelBookingModal } from "./cancel-booking";
+import { GuestBookingSheet } from "./guest-booking-sheet";
 import { toUrl } from "@/utils/image";
 import { invoiceApi } from "@/features/invoice/api/invoice.api";
 import { toast } from "sonner";
@@ -207,6 +207,16 @@ const getPaymentModeStyle = (mode: string) => {
 
 const BookingCard = ({ booking }: { booking: BookingProps }) => {
   const status = booking.status;
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+
+  const cancellable =
+    (status === "PENDING" || status === "CONFIRMED") &&
+    new Date(booking.startDate) > new Date() &&
+    !(
+      booking.paymentMode === "OFFLINE" &&
+      booking.paymentStatus === "PAID"
+    );
 
   const handleDownloadInvoice = async (bookingId: string) => {
     try {
@@ -214,8 +224,14 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
       if (result.downloadUrl) {
         window.open(result.downloadUrl, "_blank");
       }
-    } catch {
-      toast.error("Failed to download invoice");
+    } catch (error) {
+      const message =
+        (
+          error as {
+            response?: { data?: { message?: string } };
+          }
+        )?.response?.data?.message ?? "Failed to download invoice";
+      toast.error(message);
     }
   };
 
@@ -286,7 +302,12 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
               </p>
               <div className="flex items-center gap-2 text-sm font-medium">
                 <BedIcon className="w-4 h-4 text-primary shrink-0" />
-                <span className="line-clamp-1">{booking.room.title}</span>
+                <span className="line-clamp-1">
+                  {booking.room?.title ??
+                    (booking.bed?.bedNo
+                      ? `Bed ${booking.bed.bedNo}`
+                      : "Awaiting assignment")}
+                </span>
               </div>
             </div>
 
@@ -369,19 +390,15 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
                   Copy ID
                 </DropdownMenuItem>
 
-                <DropdownMenuSeparator />
-
                 <DropdownMenuItem
-                  onSelect={(e) => e.preventDefault()}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    setSheetOpen(true);
+                  }}
                   className="flex items-center"
                 >
                   <EyeIcon className="mr-2 h-4 w-4" />
-                  <BookingDetails booking={booking} />
-                </DropdownMenuItem>
-
-                <DropdownMenuItem className="flex items-center">
-                  <PencilIcon className="mr-2 h-4 w-4" />
-                  Edit Booking
+                  View details
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -395,21 +412,31 @@ const BookingCard = ({ booking }: { booking: BookingProps }) => {
 
                 <DropdownMenuSeparator />
 
-                <div
-                  role="button"
-                  tabIndex={0}
-                  className="
-                         flex items-center w-full rounded-sm px-2 py-1.5
-                         text-sm text-destructive cursor-pointer
-                         hover:bg-destructive/10
-                         focus:bg-destructive/10 focus:outline-none
-                       "
-                >
-                  <Trash2Icon className="mr-2 h-4 w-4" />
-                  <CancelBookingModal bookingId={booking.id} />
-                </div>
+                {cancellable && (
+                  <DropdownMenuItem
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      setCancelOpen(true);
+                    }}
+                    className="flex items-center text-destructive focus:bg-destructive/10 focus:text-destructive"
+                  >
+                    <Trash2Icon className="mr-2 h-4 w-4" />
+                    Cancel Booking
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            <GuestBookingSheet
+              booking={booking}
+              open={sheetOpen}
+              onOpenChange={setSheetOpen}
+            />
+            <CancelBookingModal
+              bookingId={booking.id}
+              open={cancelOpen}
+              onOpenChange={setCancelOpen}
+            />
           </div>
         </div>
       </div>

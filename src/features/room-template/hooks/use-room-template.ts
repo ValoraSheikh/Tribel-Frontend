@@ -5,6 +5,7 @@ import {
   RoomTemplateProps,
   UpdateRoomTemplate,
 } from "../api/room-template.api";
+import { USE_OCCUPANCY_KEY } from "@/features/booking/hooks/use-booking";
 import { toast } from "sonner";
 
 export const USE_ROOM_TEMPLATE_QUERY_KEY = ["roomtemplate"] as const;
@@ -27,6 +28,9 @@ export const useCreateRoomTemplate = (propertyId: string) => {
       if (createRoomTemplate) {
         queryClient.invalidateQueries({
           queryKey: [...USE_ROOM_TEMPLATES_QUERY_KEY, propertyId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [...USE_OCCUPANCY_KEY, propertyId],
         });
       }
     },
@@ -94,6 +98,10 @@ export const useUpdateRoomTemplate = (
       queryClient.invalidateQueries({
         queryKey: [...USE_ROOM_TEMPLATES_QUERY_KEY, propertyId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
+      });
     },
 
     onError: (err, newData, context) => {
@@ -147,6 +155,9 @@ export const useDeleteRoomTemplate = (
       });
       queryClient.invalidateQueries({
         queryKey: [...USE_ROOM_TEMPLATES_QUERY_KEY, propertyId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: [...USE_OCCUPANCY_KEY, propertyId],
       });
     },
     onError: (err) => {
