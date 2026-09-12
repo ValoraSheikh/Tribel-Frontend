@@ -28,25 +28,18 @@ export function computeBookingPrice(
   const monthlyRate = round2(pricePerBed);
   const nightlyRate = round2(pricePerBed / 30);
 
-  if (nights < 30) {
-    return {
-      nights,
-      months: 0,
-      rateType: "NIGHTLY",
-      nightlyRate,
-      monthlyRate,
-      total: round2(nights * nightlyRate),
-    };
-  }
-
-  const months = Math.ceil(nights / 30);
+  // Full months at the monthly rate, leftover nights at the nightly rate.
+  // Ceiling the remainder into a whole month made 31 nights bill as two months —
+  // a doubling cliff at every 30-day boundary.
+  const months = Math.floor(nights / 30);
+  const remainderNights = nights - months * 30;
 
   return {
     nights,
     months,
-    rateType: "MONTHLY",
+    rateType: months > 0 ? "MONTHLY" : "NIGHTLY",
     nightlyRate,
     monthlyRate,
-    total: round2(months * monthlyRate),
+    total: round2(months * monthlyRate + remainderNights * nightlyRate),
   };
 }

@@ -5,11 +5,13 @@ import { toast } from "sonner";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import {
   Sheet,
+  SheetClose,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { XIcon } from "lucide-react";
 import { invoiceApi } from "@/features/invoice/api/invoice.api";
 import { BookingProps } from "../../api/booking.api";
 import { BookingDetailsBody } from "../dashboard/booking-details";
@@ -79,8 +81,9 @@ export function GuestBookingSheet({
     <Sheet open={open} onOpenChange={handleSheetOpenChange}>
       <SheetContent
         side={isDesktop ? "right" : "bottom"}
-        className={`w-full overflow-y-auto p-0 gap-0 sm:max-w-lg ${
-          isDesktop ? "" : "max-h-[85vh] rounded-t-2xl"
+        showCloseButton={false}
+        className={`flex w-full flex-col overflow-hidden p-0 gap-0 sm:max-w-lg ${
+          isDesktop ? "h-full" : "h-[85vh] rounded-t-2xl"
         }`}
       >
         <SheetHeader className="sr-only">
@@ -90,9 +93,18 @@ export function GuestBookingSheet({
           </SheetDescription>
         </SheetHeader>
 
+        {/* Floats over the cover image, so it carries its own contrast rather
+            than sitting on top of whatever block happens to be first. */}
+        <SheetClose
+          aria-label="Close"
+          className="absolute top-3 right-3 z-20 grid size-8 place-items-center rounded-full bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65 focus:ring-2 focus:ring-white/70 focus:outline-hidden"
+        >
+          <XIcon className="size-4" />
+        </SheetClose>
+
         {booking && (
-          <div className="flex h-full flex-col">
-            <div className="flex-1 overflow-y-auto">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               <BookingDetailsBody booking={booking} />
             </div>
 
